@@ -62,7 +62,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -81,12 +80,13 @@ import ir.saltech.myapps.stutter.dto.model.Credit
 import ir.saltech.myapps.stutter.dto.model.DailyReport
 import ir.saltech.myapps.stutter.dto.model.WeeklyReport
 import ir.saltech.myapps.stutter.ui.state.MainUiState
-import ir.saltech.myapps.stutter.ui.theme.StutterTheme
+import ir.saltech.myapps.stutter.ui.theme.AppTheme
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
 import ir.saltech.myapps.stutter.ui.view.components.MethodUsageObject
 import ir.saltech.myapps.stutter.ui.view.components.SelfSatisfactionLayout
 import ir.saltech.myapps.stutter.ui.view.components.TextFieldLayout
 import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
+import ir.saltech.myapps.stutter.ui.view.pages.MainPage
 import ir.saltech.myapps.stutter.util.getSumOfActivities
 import ir.saltech.myapps.stutter.util.isTomorrow
 import ir.saltech.myapps.stutter.util.nowDay
@@ -136,17 +136,18 @@ class MainActivity : ComponentActivity() {
         loadPresets()
         enableEdgeToEdge()
         setContent {
-            StutterTheme {
-                LockedDirection(LayoutDirection.Rtl) {
+            AppTheme {
+                LockedDirection(LayoutDirection.Ltr) {
                     val snackBarHostState = remember { SnackbarHostState() }
                     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
                         SnackbarHost(snackBarHostState)
                     }) { innerPadding ->
                         if (checkPermissions()) {
-                            MainUI(
-                                modifier = Modifier.padding(innerPadding),
-                                snackBar = snackBarHostState
-                            )
+                            MainPage(innerPadding)
+//                            MainUI(
+//                                modifier = Modifier.padding(innerPadding),
+//                                snackBar = snackBarHostState
+//                            )
                         } else {
                             permissionLauncher.launch(permissions)
                         }
@@ -176,7 +177,7 @@ fun MainUI(
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
     MainLayout(uiState, snackBar, modifier)
-    LaunchedEffect(LocalLifecycleOwner.current) {
+    LaunchedEffect(androidx.lifecycle.compose.LocalLifecycleOwner.current) {
         mainViewModel.generateAdvice(uiState.dailyReports?.list ?: return@LaunchedEffect)
     }
     //Text("generated text is ${uiState.advice}")
@@ -1161,7 +1162,7 @@ fun DailyReportLayout(
 @Preview(showBackground = true)
 @Composable
 fun MainPreview() {
-    StutterTheme {
+    AppTheme {
         val snackBarHostState = remember { SnackbarHostState() }
         MainUI(snackBarHostState)
     }
