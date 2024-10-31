@@ -16,6 +16,7 @@ secretsGradlePlugin = "2.0.1"
 datastore = "1.1.1"
 ratingbar = "1.3.12"
 picasso = "2.71828"
+constraintlayoutCompose = "1.1.0"
 
 
 [libraries]
@@ -47,6 +48,7 @@ generativeai = { group = "ir.saltech.ai.client.generativeai", name = "generative
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 ratingbar-compose = { group = "com.github.a914-gowtham", name = "compose-ratingbar", version.ref="ratingbar" }
 picasso = { group = "com.squareup.picasso", name = "picasso", version.ref = "picasso" }
+androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

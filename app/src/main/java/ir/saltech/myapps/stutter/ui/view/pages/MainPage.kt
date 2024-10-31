@@ -1,9 +1,8 @@
 package ir.saltech.myapps.stutter.ui.view.pages
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,17 +43,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.R
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
 
 @Composable
-fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
+fun MainPage(
+    innerPadding: PaddingValues = PaddingValues(0.dp),
+    motivationText: String,
+    onPageWanted: (BaseApplication.Page) -> Unit
+) {
     Column(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
             .fillMaxSize()
-            .background(
-                MaterialTheme.colorScheme.surfaceContainerLowest)
 //            .background(
 //                ShaderBrush(ImageShader(ImageBitmap.imageResource(R.drawable.white_pattern), TileMode.Clamp, TileMode.Repeated))
 //            )
@@ -62,7 +66,13 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.8f),
+                .let {
+                    if (LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
+                        it.fillMaxSize()
+                    } else {
+                        it.weight(0.8f)
+                    }
+                },
             shape = MaterialTheme.shapes.large.copy(all = CornerSize(0))
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -75,27 +85,30 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.23f)),
+                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.3f)),
                 ) {
-                    Column(
+                    ConstraintLayout(
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top
                     ) {
-                        Spacer(modifier = Modifier.height(3.dp))
+                        val (header, motivation, button, spacer) = createRefs()
                         Row(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
+                                .padding(top = 21.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                                .fillMaxWidth()
+                                .constrainAs(header) {
+                                    top.linkTo(parent.top)
+                                    end.linkTo(parent.end)
+                                    start.linkTo(parent.start)
+                                },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             IconButton(
                                 modifier = Modifier.size(48.dp),
                                 onClick = {
-
+                                    onPageWanted(BaseApplication.Page.Search)
                                 }
                             ) {
                                 Icon(
@@ -113,7 +126,7 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                             IconButton(
                                 modifier = Modifier.size(48.dp),
                                 onClick = {
-
+                                    onPageWanted(BaseApplication.Page.Menu)
                                 }
                             ) {
                                 Icon(
@@ -122,31 +135,36 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.weight(0.25f))
-                        LockedDirection(LayoutDirection.Rtl) {
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp, horizontal = 24.dp)
-                                    .basicMarquee(
-                                        velocity = 75.dp,
-                                        spacing = MarqueeSpacing(16.dp),
-                                        initialDelayMillis = 0
+                        AnimatedContent(modifier = Modifier.constrainAs(motivation) {
+                            top.linkTo(header.bottom)
+                            end.linkTo(parent.end)
+                            start.linkTo(parent.start)
+                            bottom.linkTo(button.top)
+                        }, targetState = motivationText) { text ->
+                            LockedDirection(LayoutDirection.Ltr) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp, horizontal = 24.dp),
+                                    text = text,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontSize = 21.sp,
+                                        lineHeight = 40.sp,
+                                        textDirection = TextDirection.Rtl
                                     ),
-                                text = "امروز تو لکنتت رو شکست میدی!hlv,casdflkjefasefjklklslkfjasd;fkjdas",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = 21.sp,
-                                    lineHeight = 40.sp,
-                                    textDirection = TextDirection.Rtl
-                                ),
-                                maxLines = 1,
-                                textAlign = TextAlign.Center
-                            )
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.weight(0.25f))
                         FilledTonalButton(
                             modifier = Modifier
-                                .padding(8.dp, 16.dp),
+                                .padding(top = 8.dp, end = 16.dp, start = 16.dp, bottom = 24.dp)
+                                .constrainAs(button) {
+                                    top.linkTo(motivation.bottom)
+                                    bottom.linkTo(spacer.bottom)
+                                    end.linkTo(parent.end)
+                                    start.linkTo(parent.start)
+                                },
                             colors = ButtonDefaults.filledTonalButtonColors(
                                 Color(if (isSystemInDarkTheme()) 0xFFB1C0DA else 0xBE286BDA).copy(
                                     alpha = 0.08f
@@ -155,7 +173,9 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                                 ButtonDefaults.filledTonalButtonColors().disabledContainerColor,
                                 ButtonDefaults.filledTonalButtonColors().disabledContentColor,
                             ),
-                            onClick = { }
+                            onClick = {
+                                onPageWanted(BaseApplication.Page.ChatRoom)
+                            }
                         ) {
                             Text(
                                 text = "باهام حرف بزن!",
@@ -168,17 +188,24 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                                 contentDescription = "Chat with AI"
                             )
                         }
-                        Spacer(modifier = Modifier.weight(0.4f))
+                        Spacer(modifier = Modifier
+                            .height(32.dp)
+                            .constrainAs(spacer) {
+                                bottom.linkTo(parent.bottom)
+                                end.linkTo(parent.end)
+                                start.linkTo(parent.start)
+                            })
                     }
                 }
             }
         }
         LazyVerticalStaggeredGrid(
             modifier = Modifier
-                .offset(y = (-24).dp)
+                .offset(y = (-18).dp)
                 .weight(1f)
                 .background(
-                    MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.shapes.large.copy(
+                    MaterialTheme.colorScheme.surfaceContainerLowest,
+                    MaterialTheme.shapes.large.copy(
                         topEnd = CornerSize(16.dp),
                         topStart = CornerSize(16.dp),
                         bottomEnd = CornerSize(0),
@@ -190,21 +217,55 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
 //                )
                 .padding(top = 24.dp)
                 .padding(horizontal = 16.dp),
-            columns = StaggeredGridCells.Adaptive(150.dp),
+            columns = StaggeredGridCells.Adaptive(
+                if (LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
+                    75.dp
+                } else {
+                    125.dp
+                }
+            ),
             verticalItemSpacing = 0.dp,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            item { MenuItem(iconResId = R.drawable.analysis, title = "تحلیل تمرین") }
-            item { MenuItem(iconResId = R.drawable.podcast, title = "تمرین صوتی") }
-            item { MenuItem(iconResId = R.drawable.schedule, title = "گزارش هفتگی") }
-            item { MenuItem(iconResId = R.drawable.planing, title = "گزارش روزانه") }
+            item {
+                MenuItem(
+                    iconResId = R.drawable.analysis,
+                    title = "تحلیل تمرین",
+                    onClick = {
+                        onPageWanted(BaseApplication.Page.AnalyzePractice)
+                    })
+            }
+            item {
+                MenuItem(
+                    iconResId = R.drawable.podcast,
+                    title = "تمرین صوتی",
+                    onClick = {
+                        onPageWanted(BaseApplication.Page.Practice)
+                    })
+            }
+            item {
+                MenuItem(
+                    iconResId = R.drawable.schedule,
+                    title = "گزارش هفتگی",
+                    onClick = {
+                        onPageWanted(BaseApplication.Page.SendWeeklyReport)
+                    })
+            }
+            item {
+                MenuItem(
+                    iconResId = R.drawable.planing,
+                    title = "گزارش روزانه",
+                    onClick = {
+                        onPageWanted(BaseApplication.Page.SendDailyReport)
+                    })
+            }
         }
         // Menu Items Section
     }
 }
 
 @Composable
-fun MenuItem(iconResId: Int, title: String) {
+fun MenuItem(iconResId: Int, title: String, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -215,7 +276,10 @@ fun MenuItem(iconResId: Int, title: String) {
             ButtonDefaults.filledTonalButtonColors().disabledContainerColor,
             ButtonDefaults.filledTonalButtonColors().disabledContentColor,
         ),
-        shape = RoundedCornerShape(15.dp)
+        shape = RoundedCornerShape(15.dp),
+        onClick = {
+            onClick()
+        }
     ) {
         Column(
             modifier = Modifier
@@ -244,7 +308,10 @@ fun MenuItem(iconResId: Int, title: String) {
             Text(
                 modifier = Modifier.padding(horizontal = 3.dp),
                 text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, textDirection = TextDirection.ContentOrRtl),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = 17.sp,
+                    textDirection = TextDirection.ContentOrRtl
+                ),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(5.dp))
@@ -256,5 +323,7 @@ fun MenuItem(iconResId: Int, title: String) {
 @Composable
 @Preview(showBackground = true)
 fun PreviewStutterAidWelcomeScreen() {
-    MainPage()
+    MainPage(motivationText = "امروز، تو لکنت رو شکست میدی! 🦾") {
+
+    }
 }

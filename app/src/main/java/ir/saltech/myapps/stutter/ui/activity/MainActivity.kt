@@ -3,11 +3,9 @@ package ir.saltech.myapps.stutter.ui.activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.icu.util.Calendar
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -25,6 +23,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,9 +73,6 @@ import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_DAILY_REPORT_PAGES
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_NAME_CHARS
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_WEEKLY_REPORT_PAGES
-import ir.saltech.myapps.stutter.dto.api.ApiCallback
-import ir.saltech.myapps.stutter.dto.api.ErrorResponse
-import ir.saltech.myapps.stutter.dto.model.Credit
 import ir.saltech.myapps.stutter.dto.model.DailyReport
 import ir.saltech.myapps.stutter.dto.model.WeeklyReport
 import ir.saltech.myapps.stutter.ui.state.MainUiState
@@ -87,17 +83,14 @@ import ir.saltech.myapps.stutter.ui.view.components.SelfSatisfactionLayout
 import ir.saltech.myapps.stutter.ui.view.components.TextFieldLayout
 import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
 import ir.saltech.myapps.stutter.ui.view.pages.MainPage
+import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
 import ir.saltech.myapps.stutter.util.getSumOfActivities
 import ir.saltech.myapps.stutter.util.isTomorrow
 import ir.saltech.myapps.stutter.util.nowDay
-import ir.saltech.myapps.stutter.util.response
 import ir.saltech.myapps.stutter.util.toDayReportDate
 import ir.saltech.myapps.stutter.util.toJalali
 import ir.saltech.myapps.stutter.util.toRegularTime
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -138,12 +131,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 LockedDirection(LayoutDirection.Ltr) {
+                    val scope = rememberCoroutineScope()
                     val snackBarHostState = remember { SnackbarHostState() }
                     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
                         SnackbarHost(snackBarHostState)
                     }) { innerPadding ->
                         if (checkPermissions()) {
-                            MainPage(innerPadding)
+                            Launcher(innerPadding)
 //                            MainUI(
 //                                modifier = Modifier.padding(innerPadding),
 //                                snackBar = snackBarHostState
@@ -159,6 +153,7 @@ class MainActivity : ComponentActivity() {
 
     private fun loadPresets() {
         mainViewModel.context = this
+        mainViewModel.generateNewMotivationText()
         mainViewModel.loadDailyReports()
         mainViewModel.loadWeeklyReports()
     }
@@ -166,6 +161,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         startProgram()
+    }
+}
+
+@Composable
+fun Launcher(
+    paddingValues: PaddingValues = PaddingValues(0.dp),
+    mainViewModel: MainViewModel = viewModel()
+) {
+    val uiState by mainViewModel.uiState.collectAsState()
+    MainPage(paddingValues, uiState.sentence ?: getGreetingBasedOnTime()) {
+
     }
 }
 
@@ -191,7 +197,7 @@ fun MainLayout(
     mainViewModel: MainViewModel = viewModel()
 ) {
     var item by remember {
-        mutableStateOf<BaseApplication.MenuItem?>(null)
+        mutableStateOf<BaseApplication.Page?>(null)
     }
     AnimatedVisibility(item == null) {
         Column(
@@ -199,27 +205,30 @@ fun MainLayout(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ElevatedCard (
-                modifier = Modifier.height(300.dp).fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer, )
+            ElevatedCard(
+                modifier = Modifier
+                    .height(300.dp)
+                    .fillMaxWidth(),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Box {
 
                 }
             }
-            Text(modifier = Modifier.padding(bottom=16.dp), text= "سخن یار",
-                style=MaterialTheme.typography.displayMedium
+            Text(
+                modifier = Modifier.padding(bottom = 16.dp), text = "سخن یار",
+                style = MaterialTheme.typography.displayMedium
             )
-            Button(onClick = {
-                item = BaseApplication.MenuItem.Motivation; mainViewModel.generateNewSentence()
-            }) {
-                Text("انگیزشی لکنت")
-            }
+//            Button(onClick = {
+//                item = BaseApplication.MenuItem.Motivation; mainViewModel.generateNewSentence()
+//            }) {
+//                Text("انگیزشی لکنت")
+//            }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     mainViewModel.loadVoicesProperties()
-                    item = BaseApplication.MenuItem.SendDailyReport
+                    item = BaseApplication.Page.SendDailyReport
                 },
                 enabled = Clock.System.nowDay() isTomorrow uiState.dailyReports?.list?.lastOrNull()?.date && Clock.System.now()
                     .toLocalDateTime(
@@ -230,7 +239,7 @@ fun MainLayout(
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
-                onClick = { item = BaseApplication.MenuItem.SendWeeklyReport },
+                onClick = { item = BaseApplication.Page.SendWeeklyReport },
                 enabled = Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY && Clock.System.nowDay() isTomorrow uiState.weeklyReports?.list?.lastOrNull()?.date && Clock.System.now()
                     .toLocalDateTime(
                         TimeZone.currentSystemDefault()
@@ -240,105 +249,105 @@ fun MainLayout(
             }
         }
     }
+//    AnimatedVisibility(
+//        item == BaseApplication.MenuItem.Motivation,
+//        enter = fadeIn() + scaleIn(),
+//        exit = fadeOut() + scaleOut()
+//    ) {
+//        Motivation(modifier, uiState)
+//    }
     AnimatedVisibility(
-        item == BaseApplication.MenuItem.Motivation,
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut()
-    ) {
-        Motivation(modifier, uiState)
-    }
-    AnimatedVisibility(
-        item == BaseApplication.MenuItem.SendDailyReport,
+        item == BaseApplication.Page.SendDailyReport,
         enter = fadeIn() + scaleIn(),
         exit = fadeOut() + scaleOut()
     ) {
         DailyReportLayout(modifier, uiState, snackBar)
     }
     AnimatedVisibility(
-        item == BaseApplication.MenuItem.SendWeeklyReport,
+        item == BaseApplication.Page.SendWeeklyReport,
         enter = fadeIn() + scaleIn(),
         exit = fadeOut() + scaleOut()
     ) {
         WeeklyReportLayout(modifier, uiState, snackBar)
     }
 }
-
-@Composable
-fun Motivation(
-    modifier: Modifier = Modifier,
-    uiState: MainUiState,
-    mainViewModel: MainViewModel = viewModel()
-) {
-    val speech by mainViewModel.speechOutput.collectAsState()
-    if (uiState.sentence.isNotEmpty() && BaseApplication.Constants.AI_CREDITS_SHOW || BaseApplication.Constants.MOTIVATION_WITH_SPEECH) {
-        LaunchedEffect(uiState.sentence.last().delta?.content == null) {
-            val mediaPlayer = MediaPlayer()
-            repeat(10) {
-                if (speech != null) {
-                    if (!mediaPlayer.isPlaying) {
-                        Log.i("TAG", "preparing media ...")
-                        mediaPlayer.isLooping = false
-                        mediaPlayer.setDataSource(speech!!.fd)
-                        mediaPlayer.prepare()
-                        mediaPlayer.start()
-                    }
-                }
-                withContext(Dispatchers.IO) {
-                    mainViewModel.checkCredits(object : ApiCallback<Credit> {
-                        override fun onSuccessful(responseObject: Credit?) {
-                            mainViewModel.credit = responseObject
-                            Log.i("TAG", "Credit fetch: $responseObject")
-                        }
-
-                        override fun onFailure(response: ErrorResponse?, t: Throwable?) {
-                            mainViewModel.credit = null
-                            Toast.makeText(
-                                mainViewModel.context,
-                                "Error: ${response?.details}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            t?.printStackTrace()
-                        }
-                    })
-                }
-                delay(1000)
-            }
-        }
-    }
-    Log.i("TAG", "Response Showed: ${uiState.sentence.response()}")
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            text = "انگیزشی لکنت",
-            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            text = if (uiState.sentence.size > 2) uiState.sentence.response() else "در جستجوی یه انگیزشی متفاوت! ... 🤔",
-            style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl),
-            textAlign = TextAlign.Justify
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        AnimatedVisibility(uiState.credit != null) {
-            Text(
-                text = "اعتبار باقی مانده (USDT): ${uiState.credit?.totalUnit}",
-                color = MaterialTheme.colorScheme.secondary,
-                style = MaterialTheme.typography.labelLarge.copy(textDirection = TextDirection.ContentOrRtl),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
+//
+//@Composable
+//fun Motivation(
+//    modifier: Modifier = Modifier,
+//    uiState: MainUiState,
+//    mainViewModel: MainViewModel = viewModel()
+//) {
+//    val speech by mainViewModel.speechOutput.collectAsState()
+//    if (uiState.sentence.isNotEmpty() && BaseApplication.Constants.AI_CREDITS_SHOW || BaseApplication.Constants.MOTIVATION_WITH_SPEECH) {
+//        LaunchedEffect(uiState.sentence.last().delta?.content == null) {
+//            val mediaPlayer = MediaPlayer()
+//            repeat(10) {
+//                if (speech != null) {
+//                    if (!mediaPlayer.isPlaying) {
+//                        Log.i("TAG", "preparing media ...")
+//                        mediaPlayer.isLooping = false
+//                        mediaPlayer.setDataSource(speech!!.fd)
+//                        mediaPlayer.prepare()
+//                        mediaPlayer.start()
+//                    }
+//                }
+//                withContext(Dispatchers.IO) {
+//                    mainViewModel.checkCredits(object : ApiCallback<Credit> {
+//                        override fun onSuccessful(responseObject: Credit?) {
+//                            mainViewModel.credit = responseObject
+//                            Log.i("TAG", "Credit fetch: $responseObject")
+//                        }
+//
+//                        override fun onFailure(response: ErrorResponse?, t: Throwable?) {
+//                            mainViewModel.credit = null
+//                            Toast.makeText(
+//                                mainViewModel.context,
+//                                "Error: ${response?.details}",
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                            t?.printStackTrace()
+//                        }
+//                    })
+//                }
+//                delay(1000)
+//            }
+//        }
+//    }
+//    Log.i("TAG", "Response Showed: ${uiState.sentence.response()}")
+//    Column(
+//        modifier = modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Text(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp),
+//            text = "انگیزشی لکنت",
+//            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+//            textAlign = TextAlign.Center
+//        )
+//        Spacer(modifier = Modifier.height(16.dp))
+//        Text(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp),
+//            text = if (uiState.sentence.size > 2) uiState.sentence.response() else "در جستجوی یه انگیزشی متفاوت! ... 🤔",
+//            style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl),
+//            textAlign = TextAlign.Justify
+//        )
+//        Spacer(modifier = Modifier.height(24.dp))
+//        AnimatedVisibility(uiState.credit != null) {
+//            Text(
+//                text = "اعتبار باقی مانده (USDT): ${uiState.credit?.totalUnit}",
+//                color = MaterialTheme.colorScheme.secondary,
+//                style = MaterialTheme.typography.labelLarge.copy(textDirection = TextDirection.ContentOrRtl),
+//                textAlign = TextAlign.Center
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun WeeklyReportLayout(

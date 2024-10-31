@@ -111,3 +111,37 @@ fun WeeklyReport.getSumOfActivities(): WeeklyReport {
         sumOfAllActivities
     })
 }
+
+fun getGreetingBasedOnTime(): String {
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val currentMinute = Calendar.getInstance().get(Calendar.MINUTE)
+
+    return when (currentHour) {
+        in 4..<11 -> "سلام! 👋\n صبح قشنگت بخیر! 😇"
+        in 11..12 -> "سلام! 👋\n نزدیک ظهره، روزت بخیر! 🌞"
+        in 12..13 -> "سلام! 👋\n ظهر بخیر، گرسنه‌ت نیست؟ 😋"
+        in 13..<15 -> "سلام! 👋\n بعد از ظهرت بخیر، امیدوارم عالی بگذره! 😊"
+        in 15..<17 -> "سلام! 👋\n عصر بخیر، خسته نباشی! 😊"
+        in 17..<20 -> "سلام! 👋\n غروب زیبای امروز چطور بود؟ 🌇"
+        in 20..23 -> "سلام! 👋\n شب بخیر، خواب‌های خوب ببینی! 🌙"
+        else -> "سلام! 👋\n به دنیای بیدارها خوش اومدی! 🦉" // for late night/early morning
+    }
+}
+
+fun getCommandBasedOnTime(): String {
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val currentMinute = Calendar.getInstance().get(Calendar.MINUTE)
+
+    return when (currentHour) {
+        in 4..<11 -> "الان صبحه؛"
+        in 11..12 -> "الان نزدیک ظهره؛"
+        in 12..13 -> "الان ظهره؛"
+        in 13..<15 -> "الان بعد از ظهره؛"
+        in 15..<17 -> "الان عصره؛"
+        in 17..<20 -> "الان ابتدای شبه؛"
+        in 20..23 -> "الان آخر شبه؛"
+        else -> "الان نیمه شبه؛" // for late night/early morning
+    }
+}
+
+

@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.ratingbar.compose)
     implementation(libs.picasso)
+    implementation(libs.androidx.constraintlayout.compose)
     runtimeOnly(libs.ktor.client.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
