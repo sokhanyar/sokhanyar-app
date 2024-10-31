@@ -24,7 +24,6 @@ import ir.saltech.myapps.stutter.ui.state.MainUiState
 import ir.saltech.myapps.stutter.util.dataStore
 import ir.saltech.myapps.stutter.util.fromJson
 import ir.saltech.myapps.stutter.util.get
-import ir.saltech.myapps.stutter.util.getCommandBasedOnTime
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
 import ir.saltech.myapps.stutter.util.getLastDailyReports
 import ir.saltech.myapps.stutter.util.set
@@ -296,13 +295,13 @@ class MainViewModel : ViewModel() {
                         temperature = 1.7f
                         topK = 40
                         topP = 0.95f
-                        maxOutputTokens = 128
+                        maxOutputTokens = 84
                         responseMimeType = "text/plain"
                     }
                 )
                 val generatedContent = model.generateContent(
-                    " ${getCommandBasedOnTime()} یک جمله انگیزشی به من بگو.\\n\n" +
-                            "فقط جمله انگیزشی ات رو نشون بده. جلمه انگیزشی باید فقط 1 خط باشه و به همراه ایموجی جذاب باشه.\\n\n"
+                    " ${getGreetingBasedOnTime(true)} یک جمله انگیزشی خفن به من بگو.\n" +
+                            "فقط جمله انگیزشی ات رو نشون بده. جلمه انگیزشی باید فقط 1 خط باشه و به همراه ایموجی جذاب باشه.\n"
                 )
                 sentence = generatedContent.text?.trim() ?: sentence
             } catch (e: Exception) {

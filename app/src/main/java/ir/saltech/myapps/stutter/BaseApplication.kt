@@ -2,7 +2,6 @@ package ir.saltech.myapps.stutter
 
 import android.app.Application
 import androidx.datastore.preferences.core.stringPreferencesKey
-import ir.saltech.ai.client.generativeai.type.content
 
 class BaseApplication : Application() {
     object Constants {
@@ -11,8 +10,6 @@ class BaseApplication : Application() {
         const val MAX_OF_NAME_CHARS = 25
         const val MAX_OF_DAILY_REPORT_PAGES = 4
         const val MAX_OF_WEEKLY_REPORT_PAGES = 3
-        const val MOTIVATION_WITH_SPEECH = false
-        const val AI_CREDITS_SHOW = false
     }
 
     object Ai {
@@ -21,6 +18,7 @@ class BaseApplication : Application() {
                 const val Flash = "gemini-1.5-flash-002"
                 const val Pro = "gemini-1.5-pro-002"
             }
+
             val apiKeys = listOf(
                 BuildConfig.geminiApiKey
             )

@@ -38,8 +38,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -73,7 +71,9 @@ import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_DAILY_REPORT_PAGES
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_NAME_CHARS
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_WEEKLY_REPORT_PAGES
+import ir.saltech.myapps.stutter.R
 import ir.saltech.myapps.stutter.dto.model.DailyReport
+import ir.saltech.myapps.stutter.dto.model.MenuPageItem
 import ir.saltech.myapps.stutter.dto.model.WeeklyReport
 import ir.saltech.myapps.stutter.ui.state.MainUiState
 import ir.saltech.myapps.stutter.ui.theme.AppTheme
@@ -137,11 +137,7 @@ class MainActivity : ComponentActivity() {
                         SnackbarHost(snackBarHostState)
                     }) { innerPadding ->
                         if (checkPermissions()) {
-                            Launcher(innerPadding)
-//                            MainUI(
-//                                modifier = Modifier.padding(innerPadding),
-//                                snackBar = snackBarHostState
-//                            )
+                            Launcher(snackBar = snackBarHostState, paddingValues = innerPadding)
                         } else {
                             permissionLauncher.launch(permissions)
                         }
@@ -166,12 +162,68 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Launcher(
+    snackBar: SnackbarHostState,
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(0.dp),
     mainViewModel: MainViewModel = viewModel()
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
-    MainPage(paddingValues, uiState.sentence ?: getGreetingBasedOnTime()) {
-
+    val onPageWanted = fun(page: BaseApplication.Page) { mainViewModel.page = page }
+    MainPage(
+        paddingValues,
+        motivationText = uiState.sentence ?: getGreetingBasedOnTime(),
+        menuPageItems = listOf(
+            MenuPageItem(
+                iconResId = R.drawable.schedule,
+                title = "گزارش هفتگی",
+                onClick = { onPageWanted(BaseApplication.Page.SendWeeklyReport) },
+                disabledReason = "زمان ارسال گزارش هفتگی، جمعه ها از ساعت 6 الی 22 می باشد.",
+                enabled = Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY && Clock.System.nowDay() isTomorrow uiState.weeklyReports?.list?.lastOrNull()?.date && Clock.System.now()
+                    .toLocalDateTime(
+                        TimeZone.currentSystemDefault()
+                    ).hour in 6..22
+            ),
+            MenuPageItem(
+                iconResId = R.drawable.planing,
+                title = "گزارش روزانه",
+                onClick = {
+                    mainViewModel.loadVoicesProperties()
+                    onPageWanted(BaseApplication.Page.SendDailyReport)
+                },
+                disabledReason = "زمان ارسال گزارش روزانه، از ساعت 19 الی 23 می باشد.",
+                enabled = Clock.System.nowDay() isTomorrow uiState.dailyReports?.list?.lastOrNull()?.date && Clock.System.now()
+                    .toLocalDateTime(
+                        TimeZone.currentSystemDefault()
+                    ).hour in 19..23
+            ),
+            MenuPageItem(
+                iconResId = R.drawable.podcast,
+                title = "تمرین صوتی",
+                comingSoon = true,
+                onClick = {
+                    onPageWanted(BaseApplication.Page.Practice)
+                }),
+            MenuPageItem(
+                iconResId = R.drawable.analysis,
+                title = "تحلیل تمرین",
+                onClick = {
+                    onPageWanted(BaseApplication.Page.AnalyzePractice)
+                }),
+        )
+    ) { onPageWanted(it) }
+    AnimatedVisibility(
+        uiState.page == BaseApplication.Page.SendDailyReport,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut() + scaleOut()
+    ) {
+        DailyReportLayout(modifier, uiState, snackBar)
+    }
+    AnimatedVisibility(
+        uiState.page == BaseApplication.Page.SendWeeklyReport,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut() + scaleOut()
+    ) {
+        WeeklyReportLayout(modifier, uiState, snackBar)
     }
 }
 
@@ -182,95 +234,13 @@ fun MainUI(
     mainViewModel: MainViewModel = viewModel()
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
-    MainLayout(uiState, snackBar, modifier)
+    //MainLayout(uiState, snackBar, modifier)
     LaunchedEffect(androidx.lifecycle.compose.LocalLifecycleOwner.current) {
         mainViewModel.generateAdvice(uiState.dailyReports?.list ?: return@LaunchedEffect)
     }
     //Text("generated text is ${uiState.advice}")
 }
 
-@Composable
-fun MainLayout(
-    uiState: MainUiState,
-    snackBar: SnackbarHostState,
-    modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel = viewModel()
-) {
-    var item by remember {
-        mutableStateOf<BaseApplication.Page?>(null)
-    }
-    AnimatedVisibility(item == null) {
-        Column(
-            modifier = modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            ElevatedCard(
-                modifier = Modifier
-                    .height(300.dp)
-                    .fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Box {
-
-                }
-            }
-            Text(
-                modifier = Modifier.padding(bottom = 16.dp), text = "سخن یار",
-                style = MaterialTheme.typography.displayMedium
-            )
-//            Button(onClick = {
-//                item = BaseApplication.MenuItem.Motivation; mainViewModel.generateNewSentence()
-//            }) {
-//                Text("انگیزشی لکنت")
-//            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    mainViewModel.loadVoicesProperties()
-                    item = BaseApplication.Page.SendDailyReport
-                },
-                enabled = Clock.System.nowDay() isTomorrow uiState.dailyReports?.list?.lastOrNull()?.date && Clock.System.now()
-                    .toLocalDateTime(
-                        TimeZone.currentSystemDefault()
-                    ).hour in 19..23
-            ) {
-                Text("ارسال گزارش روزانه")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { item = BaseApplication.Page.SendWeeklyReport },
-                enabled = Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY && Clock.System.nowDay() isTomorrow uiState.weeklyReports?.list?.lastOrNull()?.date && Clock.System.now()
-                    .toLocalDateTime(
-                        TimeZone.currentSystemDefault()
-                    ).hour in 6..22
-            ) {
-                Text("ارسال گزارش هفتگی")
-            }
-        }
-    }
-//    AnimatedVisibility(
-//        item == BaseApplication.MenuItem.Motivation,
-//        enter = fadeIn() + scaleIn(),
-//        exit = fadeOut() + scaleOut()
-//    ) {
-//        Motivation(modifier, uiState)
-//    }
-    AnimatedVisibility(
-        item == BaseApplication.Page.SendDailyReport,
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut()
-    ) {
-        DailyReportLayout(modifier, uiState, snackBar)
-    }
-    AnimatedVisibility(
-        item == BaseApplication.Page.SendWeeklyReport,
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut()
-    ) {
-        WeeklyReportLayout(modifier, uiState, snackBar)
-    }
-}
 //
 //@Composable
 //fun Motivation(
