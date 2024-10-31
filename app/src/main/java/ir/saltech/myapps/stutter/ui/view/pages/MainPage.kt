@@ -52,12 +52,17 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
             .fillMaxSize()
+            .background(
+                MaterialTheme.colorScheme.surfaceContainerLowest)
+//            .background(
+//                ShaderBrush(ImageShader(ImageBitmap.imageResource(R.drawable.white_pattern), TileMode.Clamp, TileMode.Repeated))
+//            )
     ) {
         // Header Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(375.dp),
+                .weight(0.8f),
             shape = MaterialTheme.shapes.large.copy(all = CornerSize(0))
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -117,7 +122,7 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(29.dp))
+                        Spacer(modifier = Modifier.weight(0.25f))
                         LockedDirection(LayoutDirection.Rtl) {
                             Text(
                                 modifier = Modifier
@@ -138,7 +143,7 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                                 textAlign = TextAlign.Center
                             )
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.weight(0.25f))
                         FilledTonalButton(
                             modifier = Modifier
                                 .padding(8.dp, 16.dp),
@@ -159,18 +164,19 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
-                                painter = painterResource(R.drawable.chatbot2),
+                                painter = painterResource(R.drawable.chatbot1),
                                 contentDescription = "Chat with AI"
                             )
                         }
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.weight(0.4f))
                     }
                 }
             }
         }
         LazyVerticalStaggeredGrid(
             modifier = Modifier
-                .offset(y = (-20).dp)
+                .offset(y = (-24).dp)
+                .weight(1f)
                 .background(
                     MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.shapes.large.copy(
                         topEnd = CornerSize(16.dp),
@@ -178,7 +184,12 @@ fun MainPage(innerPadding: PaddingValues = PaddingValues(0.dp)) {
                         bottomEnd = CornerSize(0),
                         bottomStart = CornerSize(0)
                     )
-                ).padding(vertical = 24.dp, horizontal = 16.dp),
+                )
+//                .background(
+//                    ShaderBrush(ImageShader(ImageBitmap.imageResource(R.drawable.white_pattern), TileMode.Clamp, TileMode.Repeated))
+//                )
+                .padding(top = 24.dp)
+                .padding(horizontal = 16.dp),
             columns = StaggeredGridCells.Adaptive(150.dp),
             verticalItemSpacing = 0.dp,
             horizontalArrangement = Arrangement.SpaceAround
