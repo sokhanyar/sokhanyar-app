@@ -5,6 +5,9 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.os.Environment
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +20,7 @@ import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.dto.model.CallsCount
 import ir.saltech.myapps.stutter.dto.model.DailyReport
 import ir.saltech.myapps.stutter.dto.model.DailyReports
+import ir.saltech.myapps.stutter.dto.model.Report
 import ir.saltech.myapps.stutter.dto.model.VoicesProperties
 import ir.saltech.myapps.stutter.dto.model.WeeklyReport
 import ir.saltech.myapps.stutter.dto.model.WeeklyReports
@@ -27,7 +31,10 @@ import ir.saltech.myapps.stutter.util.get
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
 import ir.saltech.myapps.stutter.util.getLastDailyReports
 import ir.saltech.myapps.stutter.util.set
+import ir.saltech.myapps.stutter.util.toDayReportDate
+import ir.saltech.myapps.stutter.util.toJalali
 import ir.saltech.myapps.stutter.util.toJson
+import ir.saltech.myapps.stutter.util.toRegularTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +44,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import java.io.File
+import java.util.Date
 import kotlin.math.roundToInt
 
 class MainViewModel : ViewModel() {
@@ -53,13 +61,20 @@ class MainViewModel : ViewModel() {
         set(value) {
             _uiState.update { it.copy(sentence = value) }
         }
-    private var advice: String? = ""
+    private var advice: MutableState<String?> = mutableStateOf(null)
         set(value) {
             _uiState.update { it.copy(advice = value) }
         }
+
+    @Deprecated("use activePages instead")
     var page: BaseApplication.Page = BaseApplication.Page.Home
         set(value) {
             _uiState.update { it.copy(page = value) }
+        }
+    var activePages: MutableList<BaseApplication.Page> =
+        mutableStateListOf(BaseApplication.Page.Home)
+        set(value) {
+            _uiState.update { it.copy(activePages = value) }
         }
     var dailyReport: DailyReport = DailyReport()
         set(value) {
@@ -78,33 +93,125 @@ class MainViewModel : ViewModel() {
             _uiState.update { it.copy(weeklyReports = value) }
         }
 
+    // --- AI Section ---
 
-    fun <T> generateAdvice(reports: List<T>) {
-        viewModelScope.launch {
-            val model = GenerativeModel(
-                modelName = BaseApplication.Ai.Gemini.Models.Flash,
-                BaseApplication.Ai.Gemini.apiKeys[0],
-                systemInstruction = content {
-                    text(BaseApplication.Ai.Gemini.systemInstruction)
-                },
-                generationConfig = generationConfig {
-                    temperature = 0.8f
-                    topK = 40
-                    topP = 0.95f
-                    maxOutputTokens = 1024
-                    responseMimeType = "text/plain"
-                }
-            )
-            val generatedContent = model.generateContent(
-                content("user") {
+//    fun launchChat(reports: List<Report>?, reportType: BaseApplication.ReportType) {
+//        if (reports != null) {
+//            viewModelScope.launch {
+//                val model = GenerativeModel(
+//                    modelName = BaseApplication.Ai.Gemini.Models.Flash,
+//                    BaseApplication.Ai.Gemini.apiKeys[0],
+//                    systemInstruction = content {
+//                        text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1)
+//                    },
+//                    generationConfig = generationConfig {
+//                        temperature = 1.3f
+//                        topK = 40
+//                        topP = 0.95f
+//                        maxOutputTokens = 1024
+//                        responseMimeType = "text/plain"
+//                        frequencyPenalty =0.7f
+//                        presencePenalty = 1.2f
+//                    }
+//                )
+//                val chat = model.startChat()
+//                val generatedResponse = chat.sendMessage(content {
+//                    text(
+//                        """سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
+//                    گزارش این هفته / امروز:
+//                    ${
+//                            reports.last().result
+//                        }
+//                    گزارش های قبلی:
+//                    ${
+//                            reports.subList(0, reports.lastIndex)
+//                        }
+//                    """
+//                    )
+//                })
+//                Log.i("TAG", "Advice generated: ${generatedResponse.text}")
+//                advice.value = generatedResponse.text
+//                _uiState.value.advice.value = generatedResponse.text?.trim()
+//            }
+//        }
+//    }
+//
+//    fun generateNewMessage(message: String, model: GenerativeModel, history: List<Content>) {
+//        viewModelScope.launch {
+//            val response = model.startChat(history).sendMessage(content {
+//                text(message)
+//            })
+//        }
+//    }
+
+    private fun generateAdvice(reports: List<Report>?, reportType: BaseApplication.ReportType) {
+        if (reports != null) {
+            viewModelScope.launch {
+                val model = GenerativeModel(
+                    modelName = BaseApplication.Ai.Gemini.Models.Flash,
+                    BaseApplication.Ai.Gemini.apiKeys[0],
+                    systemInstruction = content {
+                        text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1)
+                    },
+                    generationConfig = generationConfig {
+                        temperature = 0.8f
+                        topK = 40
+                        topP = 0.95f
+                        maxOutputTokens = 1024
+                        responseMimeType = "text/plain"
+                    }
+                )
+                val chat = model.startChat()
+                val generatedResponse = chat.sendMessage(content {
                     text(
-                        "سلام برای گزارش امروز یه بررسی داشته باش لطفاً:\nگزارش امروز:\n📝\"فرم گزارش روزانه\"\n◾️تاریخ: ۱۵ شهریور\n◾️نام: محمد صالح\n☑️مدت زمان تمرین: ۲۰ دقیقه\n☑️مدت زمان اجرای شیوه درانواع محیط ها👇\nبین ۵ تا ۱۵ دقیقه👈۱ \nبین ۱۵ تا ۳۰ دقیقه👈۲ \nبین ۳۰ تا۶۰ دقیقه👈۳\nبیشتر از یک ساعت👈۴\n خانه: ۳\n مدرسه(دانشگاه): \n غریبه ها:\n فامیل و آشنا: ۱\n☑️تعداد حساسیت زدایی:\n☑️تعداد لکنت عمدی: ۵ \n☑️تعداد تشخیص اجتناب: ۷\n☑️تعدادتماس همیاری: \n☑️تعدادتماس گروهی: \n☑️تعدادچالش: ۱\n☑️کنفرانس بر حسب دقیقه: ۸\n☑️رضایت از خودم(۱ تا ۱۰) : ۸\nتوضیحات:\nگزارش دیروز:\n📝\"فرم گزارش روزانه\"\n◾️نام : محمد صالح\n◼تاریخ:  ۱۴ شهریور \n☑️مدت زمان تمرین : ۱۵ دقیقه\n☑️مدت زمان اجرای شیوه درانواع محیط ها👇\nبین ۵ تا ۱۵ دقیقه👈۱ \nبین ۱۵ تا ۳۰ دقیقه👈۲ \nبین ۳۰ تا ۶۰ دقیقه👈۳\nبیشتر از یک ساعت👈۴\n خانه : ۲\n مدرسه(دانشگاه) : _\n غریبه ها : _\n فامیل و آشنا : ۱\n☑️تعداد حساسیت زدایی : ۱\n☑️تعداد لکنت عمدی : ۴\n☑️تعداد تشخیص اجتناب : ۷\n☑️تعدادتماس همیاری : _\n☑️تعدادتماس گروهی : ۱\n☑️تعدادچالش : _\n☑️کنفرانس بر حسب دقیقه : _\n☑️رضایت از خودم(۱ تا ۱۰) : ۷\nتوضیحات : _"
+                        """سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
+                    گزارش این هفته / امروز:
+                    ${
+                            reports.last().result
+                        }
+                    گزارش های قبلی:
+                    ${
+                            reports.subList(0, reports.lastIndex)
+                        }
+                    """
                     )
-                }
-            )
-            advice = generatedContent.text
+                })
+                Log.i("TAG", "Advice generated: ${generatedResponse.text}")
+                advice.value = generatedResponse.text
+                _uiState.value.advice.value = generatedResponse.text?.trim()
+            }
         }
     }
+
+    fun generateNewMotivationText() {
+        viewModelScope.launch {
+            try {
+                val model = GenerativeModel(
+                    modelName = BaseApplication.Ai.Gemini.Models.Flash,
+                    BaseApplication.Ai.Gemini.apiKeys[0],
+                    generationConfig = generationConfig {
+                        temperature = 1.7f
+                        topK = 40
+                        topP = 0.95f
+                        maxOutputTokens = 100
+                        responseMimeType = "text/plain"
+                        presencePenalty = 1f
+                        frequencyPenalty = 0.4f
+                    }
+                )
+                val generatedContent = model.generateContent(
+                    " ${getGreetingBasedOnTime(true)} یک جمله انگیزشی خفن برای درمان لکنت به من بگو.\n" +
+                            "فقط جمله انگیزشی ات رو نشون بده. جلمه انگیزشی باید فقط 1 خط باشه و به همراه ایموجی جذاب باشه.\n"
+                )
+                sentence = generatedContent.text?.trim() ?: sentence
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+
+    // --- Process Reports Section ---
 
     fun loadVoicesProperties() {
         viewModelScope.launch {
@@ -132,15 +239,19 @@ class MainViewModel : ViewModel() {
                 ).duration.toFloat() / 60_000f).roundToInt()
             )
         }
-        val challengesCount = recordings.count { it.first.startsWith("چالش") }
+        val challenges =
+            recordings.filter { it.first.startsWith("چالش") }
+        val challengesCount = challenges.count()
+        val sumOfChallengesDuration = challenges.sumOf { it.second }
         val conferences =
             recordings.filter { it.first.startsWith("کنفرانس") || it.first.startsWith("گزارش") }
         val sumOfConferencesDuration = conferences.sumOf { it.second }
         Log.i(
             "TAG",
-            "result: recordings: $recordings , challenges: $challengesCount , conferences: ${conferences.count()} , sumOfConferencesDuration: $sumOfConferencesDuration"
+            "result: recordings: $recordings , challenges: $challengesCount, sumOfChallengesDuration: $sumOfChallengesDuration , conferences: ${conferences.count()} , sumOfConferencesDuration: $sumOfConferencesDuration"
         )
         return VoicesProperties(challengesCount = challengesCount.takeIf { it > 0 },
+            sumOfChallengesDuration = sumOfChallengesDuration.takeIf { it > 0 },
             sumOfConferencesDuration = sumOfConferencesDuration.takeIf { it > 0 })
     }
 
@@ -153,6 +264,8 @@ class MainViewModel : ViewModel() {
                     voicesProperties = lastDailyReports.let { lastReports ->
                         VoicesProperties(lastReports.sumOf { lastDailyReport: DailyReport ->
                             lastDailyReport.voicesProperties.challengesCount ?: 0
+                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: DailyReport ->
+                            lastDailyReport.voicesProperties.sumOfChallengesDuration ?: 0
                         }.takeIf { it > 0 }, lastReports.count { lastDailyReport: DailyReport ->
                             lastDailyReport.voicesProperties.sumOfConferencesDuration != 0
                         }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: DailyReport ->
@@ -179,6 +292,7 @@ class MainViewModel : ViewModel() {
         return res
     }
 
+    // --- Load and Save Section ---
 
     fun loadDailyReports() {
         dailyReports =
@@ -192,8 +306,39 @@ class MainViewModel : ViewModel() {
     }
 
     fun saveDailyReport(): Boolean {
+        dailyReport = _uiState.value.dailyReport.copy(result = """
+            📝"فرم گزارش روزانه"
+            ◾️تاریخ: ${Date(_uiState.value.dailyReport.date!!).toJalali().toDayReportDate()} 
+            ◾️نام: ${(_uiState.value.dailyReport.name ?: "").ifEmpty { "ناشناس" }}
+            ☑️مدت زمان تمرین: ${_uiState.value.dailyReport.practiceTime?.toRegularTime() ?: "-"}
+            ☑️مدت زمان اجرای شیوه در انواع محیط ها👇
+            بین 5 تا 15 دقیقه 👈 1 
+            بین 15 تا 30 دقیقه 👈 2 
+            بین 30 تا 60 دقیقه 👈 3
+            بیشتر از یک ساعت 👈 4
+             خانه: ${_uiState.value.dailyReport.methodUsage.atHome ?: "-"}
+             مدرسه (دانشگاه): ${_uiState.value.dailyReport.methodUsage.atSchool ?: "-"}
+             غریبه ها: ${_uiState.value.dailyReport.methodUsage.withOthers ?: "-"}
+             فامیل و آشنا: ${_uiState.value.dailyReport.methodUsage.withFamily ?: "-"}
+            ☑️تعداد حساسیت زدایی: ${_uiState.value.dailyReport.desensitizationCount ?: "-"}
+            ☑️تعداد لکنت عمدی: ${_uiState.value.dailyReport.intentionalStutteringCount ?: "-"}
+            ☑️تعداد تشخیص اجتناب: ${_uiState.value.dailyReport.avoidanceDetectionCount ?: "-"}
+            ☑️تعداد تماس همیاری: ${
+            _uiState.value.dailyReport.callsCount.let {
+                val res =
+                    (it.teenSupportCallsCount ?: 0) + (it.adultSupportCallsCount ?: 0); if (res == 0) "-" else res
+            }
+        }
+            ☑️تعداد تماس گروهی: ${_uiState.value.dailyReport.callsCount.groupCallsCount ?: "-"}
+            ☑️تعداد چالش: ${_uiState.value.dailyReport.voicesProperties.challengesCount ?: "-"}
+            ☑️چالش بر حسب دقیقه: ${_uiState.value.dailyReport.voicesProperties.sumOfChallengesDuration ?: "-"}
+            ☑️کنفرانس بر حسب دقیقه: ${_uiState.value.dailyReport.voicesProperties.sumOfConferencesDuration ?: "-"}
+            ☑️رضایت از خودم (1 تا 10): ${_uiState.value.dailyReport.selfSatisfaction ?: "-"}
+            توضیحات: ${_uiState.value.dailyReport.description ?: "-"}
+        """.trimIndent())
         val res = _uiState.value.dailyReports?.list?.add(_uiState.value.dailyReport)
         saveDailyReports()
+        generateAdvice(_uiState.value.dailyReports?.list?.toList(), BaseApplication.ReportType.Daily)
         return res == true
     }
 
@@ -202,7 +347,6 @@ class MainViewModel : ViewModel() {
         context.dataStore[BaseApplication.Key.DailyReports] =
             toJson(_uiState.value.dailyReports) ?: ""
     }
-
 
     fun loadWeeklyReports() {
         weeklyReports =
@@ -216,8 +360,28 @@ class MainViewModel : ViewModel() {
     }
 
     fun saveWeeklyReport(): Boolean {
+        weeklyReport = _uiState.value.weeklyReport.copy(result = """
+            ..#گزارش_هفتگی
+            ${_uiState.value.weeklyReport.name ?: "ناشناس"}
+            
+            👈تعداد روز هایی که تمرینات انجام شده: ${_uiState.value.weeklyReport.practiceDays ?: "-"}
+            👈تعداد روزهای کنفرانس دادن: ${_uiState.value.weeklyReport.voicesProperties.conferenceDaysCount ?: "-"}
+            👈 مجموع کنفرانس هفته بر حسب دقیقه: ${_uiState.value.weeklyReport.voicesProperties.sumOfConferencesDuration ?: "-"}
+            👈 مجموع چالش هفته بر حسب دقیقه: ${_uiState.value.weeklyReport.voicesProperties.sumOfChallengesDuration ?: "-"}
+            👈تعداد شرکت در چالش (مثلا ۳ از n): ${_uiState.value.weeklyReport.voicesProperties.challengesCount ?: "-"}
+            👈تعداد  تماس با همیار نوجوان: ${_uiState.value.weeklyReport.callsCount.teenSupportCallsCount ?: "-"}
+            👈تعداد تماس با همیار بزرگسال: ${_uiState.value.weeklyReport.callsCount.adultSupportCallsCount ?: "-"}
+            👈تعداد تماس گروهی: ${_uiState.value.weeklyReport.callsCount.groupCallsCount ?: "-"}
+            👈تعداد گزارش حساسیت زدایی هفته: ${_uiState.value.weeklyReport.desensitizationCount ?: "-"}
+            👈خلق استثنای هفته: ${_uiState.value.weeklyReport.creationOfExceptionCount ?: "-"}
+            👈تعداد ارسال گزارش روزانه درهفته: ${_uiState.value.weeklyReport.dailyReportsCount ?: "-"}
+            👈مجموع فعالیت ها: ${_uiState.value.weeklyReport.sumOfActivities ?: 0}
+            
+            ◾توضیحات اضافه: ${_uiState.value.weeklyReport.description ?: "-"}
+        """.trimIndent())
         val res = _uiState.value.weeklyReports?.list?.add(_uiState.value.weeklyReport)
         saveWeeklyReports()
+        generateAdvice(_uiState.value.weeklyReports?.list?.toList(), BaseApplication.ReportType.Weekly)
         return res == true
     }
 
@@ -225,88 +389,5 @@ class MainViewModel : ViewModel() {
         Log.i("TAG", "saving weekly reports json: ${toJson(_uiState.value.weeklyReports)}")
         context.dataStore[BaseApplication.Key.WeeklyReports] =
             toJson(_uiState.value.weeklyReports) ?: ""
-    }
-
-    fun generateNewMotivationText() {
-        viewModelScope.launch {
-            try {
-                val model = GenerativeModel(
-                    modelName = BaseApplication.Ai.Gemini.Models.Flash,
-                    BaseApplication.Ai.Gemini.apiKeys[0],
-                    systemInstruction = content {
-                        text(
-                            """\n\n
-                            Some example of stuttering and activity motivation passages in Persian:\n
-            Example 1:
-            سلام صبح قشنگ پاییزیتون بخیر وشادی🌹\n
-            \n
-            زندگی را می گویم:🌸 \n
-            بخواهی از آن لذت ببری، \n
-  همه چیزش لذت بردنی است \n          
-  و اگر بخواهی از آن رنج ببری \n          
-  همه چیزش رنج بردنی است، \n          
-  کلید لذت و رنج دست توست !🌸🍂 \n          
-            Example 2:
-            سلام صبحتون بخیر🪴\n
-            \n
-            پرسودترین معامله زندگی \n
-حال خوب را جایگزين \n            
-حال بدکردن است. 😇 \n            
-همـین✌️ \n            
-حال دلتون خوب، وجودتون \n            
-سبز و سلامت، \n            
-زندگیتون غرق در خوشبختی \n            
-            \n
-            \n🍁🍂🍁🍂
-            Example 3:
-            \n ♥️💫سلام😊✋ و صد سلام
-🤍💫مــهــرتـون بــے پایان... \n            
-            \n
-            ♥️💫روزتون پر از سلامتی \n
-♥️💫سرشار از مهر و دوستی \n            
-🤍💫موفقیت و لطف خدای مهربان \n            
-            \n
-♥️💫بـا آرزوی یک روز عــالـی \n            
-🤍💫صــبــحــتــون پــر از اتفاقات خوب و به دور از لکنت! 😇 \n            
-            Example 4:
-            \n ♥️🍃
-            \n
-❣رؤیاهاتون که کوچک و محدود شد، \n            
-زندگیتون محدود میشه؛ 😢 \n            
-زندگیتون که محدود شد، \n            
-به کم قانع میشید! 😓 \n            
-به کم که قانع شدید، \n            
-دیگه هیچ اتفاق جدیدی توی زندگیتون نمیوفته!! 😞✋ \n            
-            \n
-رؤیاهای بزرگ داشته باشید.😉✌️ \n            
-صبحتون بخیر! \n            
-            \n
-            \n ❤️🕊 ◕‿◕
-            Example 5:
-            واقعی ترین خوشی آدما\n
-            اون لحظست که\n
-            با خیال راحت میگی\n
-            باورم نمیشه بلاخره شد :)\n
-            \n
-                        """.trimIndent()
-                        )
-                    },
-                    generationConfig = generationConfig {
-                        temperature = 1.7f
-                        topK = 40
-                        topP = 0.95f
-                        maxOutputTokens = 84
-                        responseMimeType = "text/plain"
-                    }
-                )
-                val generatedContent = model.generateContent(
-                    " ${getGreetingBasedOnTime(true)} یک جمله انگیزشی خفن به من بگو.\n" +
-                            "فقط جمله انگیزشی ات رو نشون بده. جلمه انگیزشی باید فقط 1 خط باشه و به همراه ایموجی جذاب باشه.\n"
-                )
-                sentence = generatedContent.text?.trim() ?: sentence
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
     }
 }

@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.ratingbar.compose)
     implementation(libs.picasso)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.compose.webview)
     runtimeOnly(libs.ktor.client.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

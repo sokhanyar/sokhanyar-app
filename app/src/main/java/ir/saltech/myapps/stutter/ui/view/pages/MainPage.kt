@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -46,9 +45,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageShader
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -76,175 +80,168 @@ fun MainPage(
 ) {
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
             .fillMaxSize()
-//            .background(
-//                ShaderBrush(ImageShader(ImageBitmap.imageResource(R.drawable.white_pattern), TileMode.Clamp, TileMode.Repeated))
-//            )
-    ) {
-        // Header Section
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapToScreen(),
-            shape = MaterialTheme.shapes.large.copy(all = CornerSize(0))
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.wrapToScreen()) {
-                Image(
-                    painter = painterResource(id = if (isSystemInDarkTheme()) R.drawable.background_dark else R.drawable.background_light),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize()
-                )
-                Column(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.3f)),
-                ) {
-                    ConstraintLayout(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .wrapToScreen(),
-                    ) {
-                        val (header, motivation, button) = createRefs()
-                        Row(
-                            modifier = Modifier
-                                .padding(top = 21.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                                .fillMaxWidth()
-                                .constrainAs(header) {
-                                    top.linkTo(parent.top)
-                                    end.linkTo(parent.end)
-                                    start.linkTo(parent.start)
-//                                    bottom.linkTo(motivation.top)
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            IconButton(
-                                modifier = Modifier.size(48.dp),
-                                onClick = {
-                                    onPageWanted(BaseApplication.Page.Search)
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_search_24),
-                                    contentDescription = "search",
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                modifier = Modifier.padding(5.dp),
-                                text = stringResource(R.string.app_name),
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            IconButton(
-                                modifier = Modifier.size(48.dp),
-                                onClick = {
-                                    onPageWanted(BaseApplication.Page.Menu)
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_menu_24),
-                                    contentDescription = "menu",
-                                )
-                            }
-                        }
-                        AnimatedContent(modifier = Modifier.constrainAs(motivation) {
-                            top.linkTo(header.bottom)
-                            end.linkTo(parent.end)
-                            start.linkTo(parent.start)
-                            bottom.linkTo(button.top)
-                        }, targetState = motivationText) { text ->
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 32.dp, horizontal = 24.dp)
-                                    .clickable {
-                                        mainViewModel.generateNewMotivationText()
-                                    },
-                                text = text,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = 21.sp,
-                                    lineHeight = 40.sp,
-                                    textDirection = TextDirection.Rtl
-                                ),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                        FilledTonalButton(
-                            modifier = Modifier
-                                .padding(bottom = 32.dp, end = 16.dp, start = 16.dp)
-                                .constrainAs(button) {
-                                    top.linkTo(motivation.bottom)
-                                    bottom.linkTo(parent.bottom)
-                                    end.linkTo(parent.end)
-                                    start.linkTo(parent.start)
-                                },
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                Color(if (isSystemInDarkTheme()) 0xFFB1C0DA else 0xBE286BDA).copy(
-                                    alpha = 0.08f
-                                ),
-                                ButtonDefaults.filledTonalButtonColors().contentColor,
-                                ButtonDefaults.filledTonalButtonColors().disabledContainerColor,
-                                ButtonDefaults.filledTonalButtonColors().disabledContentColor,
-                            ),
-                            onClick = {
-                                onPageWanted(BaseApplication.Page.ChatRoom)
-                            }
-                        ) {
-                            Text(
-                                text = "باهام حرف بزن!",
-                                style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Rtl),
-                                textAlign = TextAlign.Center,
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                painter = painterResource(R.drawable.chatbot1),
-                                contentDescription = "Chat with AI"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        LazyVerticalStaggeredGrid(
-            modifier = Modifier
-                .offset(y = (-20).dp)
-                .weight(1f)
-                .background(
-                    MaterialTheme.colorScheme.surfaceContainerLowest,
-                    MaterialTheme.shapes.large.copy(
-                        topEnd = CornerSize(16.dp),
-                        topStart = CornerSize(16.dp),
-                        bottomEnd = CornerSize(0),
-                        bottomStart = CornerSize(0)
+            .background(
+                ShaderBrush(
+                    ImageShader(
+                        ImageBitmap.imageResource(if (isSystemInDarkTheme()) R.drawable.sokhanyar_background_dark else R.drawable.sokhanyar_background_light),
+                        TileMode.Decal,
+                        TileMode.Mirror
                     )
                 )
+            )
+
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.3f))
+        ) {
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapToScreen()
+                    .padding(innerPadding),
+            ) {
+                val (header, motivation, button) = createRefs()
+                Row(
+                    modifier = Modifier
+                        .padding(top = 21.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                        .fillMaxWidth()
+                        .constrainAs(header) {
+                            top.linkTo(parent.top)
+                            end.linkTo(parent.end)
+                            start.linkTo(parent.start)
+//                                    bottom.linkTo(motivation.top)
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        modifier = Modifier.size(48.dp),
+                        onClick = {
+                            onPageWanted(BaseApplication.Page.Search)
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_search_24),
+                            contentDescription = "search",
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        modifier = Modifier.padding(5.dp),
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(
+                        modifier = Modifier.size(48.dp),
+                        onClick = {
+                            onPageWanted(BaseApplication.Page.Menu)
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_menu_24),
+                            contentDescription = "menu",
+                        )
+                    }
+                }
+                AnimatedContent(modifier = Modifier.constrainAs(motivation) {
+                    top.linkTo(header.bottom)
+                    end.linkTo(parent.end)
+                    start.linkTo(parent.start)
+                    bottom.linkTo(button.top)
+                }, targetState = motivationText) { text ->
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp, horizontal = 24.dp)
+                            .clip(RoundedCornerShape(25.dp))
+                            .clickable {
+                                mainViewModel.generateNewMotivationText()
+                            },
+                        text = text,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 21.sp,
+                            lineHeight = 40.sp,
+                            textDirection = TextDirection.Rtl
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                FilledTonalButton(
+                    modifier = Modifier
+                        .padding(bottom = 32.dp, end = 16.dp, start = 16.dp)
+                        .constrainAs(button) {
+//                                    top.linkTo(motivation.bottom)
+                            bottom.linkTo(parent.bottom)
+                            end.linkTo(parent.end)
+                            start.linkTo(parent.start)
+                        },
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        Color(if (isSystemInDarkTheme()) 0xFFB1C0DA else 0xBE286BDA).copy(
+                            alpha = 0.08f
+                        ),
+                        ButtonDefaults.filledTonalButtonColors().contentColor,
+                        ButtonDefaults.filledTonalButtonColors().disabledContainerColor,
+                        ButtonDefaults.filledTonalButtonColors().disabledContentColor,
+                    ),
+                    onClick = {
+                        onPageWanted(BaseApplication.Page.ChatRoom)
+                    }
+                ) {
+                    Text(
+                        text = "باهام حرف بزن!",
+                        style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Rtl),
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.chatbot1),
+                        contentDescription = "Chat with AI"
+                    )
+                }
+            }
+            LazyVerticalStaggeredGrid(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        MaterialTheme.shapes.large.copy(
+                            topEnd = CornerSize(16.dp),
+                            topStart = CornerSize(16.dp),
+                            bottomEnd = CornerSize(0),
+                            bottomStart = CornerSize(0)
+                        )
+                    )
 //                .background(
 //                    ShaderBrush(ImageShader(ImageBitmap.imageResource(R.drawable.white_pattern), TileMode.Clamp, TileMode.Repeated))
 //                )
-                .padding(top = 24.dp)
-                .padding(horizontal = 16.dp),
-            columns = StaggeredGridCells.Adaptive(
-                if (LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
-                    75.dp
-                } else {
-                    125.dp
+                    .padding(top = 24.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
+                columns = StaggeredGridCells.Adaptive(
+                    if (LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
+                        75.dp
+                    } else {
+                        125.dp
+                    }
+                ),
+                verticalItemSpacing = 0.dp,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                items(menuPageItems) {
+                    MenuItemButton(it)
                 }
-            ),
-            verticalItemSpacing = 0.dp,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            items(menuPageItems) {
-                MenuItemButton(it)
             }
         }
-        // Menu Items Section
     }
 }
 
 @Composable
 fun MenuItemButton(menuPageItem: MenuPageItem) {
+    val enabled = menuPageItem.disabledReason == null
     var showReason by remember { mutableStateOf(false) }
     if (showReason) {
         LockedDirection(LayoutDirection.Rtl) {
@@ -253,8 +250,8 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
                 confirmButton = {
                     Button(onClick = { showReason = false }) { Text("متوجه شدم") }
                 },
-                title = { Text("دکمه غیرفعال") },
-                text = { Text("این دکمه به دلیل زیر غیرفعال گردیده است:\n\n${menuPageItem.disabledReason}") })
+                title = { Text(menuPageItem.title) },
+                text = { Text("${menuPageItem.disabledReason}") })
         }
     }
     Box(
@@ -280,7 +277,7 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
                 ButtonDefaults.filledTonalButtonColors().disabledContentColor,
             ),
             shape = RoundedCornerShape(15.dp),
-            enabled = menuPageItem.enabled,
+            enabled = enabled && !menuPageItem.comingSoon,
             onClick = {
                 menuPageItem.onClick()
             }
@@ -307,7 +304,7 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
                             .fillMaxWidth()
                             .padding(13.dp)
                     )
-                    if (!menuPageItem.enabled) {
+                    if (!enabled) {
                         Spacer(
                             modifier = Modifier
                                 .matchParentSize()
@@ -331,21 +328,28 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
                 Spacer(modifier = Modifier.height(5.dp))
             }
         }
-        if (!menuPageItem.enabled && !menuPageItem.disabledReason.isNullOrEmpty()) {
-            IconButton(
+        if (!enabled && !menuPageItem.disabledReason.isNullOrEmpty()) {
+            Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .align(Alignment.TopStart)
-                    .padding(8.dp),
-                onClick = {
-                    showReason = true
-                }) {
-                Icon(
-                    Icons.Outlined.Info,
-                    tint = MaterialTheme.colorScheme.contentColorFor(ButtonDefaults.filledTonalButtonColors().disabledContainerColor)
-                        .copy(alpha = 0.58f),
-                    contentDescription = "Why This is Disabled?"
-                )
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .align(Alignment.TopStart),
+                contentAlignment = Alignment.TopStart
+            ) {
+                IconButton(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .padding(8.dp),
+                    onClick = {
+                        showReason = true
+                    }) {
+                    Icon(
+                        Icons.Outlined.Info,
+                        tint = MaterialTheme.colorScheme.contentColorFor(if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surface else ButtonDefaults.filledTonalButtonColors().disabledContainerColor)
+                            .copy(alpha = 0.58f),
+                        contentDescription = "Why This is Disabled?"
+                    )
+                }
             }
         }
         if (menuPageItem.comingSoon) {

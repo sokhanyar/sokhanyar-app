@@ -1,15 +1,17 @@
 package ir.saltech.myapps.stutter.dto.model
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.KSerializer
+
+abstract class Report {
+    abstract val name: String?
+    abstract val date: Long?
+    abstract val description: String?
+    abstract val result: String?
+}
 
 data class DailyReport(
-    val name: String? = null,
-    val date: Long? = null,
+    override val name: String? = null,
+    override val date: Long? = null,
     @SerializedName("practice_time")
     val practiceTime: Int? = null,
     @SerializedName("methodUsage")
@@ -26,8 +28,9 @@ data class DailyReport(
     val voicesProperties: VoicesProperties = VoicesProperties(),
     @SerializedName("self_satisfaction")
     val selfSatisfaction: Int? = null,
-    val description: String? = null
-)
+    override val description: String? = null,
+    override val result: String? = null
+) : Report()
 
 data class DailyReports(
     @SerializedName("daily_reports")

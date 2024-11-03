@@ -3,8 +3,8 @@ package ir.saltech.myapps.stutter.dto.model
 import com.google.gson.annotations.SerializedName
 
 data class WeeklyReport(
-    val name: String? = null,
-    val date: Long? = null,
+    override val name: String? = null,
+    override val date: Long? = null,
     @SerializedName("practice_days")
     val practiceDays: Int? = null,
     @SerializedName("voices_properties")
@@ -19,8 +19,9 @@ data class WeeklyReport(
     val dailyReportsCount: Int? = null,
     @SerializedName("sum_of_activities")
     val sumOfActivities: Int? = null,
-    val description: String? = null,
-)
+    override val description: String? = null,
+    override val result: String? = null,
+) : Report()
 
 data class WeeklyReports(
     @SerializedName("weekly_reports")

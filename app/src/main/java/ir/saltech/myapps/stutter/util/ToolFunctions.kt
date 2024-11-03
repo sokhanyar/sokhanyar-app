@@ -1,6 +1,7 @@
 package ir.saltech.myapps.stutter.util
 
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -112,7 +113,7 @@ infix fun Int?.plusNull(second: Int?): Int {
 fun WeeklyReport.getSumOfActivities(): WeeklyReport {
     return this.copy(sumOfActivities = this.let {
         val sumOfAllActivities =
-            it.practiceDays plusNull it.desensitizationCount plusNull it.voicesProperties.challengesCount plusNull it.voicesProperties.sumOfConferencesDuration plusNull it.voicesProperties.conferenceDaysCount plusNull it.dailyReportsCount plusNull it.creationOfExceptionCount plusNull it.callsCount.groupCallsCount plusNull it.callsCount.teenSupportCallsCount plusNull it.callsCount.adultSupportCallsCount
+            it.practiceDays plusNull it.desensitizationCount plusNull it.voicesProperties.challengesCount plusNull it.voicesProperties.sumOfChallengesDuration plusNull it.voicesProperties.sumOfConferencesDuration plusNull it.voicesProperties.conferenceDaysCount plusNull it.dailyReportsCount plusNull it.creationOfExceptionCount plusNull it.callsCount.groupCallsCount plusNull it.callsCount.teenSupportCallsCount plusNull it.callsCount.adultSupportCallsCount
         sumOfAllActivities
     })
 }
@@ -133,10 +134,14 @@ fun getGreetingBasedOnTime(command: Boolean = false): String {
 }
 
 @Composable
-fun Modifier.wrapToScreen(): Modifier {
+fun Modifier.wrapToScreen(reverse: Boolean = false): Modifier {
     return this.let {
         if (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
-            it.fillMaxHeight()
+            if (reverse) {
+                it.height(0.dp)
+            } else {
+                it.fillMaxHeight()
+            }
         } else {
             it.wrapContentHeight()
         }

@@ -2,20 +2,29 @@ package ir.saltech.myapps.stutter.ui.view.components
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
@@ -23,6 +32,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,23 +41,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.text.isDigitsOnly
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
+import ir.saltech.myapps.stutter.BaseApplication
+import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_DISPLAYED_CHAR_COLLAPSE
+import ir.saltech.myapps.stutter.R
+import ir.saltech.myapps.stutter.ui.theme.AppTheme
+import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
 
 @Composable
 fun LockedDirection(
@@ -58,7 +74,6 @@ fun LockedDirection(
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit) {
@@ -67,7 +82,10 @@ fun MethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         text = title,
-        style = MaterialTheme.typography.headlineSmall.copy(textDirection = TextDirection.ContentOrRtl),
+        style = MaterialTheme.typography.titleMedium.copy(
+            fontWeight = FontWeight.Light,
+            textDirection = TextDirection.ContentOrRtl
+        ),
         textAlign = TextAlign.Center
     )
     Spacer(modifier = Modifier.height(8.dp))
@@ -147,10 +165,21 @@ fun MethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit
 }
 
 @Composable
-fun TextFieldLayout(title: String, valueRange: IntRange, value: Int?, onValueChanged: (Int?) -> Unit, last: Boolean = false, enabled: Boolean = true, suffix: (@Composable () -> Unit)? = null, supportText: (@Composable () -> Unit)? = null) {
+fun TextFieldLayout(
+    title: String,
+    valueRange: IntRange,
+    value: Int?,
+    onValueChanged: (Int?) -> Unit,
+    last: Boolean = false,
+    enabled: Boolean = true,
+    suffix: (@Composable () -> Unit)? = null,
+    supportText: (@Composable () -> Unit)? = null
+) {
     val focus = LocalFocusManager.current
     OutlinedTextField(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         value = (value ?: "").toString(),
         onValueChange = {
             if (it.isDigitsOnly() && it.toIntOrNull() in valueRange) {
@@ -164,21 +193,34 @@ fun TextFieldLayout(title: String, valueRange: IntRange, value: Int?, onValueCha
         supportingText = supportText,
         suffix = suffix,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = if (last) ImeAction.Done else ImeAction.Next),
-        keyboardActions = if (last) KeyboardActions(onDone = { focus.clearFocus() }) else KeyboardActions(onNext = { focus.moveFocus(FocusDirection.Down) })
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Decimal,
+            imeAction = if (last) ImeAction.Done else ImeAction.Next
+        ),
+        keyboardActions = if (last) KeyboardActions(onDone = { focus.clearFocus() }) else KeyboardActions(
+            onNext = { focus.moveFocus(FocusDirection.Down) })
     )
     Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
 fun SelfSatisfactionLayout(value: Int, onValueChanged: (Int) -> Unit) {
-    Column (modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "رضـایـت از خـودم", modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 21.sp, fontWeight = FontWeight.Bold), textAlign = TextAlign.Center)
+        Text(
+            text = "رضـایـت از خـودم",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 21.sp),
+            textAlign = TextAlign.Center
+        )
         Spacer(modifier = Modifier.height(16.dp))
         LockedDirection {
             var score by remember { mutableFloatStateOf(value.toFloat()) }
-            RatingBar(modifier = Modifier.padding(horizontal = 16.dp), value = score, stepSize = StepSize.HALF,
+            RatingBar(modifier = Modifier.padding(horizontal = 16.dp),
+                value = score,
+                stepSize = StepSize.HALF,
                 style = RatingBarStyle.Default,
                 onValueChange = {
                     score = it
@@ -193,93 +235,136 @@ fun SelfSatisfactionLayout(value: Int, onValueChanged: (Int) -> Unit) {
     }
 }
 
+
 @Composable
-fun LoginScreen(onLoginClick: (String, String) -> Unit) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isError by remember { mutableStateOf(false) }
-
-    println("Rendering LoginScreen...")
-    println("Current email: \$email")
-    println("Current password: \$password")
-    println("Is error state: \$isError")
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .background(Color.White),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Login",
-            fontSize = 24.sp,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = {
-                email = it
-                isError = false
-                println("Email updated: \$email")
-            },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                isError = false
-                println("Password updated: \$password")
-            },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                println("Login button clicked")
-                if (email.isNotEmpty() && password.isNotEmpty()) {
-                    println("Login credentials are valid. Proceeding with login...")
-                    onLoginClick(email, password)
-                } else {
-                    isError = true
-                    println("Login credentials are invalid. Error state set to true.")
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+internal fun MinimalHelpText(text: String, modifier: Modifier = Modifier) {
+    LockedDirection(LayoutDirection.Ltr) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Text(text = "Login")
-        }
-
-        if (isError) {
-            println("Displaying error message: Please fill in all fields.")
             Text(
-                text = "Please fill in all fields.",
-                color = Color.Red,
-                modifier = Modifier.padding(top = 16.dp)
+                text = text, style = MaterialTheme.typography.labelMedium.copy(
+                    textAlign = TextAlign.Justify,
+                    textDirection = TextDirection.ContentOrRtl,
+                    color = MaterialTheme.colorScheme.outline
+                ), modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth(0.9f)
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Spacer(modifier = Modifier.height(4.dp))
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = "A Help Text",
+                    tint = MaterialTheme.colorScheme.outline
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewLoginScreen() {
-    println("Previewing LoginScreen...")
-    LoginScreen { _, _ -> }
+fun AiAdvice(
+    reportType: BaseApplication.ReportType,
+    modifier: Modifier = Modifier,
+    mainViewModel: MainViewModel = viewModel(),
+    test: Boolean = false
+) {
+    val uiState by mainViewModel.uiState.collectAsState()
+    val advice by remember { uiState.advice }
+    val hasAdvice = when (reportType) {
+        BaseApplication.ReportType.Daily ->
+            (uiState.dailyReports?.list?.size ?: 0) >= 2
+
+        BaseApplication.ReportType.Weekly ->
+            (uiState.dailyReports?.list?.size ?: 0) >= 2
+    }
+    var expanded by remember { mutableStateOf(false) }
+    if (hasAdvice || test) {
+        LockedDirection(LayoutDirection.Ltr) {
+            Card(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                ),
+                shape = MaterialTheme.shapes.large.copy(
+                    CornerSize(25.dp)
+                )
+            ) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    ConstraintLayout(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                    ) {
+                        val (text, icon) = createRefs()
+                        Text(
+                            text = advice.let { if ((it ?: "").length >= MAX_OF_DISPLAYED_CHAR_COLLAPSE && !expanded) "${it?.substring(0..MAX_OF_DISPLAYED_CHAR_COLLAPSE)} ..." else it } ?: "در حال تحلیل و بررسی گزارش ...",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                textDirection = TextDirection.ContentOrRtl,
+                                textAlign = TextAlign.Justify
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(vertical = 13.dp, horizontal = 10.dp)
+                                .verticalScroll(rememberScrollState())
+                                .constrainAs(text) {
+                                    top.linkTo(parent.top)
+                                    bottom.linkTo(parent.bottom)
+                                    start.linkTo(parent.start)
+                                    end.linkTo(icon.start)
+                                },
+                        )
+                        Box(modifier = Modifier
+                            .padding(top = 18.dp, end = 10.dp, bottom = 10.dp)
+                            .constrainAs(icon) {
+                                top.linkTo(parent.top)
+                                end.linkTo(parent.end)
+                            }
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(19.dp),
+                                painter = painterResource(R.drawable.ai_advice),
+                                contentDescription = "Ai Advice",
+                            )
+                        }
+                    }
+                    if (!advice.isNullOrEmpty()) {
+                        IconButton(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(-3.dp, -3.dp),
+                            onClick = {
+                                expanded = !expanded
+                            }
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                painter = if (expanded) painterResource(R.drawable.rounded_collapse_24) else painterResource(
+                                    R.drawable.rounded_expand_24
+                                ),
+                                contentDescription = "Expand"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
+@Preview
+@Composable
+fun AiAdvicePreview() {
+    AppTheme {
+        AiAdvice(BaseApplication.ReportType.Daily, test = true)
+    }
+}
