@@ -3,6 +3,7 @@ package ir.saltech.myapps.stutter.ui.activity
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -30,22 +31,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.ContextCompat.startActivities
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.R
-import ir.saltech.myapps.stutter.dto.model.MenuPageItem
+import ir.saltech.myapps.stutter.dto.model.ui.MenuPageItem
 import ir.saltech.myapps.stutter.ui.theme.AppTheme
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
 import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
+import ir.saltech.myapps.stutter.ui.view.pages.ChatPage
 import ir.saltech.myapps.stutter.ui.view.pages.DailyReportPage
 import ir.saltech.myapps.stutter.ui.view.pages.MainPage
 import ir.saltech.myapps.stutter.ui.view.pages.WeeklyReportPage
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
+import ir.saltech.myapps.stutter.util.isTomorrow
+import ir.saltech.myapps.stutter.util.nowDay
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.system.exitProcess
 
 
@@ -102,10 +109,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadPresets() {
-        mainViewModel.context = this
-        mainViewModel.generateNewMotivationText()
-        mainViewModel.loadDailyReports()
-        mainViewModel.loadWeeklyReports()
+        mainViewModel.viewModelScope.launch {
+            mainViewModel.context = this@MainActivity
+            mainViewModel.loadUser()
+            mainViewModel.generateNewMotivationText()
+            mainViewModel.loadDailyReports()
+            mainViewModel.loadWeeklyReports()
+            mainViewModel.loadChatHistory()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,95 +132,96 @@ fun Launcher(
     paddingValues: PaddingValues = PaddingValues(0.dp),
     mainViewModel: MainViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val uiState by mainViewModel.uiState.collectAsState()
+    val onPageWanted = fun(page: BaseApplication.Page) { mainViewModel.activePages = uiState.activePages.apply { if (!this.contains(page)) this.add(page) }; Log.i("TAG", "current activepages: ${uiState.activePages} + ${mainViewModel.activePages}") }
     BackHandler {
         if (uiState.activePages.last() == BaseApplication.Page.Home) {
-            (context as Activity).finishAfterTransition()
+            (mainViewModel.context as Activity).finishAfterTransition()
         } else {
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
             Log.i(
                 "TAG",
-                "current activepages: ${uiState.activePages} + ${mainViewModel.activePages}"
+                "current activePages: ${uiState.activePages} + ${mainViewModel.activePages}"
             )
         }
     }
-    val onPageWanted = fun(page: BaseApplication.Page) { mainViewModel.activePages = uiState.activePages.apply { if (!this.contains(page)) this.add(page) }; Log.i("TAG", "current activepages: ${uiState.activePages} + ${mainViewModel.activePages}") }
-    AnimatedVisibility (uiState.activePages.last() == BaseApplication.Page.Home,
-        enter = fadeIn(),
-        exit = fadeOut()) {
-        MainPage(
-            paddingValues,
-            motivationText = uiState.sentence ?: getGreetingBasedOnTime(),
-            menuPageItems = listOf(
-                MenuPageItem(
-                    iconResId = R.drawable.schedule,
-                    title = "گزارش هفتگی",
-                    onClick = { onPageWanted(BaseApplication.Page.SendWeeklyReport) },
-//                    disabledReason = (!(Clock.System.nowDay() isTomorrow uiState.weeklyReports?.list?.lastOrNull()?.date)).let {
-//                        if (it) {
-//                            "فقط یک بار در روز میتوانید گزارش خود را تکمیل کنید."
-//                        } else {
-//                            if (Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY) {
-//                                Clock.System.now()
-//                                    .toLocalDateTime(
-//                                        TimeZone.currentSystemDefault()
-//                                    ).hour.let {
-//                                    if (it < 6) {
-//                                        "صبح بخیر! هنوز زمان ارسال گزارش هفتگی (ساعت 6 صبح) فرا نرسیده.\nمعلومه خیلی مشتاقی! 🤓"
-//                                    } else if (it >= 22) {
-//                                        "زمان ارسال گزارش هفتگی (ساعت 10 شب) به پایان رسیده.\nخیلی دیر شده! 😓 ولی سعی کن از هفته بعد، جبرانش کنی! 🙂"
-//                                    } else {
-//                                        null
-//                                    }
-//                                }
-//                            } else {
-//                                "هنوز زمان ارسال گزارش هفتگی (روز جمعه، ساعت 6 صبح) فرا نرسیده!\nصبر داشته باش! 🌞"
-//                            }
-//                        }
-//                    }
-                ),
-                MenuPageItem(
-                    iconResId = R.drawable.planing,
-                    title = "گزارش روزانه",
-                    onClick = {
-                        mainViewModel.loadVoicesProperties()
-                        onPageWanted(BaseApplication.Page.SendDailyReport)
-                    },
-//                    disabledReason = (!(Clock.System.nowDay() isTomorrow uiState.dailyReports?.list?.lastOrNull()?.date)).let {
-//                        if (it) {
-//                            "فقط یک بار در روز میتوانید گزارش خود را تکمیل کنید."
-//                        } else {
-//                            Clock.System.now()
-//                                .toLocalDateTime(
-//                                    TimeZone.currentSystemDefault()
-//                                ).hour.let {
-//                                    if (it < 19) {
-//                                        "هنوز زمان ارسال گزارش روزانه (ساعت 7 شب) فرا نرسیده.\nچقد عجله داری؟؟! 😅"
-//                                    } else if (it >= 23) {
-//                                        "زمان ارسال گزارش روزانه (ساعت 11 شب) به پایان رسیده.\nخیلی دیر رسیدی! 😓 ولی اشکال نداره، سعی کن فردا جبران کنی! 🙂"
-//                                    } else {
-//                                        null
-//                                    }
-//                                }
-//                        }
-//                    }
-                ),
-                MenuPageItem(
-                    iconResId = R.drawable.podcast,
-                    title = "تمرین صوتی",
-                    comingSoon = true,
-                    onClick = {
-                        onPageWanted(BaseApplication.Page.Practice)
-                    }),
-                MenuPageItem(
-                    iconResId = R.drawable.analysis,
-                    title = "تحلیل تمرین",
-                    onClick = {
-                        onPageWanted(BaseApplication.Page.AnalyzePractice)
-                    }),
-            )
-        ) { onPageWanted(it) }
+    if (uiState.activePages.last() == BaseApplication.Page.Home) {
+        LockedDirection (LayoutDirection.Ltr) {
+            MainPage(
+                paddingValues,
+                motivationText = uiState.sentence ?: getGreetingBasedOnTime(),
+                menuPageItems = listOf(
+                    MenuPageItem(
+                        iconResId = R.drawable.planing,
+                        title = "گزارش روزانه",
+                        onClick = {
+                            mainViewModel.loadVoicesProperties()
+                            onPageWanted(BaseApplication.Page.SendDailyReport)
+                        },
+                        disabledReason = (!(Clock.System.nowDay() isTomorrow uiState.dailyReports?.list?.lastOrNull()?.date)).let {
+                            if (it) {
+                                "فقط یک بار در روز میتوانید گزارش خود را تکمیل کنید."
+                            } else {
+                                Clock.System.now()
+                                    .toLocalDateTime(
+                                        TimeZone.currentSystemDefault()
+                                    ).hour.let {
+                                        if (it < 19) {
+                                            "هنوز زمان ارسال گزارش روزانه (ساعت 7 شب) فرا نرسیده.\nچقد عجله داری؟؟! 😅"
+                                        } else if (it >= 23) {
+                                            "زمان ارسال گزارش روزانه (ساعت 11 شب) به پایان رسیده.\nخیلی دیر رسیدی! 😓 ولی اشکال نداره، سعی کن فردا جبران کنی! 🙂"
+                                        } else {
+                                            null
+                                        }
+                                    }
+                            }
+                        }
+                    ),
+                    MenuPageItem(
+                        iconResId = R.drawable.schedule,
+                        title = "گزارش هفتگی",
+                        onClick = { onPageWanted(BaseApplication.Page.SendWeeklyReport) },
+                        disabledReason = (!(Clock.System.nowDay() isTomorrow uiState.weeklyReports?.list?.lastOrNull()?.date)).let {
+                            if (it) {
+                                "فقط یک بار در روز میتوانید گزارش خود را تکمیل کنید."
+                            } else {
+                                if (Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Calendar.FRIDAY) {
+                                    Clock.System.now()
+                                        .toLocalDateTime(
+                                            TimeZone.currentSystemDefault()
+                                        ).hour.let {
+                                            if (it < 6) {
+                                                "صبح بخیر! هنوز زمان ارسال گزارش هفتگی (ساعت 6 صبح) فرا نرسیده.\nمعلومه خیلی مشتاقی! 🤓"
+                                            } else if (it >= 22) {
+                                                "زمان ارسال گزارش هفتگی (ساعت 10 شب) به پایان رسیده.\nخیلی دیر شده! 😓 ولی سعی کن از هفته بعد، جبرانش کنی! 🙂"
+                                            } else {
+                                                null
+                                            }
+                                        }
+                                } else {
+                                    "هنوز زمان ارسال گزارش هفتگی (روز جمعه، ساعت 6 صبح) فرا نرسیده!\nصبر داشته باش! 🌞"
+                                }
+                            }
+                        }
+                    ),
+                    MenuPageItem(
+                        iconResId = R.drawable.analysis,
+                        title = "تحلیل تمرین",
+                        onClick = {
+                            onPageWanted(BaseApplication.Page.AnalyzePractice)
+                        }
+                    ),
+                    MenuPageItem(
+                        iconResId = R.drawable.podcast,
+                        title = "تمرین صوتی",
+                        comingSoon = true,
+                        onClick = {
+                            onPageWanted(BaseApplication.Page.Practice)
+                        }
+                    ),
+                )
+            ) { onPageWanted(it) }
+        }
     }
     AnimatedVisibility(
         uiState.activePages.last() == BaseApplication.Page.SendDailyReport,
@@ -225,33 +237,17 @@ fun Launcher(
     ) {
         WeeklyReportPage(modifier.padding(paddingValues), uiState, snackBar)
     }
+    AnimatedVisibility(
+        uiState.activePages.last() == BaseApplication.Page.ChatRoom,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        ChatPage(paddingValues, uiState, snackBar)
+    }
     if (uiState.activePages.last() == BaseApplication.Page.AnalyzePractice) {
         Intent(Intent.ACTION_VIEW, Uri.parse("https://saltech.ir/sokhanyar")).apply {
-            startActivity(context, this, null)
+            startActivities(mainViewModel.context, arrayOf(this), null)
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
         }
-    }
-}
-
-@Composable
-fun MainUI(
-    snackBar: SnackbarHostState,
-    modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel = viewModel()
-) {
-    val uiState by mainViewModel.uiState.collectAsState()
-    //MainLayout(uiState, snackBar, modifier)
-//    LaunchedEffect(androidx.lifecycle.compose.LocalLifecycleOwner.current) {
-//        mainViewModel.generateAdvice(uiState.dailyReports?.list ?: return@LaunchedEffect)
-//    }
-    //Text("generated text is ${uiState.advice}")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MainPreview() {
-    AppTheme {
-        val snackBarHostState = remember { SnackbarHostState() }
-        MainUI(snackBarHostState)
     }
 }

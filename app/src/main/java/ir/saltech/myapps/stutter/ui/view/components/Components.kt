@@ -32,7 +32,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,21 +48,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.text.isDigitsOnly
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_DISPLAYED_CHAR_COLLAPSE
 import ir.saltech.myapps.stutter.R
-import ir.saltech.myapps.stutter.ui.theme.AppTheme
-import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
+import ir.saltech.myapps.stutter.ui.state.MainUiState
 
 @Composable
 fun LockedDirection(
@@ -270,11 +266,10 @@ internal fun MinimalHelpText(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun AiAdvice(
     reportType: BaseApplication.ReportType,
+    uiState: MainUiState,
     modifier: Modifier = Modifier,
-    mainViewModel: MainViewModel = viewModel(),
     test: Boolean = false
 ) {
-    val uiState by mainViewModel.uiState.collectAsState()
     val advice by remember { uiState.advice }
     val hasAdvice = when (reportType) {
         BaseApplication.ReportType.Daily ->
@@ -358,13 +353,5 @@ fun AiAdvice(
                 }
             }
         }
-    }
-}
-
-@Preview
-@Composable
-fun AiAdvicePreview() {
-    AppTheme {
-        AiAdvice(BaseApplication.ReportType.Daily, test = true)
     }
 }

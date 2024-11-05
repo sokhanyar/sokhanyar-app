@@ -65,7 +65,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.R
-import ir.saltech.myapps.stutter.dto.model.MenuPageItem
+import ir.saltech.myapps.stutter.dto.model.ui.MenuPageItem
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
 import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
 import ir.saltech.myapps.stutter.util.wrapToScreen
@@ -117,17 +117,18 @@ fun MainPage(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        modifier = Modifier.size(48.dp),
-                        onClick = {
-                            onPageWanted(BaseApplication.Page.Search)
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_search_24),
-                            contentDescription = "search",
-                        )
-                    }
+                    // TODO: Complete the menu, settings and search sections.
+//                    IconButton(
+//                        modifier = Modifier.size(48.dp),
+//                        onClick = {
+//                            onPageWanted(BaseApplication.Page.Search)
+//                        }
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.baseline_search_24),
+//                            contentDescription = "search",
+//                        )
+//                    }
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         modifier = Modifier.padding(5.dp),
@@ -135,17 +136,17 @@ fun MainPage(
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        modifier = Modifier.size(48.dp),
-                        onClick = {
-                            onPageWanted(BaseApplication.Page.Menu)
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_menu_24),
-                            contentDescription = "menu",
-                        )
-                    }
+//                    IconButton(
+//                        modifier = Modifier.size(48.dp),
+//                        onClick = {
+//                            onPageWanted(BaseApplication.Page.Menu)
+//                        }
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.baseline_menu_24),
+//                            contentDescription = "menu",
+//                        )
+//                    }
                 }
                 AnimatedContent(modifier = Modifier.constrainAs(motivation) {
                     top.linkTo(header.bottom)
@@ -203,36 +204,38 @@ fun MainPage(
                     )
                 }
             }
-            LazyVerticalStaggeredGrid(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        MaterialTheme.colorScheme.surface,
-                        MaterialTheme.shapes.large.copy(
-                            topEnd = CornerSize(16.dp),
-                            topStart = CornerSize(16.dp),
-                            bottomEnd = CornerSize(0),
-                            bottomStart = CornerSize(0)
+            LockedDirection (LayoutDirection.Rtl) {
+                LazyVerticalStaggeredGrid(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.shapes.large.copy(
+                                topEnd = CornerSize(16.dp),
+                                topStart = CornerSize(16.dp),
+                                bottomEnd = CornerSize(0),
+                                bottomStart = CornerSize(0)
+                            )
                         )
-                    )
 //                .background(
 //                    ShaderBrush(ImageShader(ImageBitmap.imageResource(R.drawable.white_pattern), TileMode.Clamp, TileMode.Repeated))
 //                )
-                    .padding(top = 24.dp)
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = innerPadding.calculateBottomPadding()),
-                columns = StaggeredGridCells.Adaptive(
-                    if (LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
-                        75.dp
-                    } else {
-                        125.dp
+                        .padding(top = 24.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = innerPadding.calculateBottomPadding()),
+                    columns = StaggeredGridCells.Adaptive(
+                        if (LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
+                            75.dp
+                        } else {
+                            125.dp
+                        }
+                    ),
+                    verticalItemSpacing = 0.dp,
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    items(menuPageItems) {
+                        MenuItemButton(it)
                     }
-                ),
-                verticalItemSpacing = 0.dp,
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                items(menuPageItems) {
-                    MenuItemButton(it)
                 }
             }
         }
@@ -254,119 +257,121 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
                 text = { Text("${menuPageItem.disabledReason}") })
         }
     }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .border(
-                0.8.dp,
-                MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.7f),
-                RoundedCornerShape(15.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            modifier = Modifier.blur(
-                if (menuPageItem.comingSoon) 32.dp else 0.dp,
-                edgeTreatment = BlurredEdgeTreatment(RoundedCornerShape(15.dp))
-            ),
-            colors = CardDefaults.cardColors(
-                ButtonDefaults.filledTonalButtonColors().containerColor.copy(alpha = 0.58f),
-                ButtonDefaults.filledTonalButtonColors().contentColor,
-                ButtonDefaults.filledTonalButtonColors().disabledContainerColor,
-                ButtonDefaults.filledTonalButtonColors().disabledContentColor,
-            ),
-            shape = RoundedCornerShape(15.dp),
-            enabled = enabled && !menuPageItem.comingSoon,
-            onClick = {
-                menuPageItem.onClick()
-            }
+    LockedDirection (LayoutDirection.Ltr) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .border(
+                    0.8.dp,
+                    MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.7f),
+                    RoundedCornerShape(15.dp)
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            Card(
+                modifier = Modifier.blur(
+                    if (menuPageItem.comingSoon) 32.dp else 0.dp,
+                    edgeTreatment = BlurredEdgeTreatment(RoundedCornerShape(15.dp))
+                ),
+                colors = CardDefaults.cardColors(
+                    ButtonDefaults.filledTonalButtonColors().containerColor.copy(alpha = 0.58f),
+                    ButtonDefaults.filledTonalButtonColors().contentColor,
+                    ButtonDefaults.filledTonalButtonColors().disabledContainerColor,
+                    ButtonDefaults.filledTonalButtonColors().disabledContentColor,
+                ),
+                shape = RoundedCornerShape(15.dp),
+                enabled = enabled && !menuPageItem.comingSoon,
+                onClick = {
+                    menuPageItem.onClick()
+                }
             ) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.48f),
-                            RoundedCornerShape(9.dp)
-                        )
+                        .padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = menuPageItem.iconResId),
-                        contentDescription = null,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(13.dp)
-                    )
-                    if (!enabled) {
-                        Spacer(
+                            .background(
+                                MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.48f),
+                                RoundedCornerShape(9.dp)
+                            )
+                    ) {
+                        Image(
+                            painter = painterResource(id = menuPageItem.iconResId),
+                            contentDescription = null,
                             modifier = Modifier
-                                .matchParentSize()
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.78f),
-                                    RoundedCornerShape(9.dp)
-                                )
+                                .fillMaxWidth()
+                                .padding(13.dp)
+                        )
+                        if (!enabled) {
+                            Spacer(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.78f),
+                                        RoundedCornerShape(9.dp)
+                                    )
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        modifier = Modifier.padding(horizontal = 3.dp),
+                        text = menuPageItem.title,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontSize = 17.sp,
+                            textDirection = TextDirection.ContentOrRtl
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                }
+            }
+            if (!enabled && !menuPageItem.disabledReason.isNullOrEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(3.dp)
+                        .align(Alignment.TopStart),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    IconButton(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(8.dp),
+                        onClick = {
+                            showReason = true
+                        }) {
+                        Icon(
+                            Icons.Outlined.Info,
+                            tint = MaterialTheme.colorScheme.contentColorFor(if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surface else ButtonDefaults.filledTonalButtonColors().disabledContainerColor)
+                                .copy(alpha = 0.58f),
+                            contentDescription = "Why This is Disabled?"
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    modifier = Modifier.padding(horizontal = 3.dp),
-                    text = menuPageItem.title,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontSize = 17.sp,
-                        textDirection = TextDirection.ContentOrRtl
-                    ),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(5.dp))
             }
-        }
-        if (!enabled && !menuPageItem.disabledReason.isNullOrEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(3.dp)
-                    .align(Alignment.TopStart),
-                contentAlignment = Alignment.TopStart
-            ) {
-                IconButton(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .padding(8.dp),
-                    onClick = {
-                        showReason = true
-                    }) {
-                    Icon(
-                        Icons.Outlined.Info,
-                        tint = MaterialTheme.colorScheme.contentColorFor(if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surface else ButtonDefaults.filledTonalButtonColors().disabledContainerColor)
-                            .copy(alpha = 0.58f),
-                        contentDescription = "Why This is Disabled?"
+            if (menuPageItem.comingSoon) {
+                Box(
+                    modifier = Modifier.background(
+                        MaterialTheme.colorScheme.surfaceContainerLowest.copy(
+                            alpha = 0.5f
+                        ), shape = MaterialTheme.shapes.small
+                    )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        text = "به زودی ...",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl),
+                        textAlign = TextAlign.Center
                     )
                 }
-            }
-        }
-        if (menuPageItem.comingSoon) {
-            Box(
-                modifier = Modifier.background(
-                    MaterialTheme.colorScheme.surfaceContainerLowest.copy(
-                        alpha = 0.5f
-                    ), shape = MaterialTheme.shapes.small
-                )
-            ) {
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = "به زودی ...",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl),
-                    textAlign = TextAlign.Center
-                )
             }
         }
     }

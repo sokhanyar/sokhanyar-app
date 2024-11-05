@@ -1,9 +1,10 @@
-package ir.saltech.myapps.stutter.dto.model
+package ir.saltech.myapps.stutter.dto.model.data.reports
 
 import com.google.gson.annotations.SerializedName
+import ir.saltech.myapps.stutter.dto.model.data.general.User
 
 data class WeeklyReport(
-    override val name: String? = null,
+    override val user: User = User(),
     override val date: Long? = null,
     @SerializedName("practice_days")
     val practiceDays: Int? = null,

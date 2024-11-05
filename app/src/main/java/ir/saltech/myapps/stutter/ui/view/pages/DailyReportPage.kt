@@ -46,7 +46,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -58,7 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_DAILY_REPORT_PAGES
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_NAME_CHARS
-import ir.saltech.myapps.stutter.dto.model.DailyReport
+import ir.saltech.myapps.stutter.dto.model.data.general.User
+import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
 import ir.saltech.myapps.stutter.ui.state.MainUiState
 import ir.saltech.myapps.stutter.ui.view.components.AiAdvice
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
@@ -78,14 +78,13 @@ fun DailyReportPage(
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
-    val clipboardManager = LocalClipboardManager.current
     val focus = LocalFocusManager.current
-    val defaultDailyReport: DailyReport by remember { mutableStateOf(uiState.dailyReport.copy(name = uiState.weeklyReport.name)) }
+    val defaultDailyReport: DailyReport by remember { mutableStateOf(uiState.dailyReport.copy(user = uiState.user)) }
     var pageCounter by remember { mutableIntStateOf(0) }
     var isFinished by remember { mutableStateOf(false) }
     var effectSide: BaseApplication.EffectSide by remember { mutableStateOf(BaseApplication.EffectSide.Unknown) }
     var dailyReport: DailyReport by remember { mutableStateOf(defaultDailyReport) }
-    Log.d("TAG", "state dailyreport: $dailyReport, uiState dailyreport ${uiState.dailyReport}")
+    Log.d("TAG", "state daily report: $dailyReport, uiState daily report ${uiState.dailyReport}")
     mainViewModel.dailyReport = dailyReport
     LockedDirection(LayoutDirection.Rtl) {
         AnimatedVisibility(isFinished, enter = fadeIn(), exit = fadeOut()) {
@@ -97,7 +96,7 @@ fun DailyReportPage(
             ) {
                 val result: String? by remember { mutableStateOf(uiState.dailyReport.result) }
                 Log.i("TAG", "Solution is $result")
-                AiAdvice(BaseApplication.ReportType.Daily)
+                AiAdvice(BaseApplication.ReportType.Daily, uiState)
                 Text("برای اشتراک فرم، روی اون ضربه بزنید.")
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -427,13 +426,13 @@ fun DailyReportPage(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp),
-                                    value = dailyReport.name ?: "",
+                                    value = dailyReport.user.name ?: "",
                                     onValueChange = {
                                         dailyReport = dailyReport.copy(
-                                            name = if (it.length in 1..MAX_OF_NAME_CHARS) it else ""
-                                        )
+                                            user = uiState.user.copy(name = if (it.length in 1..MAX_OF_NAME_CHARS) it else ""
+                                        ))
                                     },
-                                    enabled = defaultDailyReport.name == null,
+                                    enabled = defaultDailyReport.user.name == null,
                                     singleLine = true,
                                     label = { Text("نام درمانجو") },
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -495,15 +494,15 @@ fun DailyReportPage(
                             if (pageCounter < MAX_OF_DAILY_REPORT_PAGES - 1) {
                                 pageCounter++
                             } else {
-                                if (dailyReport.name != null) {
-                                    if (dailyReport.name!!.isEmpty()) {
-                                        dailyReport = dailyReport.copy(name = null)
+                                if (dailyReport.user.name != null) {
+                                    if (dailyReport.user.name!!.isEmpty()) {
+                                        dailyReport = dailyReport.copy(user = User())
                                         emptyNameError()
                                     } else {
                                         focus.clearFocus()
                                         Log.w(
                                             "TAG",
-                                            "dailyReport updated! state dailyreport: $dailyReport, uiState dailyreport ${uiState.dailyReport}"
+                                            "dailyReport updated! state daily report: $dailyReport, uiState daily report ${uiState.dailyReport}"
                                         )
                                         val result = mainViewModel.saveDailyReport()
                                         Log.i("TAG", "Saving daily report result: $result")

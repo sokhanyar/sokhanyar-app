@@ -1,19 +1,31 @@
 package ir.saltech.myapps.stutter.util
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.aallam.openai.api.chat.ChatChunk
 import com.google.gson.Gson
 import gregorian_to_jalali
-import ir.saltech.myapps.stutter.dto.model.DailyReport
-import ir.saltech.myapps.stutter.dto.model.DailyReports
-import ir.saltech.myapps.stutter.dto.model.WeeklyReport
+import ir.saltech.ai.client.generativeai.type.Content
+import ir.saltech.ai.client.generativeai.type.asTextOrNull
+import ir.saltech.ai.client.generativeai.type.content
+import ir.saltech.myapps.stutter.BaseApplication
+import ir.saltech.myapps.stutter.dto.model.ai.ChatMessage
+import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
+import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReports
+import ir.saltech.myapps.stutter.dto.model.data.reports.WeeklyReport
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import java.util.Calendar
 import java.util.Date
@@ -147,3 +159,79 @@ fun Modifier.wrapToScreen(reverse: Boolean = false): Modifier {
         }
     }
 }
+
+fun MutableList<ChatMessage>.asAiContents(): List<Content> {
+    // TODO: ChatMessage currently supports only texts.
+    return this.map {
+        content(it.role) {
+            text(it.content)
+        }
+    }
+}
+
+fun ChatMessage.asAiContent(): Content {
+    // TODO: ChatMessage currently supports only texts.
+    return content(this@asAiContent.role) {
+        text(this@asAiContent.content)
+    }
+}
+
+fun Content.asChatMessage(previousMessage: ChatMessage?): ChatMessage? {
+    return if (this.role != null && this.parts.isNotEmpty()) {
+        ChatMessage(
+            id = (previousMessage?.id ?: 0) + 1,
+            role = this.role!!,
+            content = this.parts[0].asTextOrNull() ?: return null
+        )
+    } else {
+        null
+    }
+}
+
+@SuppressLint("DefaultLocale")
+fun Long.epochToHoursMinutes(): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    val hours = calendar.get(Calendar.HOUR_OF_DAY)
+    val minutes = calendar.get(Calendar.MINUTE)
+    return String.format("%02d:%02d", hours, minutes)
+}
+
+@SuppressLint("DefaultLocale")
+fun Long.epochToMonthDay(): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+    val dayId = calendar.get(Calendar.DAY_OF_WEEK)
+    val jalali = gregorian_to_jalali(year, month + 1, day)
+
+    return if (Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year == year) {
+        String.format("%s، %d %s", BaseApplication.Constants.JalaliDays[dayId], jalali[2], BaseApplication.Constants.JalaliMonths[jalali[1] - 1])
+    } else {
+        String.format("%s، %d %s %d", BaseApplication.Constants.JalaliDays[dayId], jalali[2], BaseApplication.Constants.JalaliMonths[jalali[1] - 1], jalali[0])
+    }
+}
+
+@SuppressLint("DefaultLocale")
+fun Long.epochToFullDateTime(): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+    val minute = calendar.get(Calendar.MINUTE)
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+    val dayId = calendar.get(Calendar.DAY_OF_WEEK)
+    val jalali = gregorian_to_jalali(year, month + 1, day)
+
+    return String.format("%s، %d/%s/%d، %d:%d", BaseApplication.Constants.JalaliDays[dayId], jalali[2], BaseApplication.Constants.JalaliMonths[jalali[1] - 1], jalali[0], hour, minute)
+}
+
+fun Modifier.fadingEdge(brush: Brush) = this
+    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+        drawContent()
+        drawRect(brush = brush, blendMode = BlendMode.DstIn)
+    }

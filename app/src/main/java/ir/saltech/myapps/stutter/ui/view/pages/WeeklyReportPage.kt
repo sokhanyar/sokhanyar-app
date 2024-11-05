@@ -46,7 +46,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -58,7 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_NAME_CHARS
 import ir.saltech.myapps.stutter.BaseApplication.Constants.MAX_OF_WEEKLY_REPORT_PAGES
-import ir.saltech.myapps.stutter.dto.model.WeeklyReport
+import ir.saltech.myapps.stutter.dto.model.data.general.User
+import ir.saltech.myapps.stutter.dto.model.data.reports.WeeklyReport
 import ir.saltech.myapps.stutter.ui.state.MainUiState
 import ir.saltech.myapps.stutter.ui.view.components.AiAdvice
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
@@ -78,7 +78,6 @@ fun WeeklyReportPage(
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
-    val clipboardManager = LocalClipboardManager.current
     val focus = LocalFocusManager.current
     val defaultWeeklyReport: WeeklyReport? by remember { mutableStateOf(mainViewModel.getDefaultWeeklyReport()) }
     var pageCounter by remember { mutableIntStateOf(0) }
@@ -101,7 +100,7 @@ fun WeeklyReportPage(
             ) {
                 val result by remember { mutableStateOf(uiState.weeklyReport.result) }
                 Log.i("TAG", "Solution is $result")
-                AiAdvice(BaseApplication.ReportType.Weekly)
+                AiAdvice(BaseApplication.ReportType.Weekly, uiState)
                 Text("برای اشتراک فرم، روی اون ضربه بزنید.")
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -411,13 +410,13 @@ fun WeeklyReportPage(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp),
-                                    value = weeklyReport.name ?: "",
+                                    value = weeklyReport.user.name ?: "",
                                     onValueChange = {
                                         weeklyReport = weeklyReport.copy(
-                                            name = if (it.length in 1..MAX_OF_NAME_CHARS) it else ""
+                                            user = uiState.user.copy(name = if (it.length in 1..MAX_OF_NAME_CHARS) it else "")
                                         )
                                     },
-                                    enabled = defaultWeeklyReport?.name == null && weeklyReport.name == null,
+                                    enabled = defaultWeeklyReport?.user?.name == null && weeklyReport.user.name == null,
                                     singleLine = true,
                                     label = { Text("نام درمانجو") },
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -479,9 +478,9 @@ fun WeeklyReportPage(
                             if (pageCounter < MAX_OF_WEEKLY_REPORT_PAGES - 1) {
                                 pageCounter++
                             } else {
-                                if (weeklyReport.name != null) {
-                                    if (weeklyReport.name!!.isEmpty()) {
-                                        weeklyReport = weeklyReport.copy(name = null)
+                                if (weeklyReport.user.name != null) {
+                                    if (weeklyReport.user.name!!.isEmpty()) {
+                                        weeklyReport = weeklyReport.copy(user = User())
                                         emptyNameError()
                                     } else {
                                         focus.clearFocus()

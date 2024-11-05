@@ -11,21 +11,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aallam.openai.client.OpenAI
-import com.aallam.openai.client.OpenAIHost
 import ir.saltech.ai.client.generativeai.GenerativeModel
 import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.ai.client.generativeai.type.generationConfig
 import ir.saltech.myapps.stutter.BaseApplication
-import ir.saltech.myapps.stutter.dto.model.CallsCount
-import ir.saltech.myapps.stutter.dto.model.DailyReport
-import ir.saltech.myapps.stutter.dto.model.DailyReports
-import ir.saltech.myapps.stutter.dto.model.Report
-import ir.saltech.myapps.stutter.dto.model.VoicesProperties
-import ir.saltech.myapps.stutter.dto.model.WeeklyReport
-import ir.saltech.myapps.stutter.dto.model.WeeklyReports
+import ir.saltech.myapps.stutter.dto.model.ai.ChatHistory
+import ir.saltech.myapps.stutter.dto.model.ai.ChatMessage
+import ir.saltech.myapps.stutter.dto.model.data.general.User
+import ir.saltech.myapps.stutter.dto.model.data.reports.CallsCount
+import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
+import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReports
+import ir.saltech.myapps.stutter.dto.model.data.reports.Report
+import ir.saltech.myapps.stutter.dto.model.data.reports.VoicesProperties
+import ir.saltech.myapps.stutter.dto.model.data.reports.WeeklyReport
+import ir.saltech.myapps.stutter.dto.model.data.reports.WeeklyReports
 import ir.saltech.myapps.stutter.ui.state.MainUiState
+import ir.saltech.myapps.stutter.util.asAiContent
+import ir.saltech.myapps.stutter.util.asAiContents
+import ir.saltech.myapps.stutter.util.asChatMessage
 import ir.saltech.myapps.stutter.util.dataStore
+import ir.saltech.myapps.stutter.util.epochToFullDateTime
 import ir.saltech.myapps.stutter.util.fromJson
 import ir.saltech.myapps.stutter.util.get
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
@@ -49,10 +54,10 @@ import kotlin.math.roundToInt
 
 class MainViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
-    private val openai = OpenAI(
-        token = BaseApplication.Constants.API_KEY,
-        host = OpenAIHost("${BaseApplication.Constants.BASE_URL}/v1/")
-    )
+//    private val openai = OpenAI(
+//        token = BaseApplication.Constants.API_KEY,
+//        host = OpenAIHost("${BaseApplication.Constants.BASE_URL}/v1/")
+//    )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     @SuppressLint("StaticFieldLeak")
@@ -66,15 +71,14 @@ class MainViewModel : ViewModel() {
             _uiState.update { it.copy(advice = value) }
         }
 
-    @Deprecated("use activePages instead")
-    var page: BaseApplication.Page = BaseApplication.Page.Home
-        set(value) {
-            _uiState.update { it.copy(page = value) }
-        }
     var activePages: MutableList<BaseApplication.Page> =
         mutableStateListOf(BaseApplication.Page.Home)
         set(value) {
             _uiState.update { it.copy(activePages = value) }
+        }
+    var user: User = User()
+        set(value) {
+            _uiState.update { it.copy(user = value) }
         }
     var dailyReport: DailyReport = DailyReport()
         set(value) {
@@ -83,6 +87,10 @@ class MainViewModel : ViewModel() {
     var weeklyReport: WeeklyReport = WeeklyReport()
         set(value) {
             _uiState.update { it.copy(weeklyReport = value) }
+        }
+    private var chatHistory: StateFlow<ChatHistory> = MutableStateFlow(ChatHistory(0)).asStateFlow()
+        set(value) {
+            _uiState.update { it.copy(chatHistory = value) }
         }
     private var dailyReports: DailyReports = DailyReports()
         set(value) {
@@ -95,57 +103,68 @@ class MainViewModel : ViewModel() {
 
     // --- AI Section ---
 
-//    fun launchChat(reports: List<Report>?, reportType: BaseApplication.ReportType) {
-//        if (reports != null) {
-//            viewModelScope.launch {
-//                val model = GenerativeModel(
-//                    modelName = BaseApplication.Ai.Gemini.Models.Flash,
-//                    BaseApplication.Ai.Gemini.apiKeys[0],
-//                    systemInstruction = content {
-//                        text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1)
-//                    },
-//                    generationConfig = generationConfig {
-//                        temperature = 1.3f
-//                        topK = 40
-//                        topP = 0.95f
-//                        maxOutputTokens = 1024
-//                        responseMimeType = "text/plain"
-//                        frequencyPenalty =0.7f
-//                        presencePenalty = 1.2f
-//                    }
-//                )
-//                val chat = model.startChat()
-//                val generatedResponse = chat.sendMessage(content {
-//                    text(
-//                        """سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
-//                    گزارش این هفته / امروز:
-//                    ${
-//                            reports.last().result
-//                        }
-//                    گزارش های قبلی:
-//                    ${
-//                            reports.subList(0, reports.lastIndex)
-//                        }
-//                    """
-//                    )
-//                })
-//                Log.i("TAG", "Advice generated: ${generatedResponse.text}")
-//                advice.value = generatedResponse.text
-//                _uiState.value.advice.value = generatedResponse.text?.trim()
-//            }
-//        }
-//    }
-//
-//    fun generateNewMessage(message: String, model: GenerativeModel, history: List<Content>) {
-//        viewModelScope.launch {
-//            val response = model.startChat(history).sendMessage(content {
-//                text(message)
-//            })
-//        }
-//    }
+    fun startOverChat() {
+        viewModelScope.launch {
+            // TODO: You can call another api keys and change model here
+            chatHistory = MutableStateFlow(ChatHistory(0))
+            saveChatHistory()
+        }
+    }
+
+    fun generateNewMessage(message: String) {
+        viewModelScope.launch {
+            val model = GenerativeModel(
+                modelName = BaseApplication.Ai.Gemini.Models.Flash,
+                BaseApplication.Ai.Gemini.apiKeys[0],
+                systemInstruction = content {
+                    text("${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${Clock.System.now().toEpochMilliseconds().epochToFullDateTime()}")
+                },
+                generationConfig = generationConfig {
+                    temperature = 1.3f
+                    topK = 40
+                    topP = 0.95f
+                    maxOutputTokens = 1024
+                    responseMimeType = "text/plain"
+                    frequencyPenalty = 0.7f
+                    presencePenalty = 1.2f
+                }
+            )
+            val requestContent =
+                ChatMessage(
+                    (_uiState.value.chatHistory.value.contents.lastOrNull()?.id ?: -1) + 1,
+                    "user",
+                    message
+                )
+            chatHistory =
+                MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+                    val userNameChatMessage = ChatMessage(id = -1, role = "user", content = "اسمم ${_uiState.value.user.name} هست؛ ")
+                    if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(0, userNameChatMessage)
+                    it.add(requestContent)
+                    it
+                }))
+            saveChatHistory()
+            val backupChatHistory = _uiState.value.chatHistory.value.contents.asAiContents()
+            chatHistory =
+                MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+                    it.add(ChatMessage(0, "assistant", "...")); it
+                }))
+            val response =
+                model.startChat(backupChatHistory)
+                    .sendMessage(requestContent.asAiContent())
+            Log.i("TAG", "Response got: $response")
+            // TODO: You can set function calling here
+            chatHistory =
+                MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+                    it[_uiState.value.chatHistory.value.contents.lastIndex] =
+                        (response.candidates[0].content.asChatMessage(_uiState.value.chatHistory.value.contents.lastOrNull())
+                            ?: return@launch); it
+                }))
+            saveChatHistory()
+        }
+    }
 
     private fun generateAdvice(reports: List<Report>?, reportType: BaseApplication.ReportType) {
-        if (reports != null) {
+        if (reports != null && reports.size >= 2) {
             viewModelScope.launch {
                 val model = GenerativeModel(
                     modelName = BaseApplication.Ai.Gemini.Models.Flash,
@@ -190,17 +209,16 @@ class MainViewModel : ViewModel() {
                     modelName = BaseApplication.Ai.Gemini.Models.Flash,
                     BaseApplication.Ai.Gemini.apiKeys[0],
                     generationConfig = generationConfig {
-                        temperature = 1.7f
+                        temperature = 1.5f
                         topK = 40
                         topP = 0.95f
                         maxOutputTokens = 100
                         responseMimeType = "text/plain"
-                        presencePenalty = 1f
-                        frequencyPenalty = 0.4f
+                        frequencyPenalty = 1.5f
                     }
                 )
                 val generatedContent = model.generateContent(
-                    " ${getGreetingBasedOnTime(true)} یک جمله انگیزشی خفن برای درمان لکنت به من بگو.\n" +
+                    " ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی به من بگو.\n" +
                             "فقط جمله انگیزشی ات رو نشون بده. جلمه انگیزشی باید فقط 1 خط باشه و به همراه ایموجی جذاب باشه.\n"
                 )
                 sentence = generatedContent.text?.trim() ?: sentence
@@ -260,7 +278,7 @@ class MainViewModel : ViewModel() {
             if (_uiState.value.dailyReports != null && _uiState.value.dailyReports?.list?.isNotEmpty() == true) {
                 val lastDailyReports: List<DailyReport> =
                     _uiState.value.dailyReports?.getLastDailyReports() ?: return null
-                _uiState.value.weeklyReport.copy(name = _uiState.value.dailyReport.name,
+                _uiState.value.weeklyReport.copy(user = _uiState.value.dailyReport.user,
                     voicesProperties = lastDailyReports.let { lastReports ->
                         VoicesProperties(lastReports.sumOf { lastDailyReport: DailyReport ->
                             lastDailyReport.voicesProperties.challengesCount ?: 0
@@ -299,17 +317,19 @@ class MainViewModel : ViewModel() {
             fromJson<DailyReports>(context.dataStore[BaseApplication.Key.DailyReports] ?: "")
                 ?: DailyReports()
         dailyReport = _uiState.value.dailyReport.copy(
-            name = _uiState.value.dailyReports?.list?.lastOrNull()?.name,
+//            name = _uiState.value.dailyReports?.list?.lastOrNull()?.name,
+            user = _uiState.value.user,
             date = Clock.System.now().toEpochMilliseconds()
         )
         Log.i("TAG", "Latest daily reports fetched: ${_uiState.value.dailyReports}")
     }
 
     fun saveDailyReport(): Boolean {
+        user = _uiState.value.dailyReport.user
         dailyReport = _uiState.value.dailyReport.copy(result = """
             📝"فرم گزارش روزانه"
             ◾️تاریخ: ${Date(_uiState.value.dailyReport.date!!).toJalali().toDayReportDate()} 
-            ◾️نام: ${(_uiState.value.dailyReport.name ?: "").ifEmpty { "ناشناس" }}
+            ◾️نام: ${(_uiState.value.dailyReport.user.name ?: "").ifEmpty { "ناشناس" }}
             ☑️مدت زمان تمرین: ${_uiState.value.dailyReport.practiceTime?.toRegularTime() ?: "-"}
             ☑️مدت زمان اجرای شیوه در انواع محیط ها👇
             بین 5 تا 15 دقیقه 👈 1 
@@ -338,7 +358,11 @@ class MainViewModel : ViewModel() {
         """.trimIndent())
         val res = _uiState.value.dailyReports?.list?.add(_uiState.value.dailyReport)
         saveDailyReports()
-        generateAdvice(_uiState.value.dailyReports?.list?.toList(), BaseApplication.ReportType.Daily)
+        saveUser()
+        generateAdvice(
+            _uiState.value.dailyReports?.list?.toList(),
+            BaseApplication.ReportType.Daily
+        )
         return res == true
     }
 
@@ -353,16 +377,19 @@ class MainViewModel : ViewModel() {
             fromJson<WeeklyReports>(context.dataStore[BaseApplication.Key.WeeklyReports] ?: "")
                 ?: WeeklyReports()
         weeklyReport = _uiState.value.weeklyReport.copy(
-            name = _uiState.value.weeklyReports?.list?.lastOrNull()?.name,
+//            user = _uiState.value.weeklyReports?.list?.lastOrNull()?.user,
+            user = _uiState.value.user,
             date = Clock.System.now().toEpochMilliseconds()
         )
         Log.i("TAG", "Latest weekly reports fetched: ${_uiState.value.weeklyReports}")
     }
 
     fun saveWeeklyReport(): Boolean {
-        weeklyReport = _uiState.value.weeklyReport.copy(result = """
+        user = _uiState.value.weeklyReport.user
+        weeklyReport = _uiState.value.weeklyReport.copy(
+            result = """
             ..#گزارش_هفتگی
-            ${_uiState.value.weeklyReport.name ?: "ناشناس"}
+            ${_uiState.value.weeklyReport.user.name ?: "ناشناس"}
             
             👈تعداد روز هایی که تمرینات انجام شده: ${_uiState.value.weeklyReport.practiceDays ?: "-"}
             👈تعداد روزهای کنفرانس دادن: ${_uiState.value.weeklyReport.voicesProperties.conferenceDaysCount ?: "-"}
@@ -378,10 +405,15 @@ class MainViewModel : ViewModel() {
             👈مجموع فعالیت ها: ${_uiState.value.weeklyReport.sumOfActivities ?: 0}
             
             ◾توضیحات اضافه: ${_uiState.value.weeklyReport.description ?: "-"}
-        """.trimIndent())
+        """.trimIndent()
+        )
         val res = _uiState.value.weeklyReports?.list?.add(_uiState.value.weeklyReport)
         saveWeeklyReports()
-        generateAdvice(_uiState.value.weeklyReports?.list?.toList(), BaseApplication.ReportType.Weekly)
+        saveUser()
+        generateAdvice(
+            _uiState.value.weeklyReports?.list?.toList(),
+            BaseApplication.ReportType.Weekly
+        )
         return res == true
     }
 
@@ -389,5 +421,38 @@ class MainViewModel : ViewModel() {
         Log.i("TAG", "saving weekly reports json: ${toJson(_uiState.value.weeklyReports)}")
         context.dataStore[BaseApplication.Key.WeeklyReports] =
             toJson(_uiState.value.weeklyReports) ?: ""
+    }
+
+    private fun saveChatHistory() {
+        Log.i("TAG", "saving chat history json: ${toJson(_uiState.value.chatHistory.value)}")
+        context.dataStore[BaseApplication.Key.ChatHistory] =
+            toJson(_uiState.value.chatHistory.value) ?: ""
+    }
+
+    fun loadChatHistory() {
+        chatHistory = MutableStateFlow(
+            fromJson<ChatHistory>(context.dataStore[BaseApplication.Key.ChatHistory] ?: "")
+                ?: ChatHistory(0)
+        )
+        _uiState.value.chatHistory = MutableStateFlow(
+            fromJson<ChatHistory>(context.dataStore[BaseApplication.Key.ChatHistory] ?: "")
+                ?: ChatHistory(0)
+        )
+        Log.i(
+            "TAG",
+            "Latest chat history fetched: ${_uiState.value.chatHistory.value} || chat history 1 "
+        )
+    }
+
+    private fun saveUser() {
+        Log.i("TAG", "saving user json: ${toJson(_uiState.value.user)}")
+        context.dataStore[BaseApplication.Key.User] =
+            toJson(_uiState.value.user) ?: ""
+    }
+
+    fun loadUser() {
+        user = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "")
+            ?: User()
+        Log.i("TAG", "User loaded -> ${_uiState.value.user}")
     }
 }

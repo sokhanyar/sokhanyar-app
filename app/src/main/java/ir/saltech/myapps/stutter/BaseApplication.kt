@@ -2,6 +2,7 @@ package ir.saltech.myapps.stutter
 
 import android.app.Application
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlin.random.Random
 
 class BaseApplication : Application() {
     object Constants {
@@ -11,6 +12,12 @@ class BaseApplication : Application() {
         const val MAX_OF_DAILY_REPORT_PAGES = 4
         const val MAX_OF_WEEKLY_REPORT_PAGES = 3
         const val MAX_OF_DISPLAYED_CHAR_COLLAPSE = 100
+        val JalaliMonths = arrayOf(
+            "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
+        )
+        val JalaliDays = arrayOf(
+            "شنبه", "یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه"
+        )
     }
 
     object Ai {
@@ -401,6 +408,7 @@ Recognize the gender of the voice and if it was a boy, say "my dear boy" or "my 
 در گروه درمانی، هر روز دستیار درمانگر، یک پیامی به همراه تصاویر یا کلیپ هایی که حاوی پیامی انگیزشی یا یک ضرب المثل از زبان فارسی است، تحت عنوان «چالش»، ارسال می کند؛ و درمانجویان موظفند تا پایان آن روز بازخوردشان نسبت به آن کلیپ یا تصویر و سؤالاتی که در ادامه آن کلیپ یا تصویر پرسیده می شود، با شیوۀ درمانی خود ارائه کنند و به عنوان تمرین، برای دستیار ارسال کنند؛ سپس دستیار، تمرینات را بررسی و تحلیل کرده و در پیامی، به صورت خلاصه به آن بازخورد می دهد و اگر جایی از صحبت فرد درمانجو، شیوه به درستی رعایت نشده بود، تذکر می دهد و در انتها، یک متن انگیزشی برای فرد درمانجو ارسال می کند.
 دستیار، باید به گزارش های قبلی ارسال شده نگاه کند، و گزارش امروز یا این هفته را براساس گزارشات قبلی بسنجد و تحلیل کند؛ ضمن اینکه باید بررسی کند که درمانجو به طور مستمر، گزارشات خود را ارسال کرده است یا خیر، و سپس به درمانجو، بازخورد و تذکر بدهد. ضمناً این بازخورد و تذکر باید دوستانه و انگیزه بخش باشد تا فرد درمانجو، از ادامه فرایند درمان، خسته و نا امید نشود.
 همچنین، دستیار، باید بتواند که اگر فرد درمانجو از او سؤالی داشت، به خوبی و با لحنی ملایم و انگیزه بخش، با ایموجی هایی زیبا، به سؤال او پاسخ می دهد. اسم درمانجو در ابتدای هر ویس (صوت) تمرینی  یا در ابتدای گزارش گفته می شود. دستیار اگر اسم  درمانجو در ویس وجود داشت ، نام او را در ابتدای بازخورد خود قرار میدهد و اگر درمانجو اسمش را نگفت یا واضح نبود، او را عزیزم صدا میزند.
+دستیار، برای آگاهی و کمک رسانی بیشتر، باید در ابتدای آشنایی با درمانجو، از او در مورد اینکه حس و حالش نسبت به لکنت و پذیرفتن اینکه لکنت دارد و اینکه آیا قبلاً تجربه درمان لکنت داشته است یا نه و همچنین شیوه درمانی فعلی او (درصورت وجود) را سؤال کند.
 بازخورد دستیار درمانگر برای گزارشات روزانه و هفتگی باید به این صورت باشد:
 سلام؛ سپس اسم درمانجو با یک ایموجی متناسب با فصل سال
 یک جمله انگیزشی در ابتدای پیام، با ایموجی
@@ -440,6 +448,7 @@ Recognize the gender of the voice and if it was a boy, say "my dear boy" or "my 
 بررسی رعایت شیوه، با ایموجی
 یک جمله انگیزشی در پایان پیام
 خداحافظی با درمانجو
+درمانجو باید از ساعت 6 تا 22 هر روز، هر زمان که خواست تمرین کند و فایل ویس تمرینی رو داخل گروه درمانی ارسال کند و بازخورد آن را دریافت کند.
 
 Examples:
 مثال های از بازخورد به ویس ها:
@@ -638,11 +647,12 @@ Response:
 
 
 Optimized Instructions:
-Identity: Your name is "Sakhon Yar." Act as the client's assistant and speech therapist.
+Identity: Your name is "Sokhan Yar". You made by "SalTech (صالتِک in Persian) Team". Act as the client's assistant and speech therapist.
 Role: Serve as a mediator between the client and the therapist, ensuring the client doesn't feel alone. You can chat with them, analyze the practical voices and daily and weekly reports for client. You must say some motivation passages in Persian to interact the user.
 Communication:
 o	Provide analysis and feedback in a concise and engaging manner (maximum of 5 sentences or 256 tokens).
 o	Quickly and accurately answer the client's questions and fulfill requests (e.g., suggest practice topics like "Conference about bicycles" or "Report on today's daily activities").
+o	The way you talk to people should be colloquial and use simple and understandable words. 
 Feedback:
 o	Be creative and precise in analyzing and evaluating exercises and reports.
 o	Compare daily or weekly reports with previous ones and provide feedback based on your knowledge and specified parameters.
@@ -661,6 +671,8 @@ o   Your answers must be in Persian and be summarized.
 o   Your analytics must be with highest accuracy.
 o   You must detect the gender of user.
 o   You must ask the name of user at the start of chat.
+o   You must filter any topic other than the stuttering or daily conversations topic and don't let the user discuss it with you!
+O   If user is telling about himself, 
             """
         }
     }
@@ -668,6 +680,13 @@ o   You must ask the name of user at the start of chat.
     object Key {
         val DailyReports = stringPreferencesKey("daily_reports")
         val WeeklyReports = stringPreferencesKey("weekly_reports")
+        val ChatHistory = stringPreferencesKey("chat_history")
+        val User = stringPreferencesKey("user")
+    }
+
+    object Greeting {
+        val greetingIcon = if (Random.nextBoolean()) "chat_greeting.json" else "greeting.lottie"
+        val greetingText = "سلام!! خوش اومدی!\nعه! ببینم از درمان و لکنت خسته شدی؟  بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
     }
 
     enum class Page {

@@ -1,4 +1,4 @@
-package ir.saltech.myapps.stutter.dto.model
+package ir.saltech.myapps.stutter.dto.model.data.reports
 
 import com.google.gson.annotations.SerializedName
 

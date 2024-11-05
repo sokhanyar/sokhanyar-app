@@ -1,16 +1,17 @@
-package ir.saltech.myapps.stutter.dto.model
+package ir.saltech.myapps.stutter.dto.model.data.reports
 
 import com.google.gson.annotations.SerializedName
+import ir.saltech.myapps.stutter.dto.model.data.general.User
 
 abstract class Report {
-    abstract val name: String?
+    abstract val user: User
     abstract val date: Long?
     abstract val description: String?
     abstract val result: String?
 }
 
 data class DailyReport(
-    override val name: String? = null,
+    override val user: User = User(),
     override val date: Long? = null,
     @SerializedName("practice_time")
     val practiceTime: Int? = null,

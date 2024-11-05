@@ -1,6 +1,6 @@
 package ir.saltech.myapps.stutter.dto.api
 
-import ir.saltech.myapps.stutter.dto.model.Credit
+import ir.saltech.myapps.stutter.dto.model.ai.Credit
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Header

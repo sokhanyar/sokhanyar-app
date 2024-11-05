@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.Stutter" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="EmojiPicker">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">16sp</item>
+    </style>
 </resources>
