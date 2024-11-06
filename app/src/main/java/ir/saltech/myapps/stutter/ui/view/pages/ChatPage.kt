@@ -1,14 +1,24 @@
 package ir.saltech.myapps.stutter.ui.view.pages
 
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -48,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,6 +82,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -95,10 +107,14 @@ import ir.saltech.myapps.stutter.dto.model.ui.ChatActionWantedListener
 import ir.saltech.myapps.stutter.ui.state.MainUiState
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
 import ir.saltech.myapps.stutter.ui.view.model.MainViewModel
+import ir.saltech.myapps.stutter.util.ConnectionState
+import ir.saltech.myapps.stutter.util.connectivityState
 import ir.saltech.myapps.stutter.util.epochToHoursMinutes
 import ir.saltech.myapps.stutter.util.epochToMonthDay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun ChatPage(
     innerPadding: PaddingValues = PaddingValues(0.dp),
@@ -109,8 +125,17 @@ fun ChatPage(
     val density = LocalDensity.current
     val chatHistory by uiState.chatHistory.collectAsState()
     val chatMessagesState = rememberLazyListState()
-    var message by rememberSaveable { mutableStateOf("") }
+    val connection by connectivityState()
+    val currentIsNetworkConnected = connection === ConnectionState.Available
+    val firstItemVisible by remember {
+        derivedStateOf {
+            chatMessagesState.firstVisibleItemScrollOffset == 0
+        }
+    }
     var startOverWanted by rememberSaveable { mutableStateOf(false) }
+    var message by rememberSaveable { mutableStateOf("") }
+    var lastIsNetworkConnected by rememberSaveable { mutableStateOf(true) }
+    var connectedLevel by remember { mutableIntStateOf(0) }
     //Log.i("New", "New contents ${uiState.chatHistory}")
     if (startOverWanted) {
         LockedDirection(LayoutDirection.Rtl) {
@@ -133,6 +158,16 @@ fun ChatPage(
                 )
             )
         }
+    }
+    if (lastIsNetworkConnected != currentIsNetworkConnected) {
+        Log.i("TAG", "network changed! ${connectedLevel}")
+        lastIsNetworkConnected = currentIsNetworkConnected
+        connectedLevel++
+    }
+    if (connectedLevel == 2) {
+        Handler(Looper.getMainLooper()).postDelayed({
+            connectedLevel = 0
+        }, 2000)
     }
     Column(
         modifier = Modifier
@@ -161,17 +196,18 @@ fun ChatPage(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .padding(
-                        top = innerPadding.calculateTopPadding(),
-                        end = innerPadding.calculateEndPadding(LayoutDirection.Rtl),
-                        start = innerPadding.calculateStartPadding(LayoutDirection.Rtl)
-                    ),
+                    .weight(1f),
                 contentAlignment = Alignment.BottomCenter
             ) {
                 androidx.compose.animation.AnimatedVisibility(chatHistory.contents.isNotEmpty()) {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                top = innerPadding.calculateTopPadding(),
+                                end = innerPadding.calculateEndPadding(LayoutDirection.Rtl),
+                                start = innerPadding.calculateStartPadding(LayoutDirection.Rtl)
+                            ),
                         state = chatMessagesState,
                         reverseLayout = true
                     ) {
@@ -183,29 +219,6 @@ fun ChatPage(
                                 index
                             )
                         }
-                    }
-                    val firstItemVisible by remember {
-                        derivedStateOf {
-                            chatMessagesState.firstVisibleItemScrollOffset == 0 || !chatMessagesState.isScrollInProgress
-                        }
-                    }
-                    LockedDirection(LayoutDirection.Rtl) {
-                        ExtendedFloatingActionButton(
-                            text = { Text("شروع مجدد") },
-                            icon = {
-                                Icon(
-                                    painterResource(R.drawable.round_restart_alt_24),
-                                    "Start over chat"
-                                )
-                            },
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .align(Alignment.TopEnd),
-                            onClick = {
-                                startOverWanted = true
-                            },
-                            expanded = firstItemVisible
-                        )
                     }
                 }
                 androidx.compose.animation.AnimatedVisibility(chatHistory.contents.isEmpty()) {
@@ -286,6 +299,90 @@ fun ChatPage(
                         }
                     }
                 }
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.TopCenter)) {
+                    AnimatedVisibility(
+                        connectedLevel in 1..2,
+                        enter = fadeIn() + slideInVertically { -it },
+                        exit = fadeOut() + slideOutVertically { -it }) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(if (connectedLevel == 1) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondary),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        top = innerPadding.calculateTopPadding() + 16.dp,
+                                        end = innerPadding.calculateEndPadding(LayoutDirection.Rtl),
+                                        start = innerPadding.calculateStartPadding(LayoutDirection.Rtl),
+                                        bottom = 16.dp
+                                    ), horizontalArrangement = Arrangement.Center
+                            ) {
+                                if (connectedLevel == 1) {
+                                    Text(
+                                        text = "اینترنت در دسترس نیست!",
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            textDirection = TextDirection.ContentOrRtl
+                                        ),
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Icon(
+                                        painterResource(R.drawable.network_unavailable),
+                                        "Network Unavailable",
+                                        tint = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                } else {
+                                    Text(
+                                        text = "دوباره متصل شدید!",
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            textDirection = TextDirection.ContentOrRtl
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Icon(
+                                        painterResource(R.drawable.network_available),
+                                        "Network Available",
+                                        tint = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (chatHistory.contents.isNotEmpty()) {
+                        LockedDirection(LayoutDirection.Rtl) {
+                            ExtendedFloatingActionButton(
+                                text = { Text("شروع مجدد") },
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.round_restart_alt_24),
+                                        "Start over chat"
+                                    )
+                                },
+                                modifier = Modifier
+                                    .padding(
+                                        top = (if (connectedLevel in 1..2) 0.dp else innerPadding.calculateTopPadding()) + 16.dp,
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = 16.dp
+                                    )
+                                    .align(Alignment.Start),
+                                onClick = {
+                                    startOverWanted = true
+                                },
+                                expanded = firstItemVisible
+                            )
+                        }
+                    }
+                }
+
 //                Row (modifier = Modifier.fillMaxWidth().fadingEdge(topFade).background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f)).align(Alignment.TopCenter), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
 //                    IconButton(onClick = {}) {
 //                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back To Menu")
@@ -296,6 +393,7 @@ fun ChatPage(
                 message,
                 onMessageChanged = { message = it },
                 snackBar,
+                currentIsNetworkConnected,
                 innerPadding,
                 object : ChatActionWantedListener {
                     override fun onSendWanted() {
@@ -347,7 +445,7 @@ fun ChatMessageBox(content: ChatMessage, list: List<ChatMessage> = emptyList(), 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     if (content.content == "...") {
                         DotLottieAnimation(
-                            source = DotLottieSource.Asset("loading2.json"),
+                            source = DotLottieSource.Asset("loading2.lottie"),
                             modifier = Modifier
                                 .width(150.dp)
                                 .height(50.dp)
@@ -387,6 +485,7 @@ fun ChatInput(
     message: String,
     onMessageChanged: (String) -> Unit,
     snackBar: SnackbarHostState,
+    enabled: Boolean = true,
     innerPadding: PaddingValues = PaddingValues(0.dp),
     actionWantedListener: ChatActionWantedListener
 ) {
@@ -404,7 +503,7 @@ fun ChatInput(
     var previousHeight by remember { mutableStateOf(0.dp) }
     Card(
         modifier = Modifier.padding(0.dp),
-        shape = MaterialTheme.shapes.large.copy(CornerSize(0))
+        shape = MaterialTheme.shapes.large.copy(CornerSize(0)),
     ) {
         Column(
             modifier = Modifier
@@ -430,6 +529,7 @@ fun ChatInput(
                     modifier = Modifier
                         .align(Alignment.Bottom)
                         .padding(bottom = 3.dp),
+                    enabled = enabled,
                     onClick = {
                         emojiWanted = !emojiWanted
                         if (emojiWanted) {
@@ -472,10 +572,12 @@ fun ChatInput(
                                     emojiWanted = false
                                 }
                             },
+                        enabled = enabled,
                         shape = MaterialTheme.shapes.large,
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
                         ),
                         placeholder = {
                             Text(
