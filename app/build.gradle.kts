@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.dotlottie.android)
     implementation(libs.androidx.emojipicker)
     implementation(libs.androidx.emoji2.views.helper)
+    implementation(libs.androidx.documentfile)
+    implementation(libs.commons.io)
     runtimeOnly(libs.ktor.client.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

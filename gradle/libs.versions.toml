@@ -22,6 +22,8 @@ mdparserkitcore = "1.0.1"
 dotlottieAndroid = "0.5.0"
 emojipicker = "1.5.0"
 emoji2ViewsHelper = "1.5.0"
+documentfile = "1.0.1"
+commonsIo = "+"
 
 
 [libraries]
@@ -59,6 +61,8 @@ mdparserkitcore = { group = "io.github.dakshsemwal", name = "mdparserkitcore", v
 dotlottie-android = { group = "com.github.LottieFiles", name = "dotlottie-android", version.ref = "dotlottieAndroid" }
 androidx-emojipicker = { group = "androidx.emoji2", name = "emoji2-emojipicker", version.ref = "emojipicker" }
 androidx-emoji2-views-helper = { group = "androidx.emoji2", name = "emoji2-views-helper", version.ref = "emoji2ViewsHelper" }
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
+commons-io = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

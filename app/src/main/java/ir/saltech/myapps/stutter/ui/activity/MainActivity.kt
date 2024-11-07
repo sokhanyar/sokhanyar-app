@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.icu.util.Calendar
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -29,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -58,6 +56,7 @@ import kotlin.system.exitProcess
 
 class MainActivity : ComponentActivity() {
     private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(
+        android.Manifest.permission.POST_NOTIFICATIONS,
         android.Manifest.permission.READ_MEDIA_AUDIO
     ) else arrayOf(
         android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -92,7 +91,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 LockedDirection(LayoutDirection.Ltr) {
-                    val scope = rememberCoroutineScope()
                     val snackBarHostState = remember { SnackbarHostState() }
                     Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
                         SnackbarHost(snackBarHostState)
@@ -126,7 +124,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Launcher(
+private fun Launcher(
     snackBar: SnackbarHostState,
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(0.dp),
@@ -245,7 +243,11 @@ fun Launcher(
         ChatPage(paddingValues, uiState, snackBar)
     }
     if (uiState.activePages.last() == BaseApplication.Page.AnalyzePractice) {
-        Intent(Intent.ACTION_VIEW, Uri.parse("https://saltech.ir/sokhanyar")).apply {
+//        Intent(Intent.ACTION_VIEW, Uri.parse("https://saltech.ir/sokhanyar")).apply {
+//            startActivities(mainViewModel.context, arrayOf(this), null)
+//            uiState.activePages.removeAt(uiState.activePages.lastIndex)
+//        }
+        Intent(mainViewModel.context, VoiceAnalyzeActivity::class.java).apply {
             startActivities(mainViewModel.context, arrayOf(this), null)
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
         }

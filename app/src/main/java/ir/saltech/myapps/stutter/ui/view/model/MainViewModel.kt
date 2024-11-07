@@ -15,8 +15,8 @@ import ir.saltech.ai.client.generativeai.GenerativeModel
 import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.ai.client.generativeai.type.generationConfig
 import ir.saltech.myapps.stutter.BaseApplication
-import ir.saltech.myapps.stutter.dto.model.ai.ChatHistory
-import ir.saltech.myapps.stutter.dto.model.ai.ChatMessage
+import ir.saltech.myapps.stutter.dto.model.api.ChatHistory
+import ir.saltech.myapps.stutter.dto.model.api.ChatMessage
 import ir.saltech.myapps.stutter.dto.model.data.general.User
 import ir.saltech.myapps.stutter.dto.model.data.reports.CallsCount
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
@@ -231,16 +231,7 @@ class MainViewModel : ViewModel() {
 
     // --- Process Reports Section ---
 
-    fun loadVoicesProperties() {
-        viewModelScope.launch {
-            if (_uiState.value.dailyReport.voicesProperties == VoicesProperties()) {
-                dailyReport =
-                    _uiState.value.dailyReport.copy(voicesProperties = getVoicesProperties())
-            }
-        }
-    }
-
-    private fun getVoicesProperties(): VoicesProperties {
+    private fun getVoicesProperties(context: Context): VoicesProperties {
         val recordings: MutableList<Pair<String, Int>> = mutableListOf()
         val recordingFolder = Environment.getExternalStoragePublicDirectory("Recordings")
         recordingFolder.walkTopDown().onEnter { file: File ->
@@ -271,6 +262,15 @@ class MainViewModel : ViewModel() {
         return VoicesProperties(challengesCount = challengesCount.takeIf { it > 0 },
             sumOfChallengesDuration = sumOfChallengesDuration.takeIf { it > 0 },
             sumOfConferencesDuration = sumOfConferencesDuration.takeIf { it > 0 })
+    }
+
+    fun loadVoicesProperties() {
+        viewModelScope.launch {
+            if (_uiState.value.dailyReport.voicesProperties == VoicesProperties()) {
+                dailyReport =
+                    _uiState.value.dailyReport.copy(voicesProperties = getVoicesProperties(context))
+            }
+        }
     }
 
     fun getDefaultWeeklyReport(): WeeklyReport? {

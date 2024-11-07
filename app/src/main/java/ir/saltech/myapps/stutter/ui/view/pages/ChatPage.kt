@@ -102,7 +102,7 @@ import com.lottiefiles.dotlottie.core.util.DotLottieSource
 import ir.saltech.myapps.stutter.BaseApplication.Greeting.greetingIcon
 import ir.saltech.myapps.stutter.BaseApplication.Greeting.greetingText
 import ir.saltech.myapps.stutter.R
-import ir.saltech.myapps.stutter.dto.model.ai.ChatMessage
+import ir.saltech.myapps.stutter.dto.model.api.ChatMessage
 import ir.saltech.myapps.stutter.dto.model.ui.ChatActionWantedListener
 import ir.saltech.myapps.stutter.ui.state.MainUiState
 import ir.saltech.myapps.stutter.ui.view.components.LockedDirection
@@ -309,7 +309,7 @@ fun ChatPage(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(if (connectedLevel == 1) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondary),
+                                .background(if (connectedLevel == 1) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
@@ -344,13 +344,13 @@ fun ChatPage(
                                             fontWeight = FontWeight.Bold,
                                             textDirection = TextDirection.ContentOrRtl
                                         ),
-                                        color = MaterialTheme.colorScheme.onSecondary
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Icon(
                                         painterResource(R.drawable.network_available),
                                         "Network Available",
-                                        tint = MaterialTheme.colorScheme.onSecondary
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
                                 }
                             }

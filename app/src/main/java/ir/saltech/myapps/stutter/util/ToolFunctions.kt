@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.webkit.MimeTypeMap
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -22,7 +23,7 @@ import ir.saltech.ai.client.generativeai.type.Content
 import ir.saltech.ai.client.generativeai.type.asTextOrNull
 import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.myapps.stutter.BaseApplication
-import ir.saltech.myapps.stutter.dto.model.ai.ChatMessage
+import ir.saltech.myapps.stutter.dto.model.api.ChatMessage
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReports
 import ir.saltech.myapps.stutter.dto.model.data.reports.WeeklyReport
@@ -30,8 +31,10 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
+import java.io.File
 import java.util.Calendar
 import java.util.Date
+
 
 @Override
 fun MutableList<ChatChunk>.response(): String =
@@ -251,4 +254,24 @@ fun isNetworkAvailable(context: Context): Boolean {
         else -> false
     }
     return result
+}
+
+fun Int.toDurationMinuteSecond(): String {
+    val minutes = this / 60_000
+    val seconds = (this % 60_000) / 1000
+    return when {
+        minutes in 0..9 && seconds in 0..9 -> "0$minutes:0$seconds"
+        minutes in 0..9 -> "0$minutes:$seconds"
+        seconds in 0..9 -> "$minutes:0$seconds"
+        else -> "$minutes:$seconds"
+    }
+}
+
+fun File.getMimeType(): String? {
+    var type: String? = null
+    val extension = MimeTypeMap.getFileExtensionFromUrl(this.absolutePath)
+    if (extension != null) {
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+    }
+    return type
 }

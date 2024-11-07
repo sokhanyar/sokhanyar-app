@@ -1,4 +1,4 @@
-package ir.saltech.myapps.stutter.dto.model.ai
+package ir.saltech.myapps.stutter.dto.model.api
 
 import androidx.compose.runtime.mutableStateListOf
 import com.google.gson.annotations.SerializedName

@@ -6,8 +6,9 @@ import kotlin.random.Random
 
 class BaseApplication : Application() {
     object Constants {
-        const val API_KEY = "aa-2NLiIj2PuzdAXTcOBOYtCr4l1eORHkX5o1Raj1tKi0pNtJZU"
-        const val BASE_URL = "https://api.avalai.ir"
+        //const val AVAL_AI_API_KEY = "aa-f2NLiIj2PuzdAXTcOBOYtCr4l1eORHkX5o1Raj1tKi0pNtJZU"
+        //const val AVAL_AI_BASE_URL = "https://api.avalai.ir/"
+        const val SALTECH_AI_BASE_URL = "https://ai.saltech.ir/api/"
         const val MAX_OF_NAME_CHARS = 25
         const val MAX_OF_DAILY_REPORT_PAGES = 4
         const val MAX_OF_WEEKLY_REPORT_PAGES = 3

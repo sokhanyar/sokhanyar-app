@@ -10,17 +10,17 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    val avalAi: Retrofit by lazy {
+    val saltechAi: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BaseApplication.Constants.BASE_URL)
+            .baseUrl(BaseApplication.Constants.SALTECH_AI_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 }
 
 object ApiClient {
-    val avalAi: AvalAiApi by lazy {
-        RetrofitClient.avalAi.create(AvalAiApi::class.java)
+    val saltechAi: SalTechAiApi by lazy {
+        RetrofitClient.saltechAi.create(SalTechAiApi::class.java)
     }
 }
 
@@ -37,13 +37,22 @@ inline fun <reified T> Call<T>.call(callback: ApiCallback<T>) {
                     callback.onSuccessful(response.body())
                 } else {
                     val errorJson = response.errorBody()
-                    val errorMsg =
-                        fromJson<ErrorResponse>(errorJson?.string())
-                    callback.onFailure(response = errorMsg)
-                    Log.e(
-                        "TAG",
-                        "ERROR OCCURRED: ${errorJson?.string()} || ${response.code()} || ${response.message()}"
-                    )
+                    try {
+                        val errorMsg =
+                            fromJson<ErrorResponse>(errorJson?.string())
+                        Log.e(
+                            "TAG",
+                            "ERROR OCCURRED: ${errorJson?.string()} || ${response.code()} || ${response.message()}"
+                        )
+                        callback.onFailure(response = errorMsg)
+                    } catch (e: Exception) {
+                        Log.e(
+                            "TAG",
+                            "ERROR OCCURRED (NOT JSON!): ${response.errorBody()?.string()} || ${response.code()} || ${response.message()}"
+                        )
+                        e.printStackTrace()
+                        callback.onFailure(t = e)
+                    }
                 }
             }
 

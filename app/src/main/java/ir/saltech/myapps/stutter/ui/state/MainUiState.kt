@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import ir.saltech.myapps.stutter.BaseApplication
-import ir.saltech.myapps.stutter.dto.model.ai.ChatHistory
+import ir.saltech.myapps.stutter.dto.model.api.ChatHistory
 import ir.saltech.myapps.stutter.dto.model.data.general.User
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReports
