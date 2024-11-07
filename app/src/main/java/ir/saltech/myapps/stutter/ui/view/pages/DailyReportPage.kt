@@ -2,6 +2,7 @@ package ir.saltech.myapps.stutter.ui.view.pages
 
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -153,7 +154,9 @@ fun DailyReportPage(
                         style = MaterialTheme.typography.titleLarge,
                         textAlign = TextAlign.Center
                     )
-                    IconButton(modifier = Modifier, onClick = {}) {
+                    IconButton(modifier = Modifier, onClick = {
+                        Toast.makeText(mainViewModel.context, "هیچی توش نیس! ¯\\_( ͡° ͜ʖ ͡°)_/¯", Toast.LENGTH_SHORT).show()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "More Items"
@@ -318,7 +321,7 @@ fun DailyReportPage(
                                 }
                             } + fadeOut()) {
                             Column(modifier = Modifier.fillMaxWidth()) {
-                                MinimalHelpText("فعلاً چالش ها و کنفرانس هایی که در ضبط صوت موبایل ضبط شوند، قابل تشخیص هستند.")
+                                MinimalHelpText("فعلاً چالش ها و کنفرانس هایی که در ضبط صوت موبایل (فعلاً سامسونگ) ضبط شوند، قابل تشخیص هستند.")
                                 TextFieldLayout(
                                     title = "تعداد تماس گروهی",
                                     valueRange = 1..1,

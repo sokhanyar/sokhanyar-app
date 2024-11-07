@@ -14,7 +14,18 @@ class BaseApplication : Application() {
         const val MAX_OF_WEEKLY_REPORT_PAGES = 3
         const val MAX_OF_DISPLAYED_CHAR_COLLAPSE = 100
         val JalaliMonths = arrayOf(
-            "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
+            "فروردین",
+            "اردیبهشت",
+            "خرداد",
+            "تیر",
+            "مرداد",
+            "شهریور",
+            "مهر",
+            "آبان",
+            "آذر",
+            "دی",
+            "بهمن",
+            "اسفند"
         )
         val JalaliDays = arrayOf(
             "شنبه", "یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه"
@@ -29,7 +40,21 @@ class BaseApplication : Application() {
             }
 
             val apiKeys = listOf(
-                BuildConfig.geminiApiKey
+                BuildConfig.GEMINI_API_KEY,
+                BuildConfig.GEMINI_API_KEY_I,
+                BuildConfig.GEMINI_API_KEY_II,
+                BuildConfig.GEMINI_API_KEY_III,
+                BuildConfig.GEMINI_API_KEY_IV,
+                BuildConfig.GEMINI_API_KEY_V,
+                BuildConfig.GEMINI_API_KEY_VI,
+                BuildConfig.GEMINI_API_KEY_VII,
+                BuildConfig.GEMINI_API_KEY_VIII,
+                BuildConfig.GEMINI_API_KEY_IX,
+                BuildConfig.GEMINI_API_KEY_X,
+                BuildConfig.GEMINI_API_KEY_XI,
+                BuildConfig.GEMINI_API_KEY_XII,
+                BuildConfig.GEMINI_API_KEY_XIII,
+                BuildConfig.GEMINI_API_KEY_XIIII
             )
             const val BASE_SYSTEM_INSTRUCTIONS = """
 The Definition of weekly report's parameters is:
@@ -687,7 +712,8 @@ O   If user is telling about himself,
 
     object Greeting {
         val greetingIcon = if (Random.nextBoolean()) "chat_greeting.json" else "greeting.lottie"
-        val greetingText = "سلام!! خوش اومدی!\nعه! ببینم از درمان و لکنت خسته شدی؟  بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
+        const val greetingText =
+            "سلام!! خوش اومدی!\nعه! ببینم از درمان و لکنت خسته شدی؟  بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
     }
 
     enum class Page {
@@ -707,5 +733,9 @@ O   If user is telling about himself,
 
     enum class EffectSide {
         Forward, Backward, Unknown
+    }
+
+    enum class FeedbackOfFeedback {
+        IncorrectOrIncomplete, TooLargeResponse, Good
     }
 }

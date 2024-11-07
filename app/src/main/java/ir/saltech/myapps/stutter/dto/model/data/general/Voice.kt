@@ -10,5 +10,6 @@ data class Voice(
     val response: VoiceResponse? = null,
     @SerializedName("file")
     val serverFile: ServerFile? = null,
-    val error: Exception? = null
+    val error: Exception? = null,
+    val progress: Int? = null
 )

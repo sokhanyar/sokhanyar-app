@@ -204,7 +204,7 @@ private fun Launcher(
                     ),
                     MenuPageItem(
                         iconResId = R.drawable.analysis,
-                        title = "تحلیل تمرین",
+                        title = "تحلیلگر صوت",
                         onClick = {
                             onPageWanted(BaseApplication.Page.AnalyzePractice)
                         }

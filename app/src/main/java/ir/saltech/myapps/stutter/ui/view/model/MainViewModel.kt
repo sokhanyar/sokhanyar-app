@@ -115,7 +115,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val model = GenerativeModel(
                 modelName = BaseApplication.Ai.Gemini.Models.Flash,
-                BaseApplication.Ai.Gemini.apiKeys[0],
+                BaseApplication.Ai.Gemini.apiKeys.random(),
                 systemInstruction = content {
                     text("${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${Clock.System.now().toEpochMilliseconds().epochToFullDateTime()}")
                 },
@@ -168,7 +168,7 @@ class MainViewModel : ViewModel() {
             viewModelScope.launch {
                 val model = GenerativeModel(
                     modelName = BaseApplication.Ai.Gemini.Models.Flash,
-                    BaseApplication.Ai.Gemini.apiKeys[0],
+                    BaseApplication.Ai.Gemini.apiKeys.random(),
                     systemInstruction = content {
                         text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1)
                     },
@@ -207,7 +207,7 @@ class MainViewModel : ViewModel() {
             try {
                 val model = GenerativeModel(
                     modelName = BaseApplication.Ai.Gemini.Models.Flash,
-                    BaseApplication.Ai.Gemini.apiKeys[0],
+                    BaseApplication.Ai.Gemini.apiKeys.random(),
                     generationConfig = generationConfig {
                         temperature = 1.5f
                         topK = 40
