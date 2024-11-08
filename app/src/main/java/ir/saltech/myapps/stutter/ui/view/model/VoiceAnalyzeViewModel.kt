@@ -148,7 +148,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
                 modelName = BaseApplication.Ai.Gemini.Models.Flash,
                 apiKey = wantedApiKey,
                 systemInstruction = content {
-                    text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1)
+                    text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + "\nIf the voice is not understandable or translatable, reject it.")
                 },
                 generationConfig = generationConfig {
                     temperature = 1.12f
@@ -157,20 +157,20 @@ class VoiceAnalyzeViewModel : ViewModel() {
                     maxOutputTokens = 8192
                     responseMimeType = "application/json"
                     responseSchema = Schema(
-                        "the response of the feedback of the practical voice",
-                        "The given feedback to the practical voice and the transcription of this voice",
+                        name = "",
+                        description = "",
                         properties = mapOf(
                             "response" to Schema(
-                                "response of the voice",
-                                "The given feedback to the practical voice and the transcription of this voice",
+                                "",
+                                "",
                                 properties = mapOf(
-                                    "feedback" to Schema.str("Feedback", "Feedback of this voice."),
+                                    "feedback" to Schema.str("", ""),
                                     "transcription" to Schema.str(
-                                        "Transcription",
-                                        "Transcription of this voice."
+                                        "",
+                                        ""
                                     )
                                 ),
-                                required = listOf("feedback", "transcription"),
+                                required = listOf("feedback"),
                                 type = FunctionType.OBJECT
                             )
                         ),
@@ -291,7 +291,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
             else
                 "The previous feedback was too long, So Summarize my audio feedback further."
 
-            else -> "Give my voice a brief feedback with desired emojis and highest accuracy."
+            else -> "Analyze my voice. Transcribe that. Give my voice a brief feedback with desired emojis and highest accuracy."
         }
 
     private fun uploadVoiceToCloud() {

@@ -467,7 +467,7 @@ class MainViewModel : ViewModel() {
     fun loadUser() {
         user = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "")
             ?: User()
-        if (user.name == null || user.age == null) {
+        if (_uiState.value.user.name == null || _uiState.value.user.age == null) {
             Log.i("TAG", "User not registered!")
             activePages = mutableStateListOf(BaseApplication.Page.Welcome)
         }

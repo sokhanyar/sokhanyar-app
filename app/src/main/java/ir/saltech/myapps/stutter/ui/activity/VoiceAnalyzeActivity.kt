@@ -249,7 +249,7 @@ private fun Launcher(
                         Spacer(modifier = Modifier.height(8.dp))
                         if (uiState.voice.serverFile == null) {
                             LinearProgressIndicator(progress = {
-                                uiState.voice.progress?.toFloat() ?: 0f
+                                (uiState.voice.progress?.toFloat() ?: 0f) / 100f
                             })
                         } else {
                             LinearProgressIndicator()
@@ -262,13 +262,29 @@ private fun Launcher(
                             }, 6000)
                         }
                         Spacer(modifier = Modifier.height(16.dp))
-                        AnimatedVisibility(isBePatientShowed) {
-                            Text(
-                                "ممکن است مدتی طول بکشد. لطفاً منتظر بمانید...",
-                                style = MaterialTheme.typography.labelMedium,
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
+                        Row(
+                            modifier = Modifier.align(Alignment.Start),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            AnimatedVisibility(uiState.voice.serverFile == null && uiState.voice.progress != null) {
+                                Text(
+                                    text = "${uiState.voice.progress!!}%",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        textDirection = TextDirection.Ltr,
+                                        textAlign = TextAlign.Start
+                                    ),
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            AnimatedVisibility(isBePatientShowed) {
+                                Text(
+                                    "ممکن است مدتی طول بکشد. لطفاً منتظر بمانید...",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                     }
                 } else if (uiState.voice.error == null) {
