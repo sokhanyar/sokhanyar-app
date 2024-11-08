@@ -35,11 +35,12 @@ import ir.saltech.myapps.stutter.util.fromJson
 import ir.saltech.myapps.stutter.util.get
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
 import ir.saltech.myapps.stutter.util.getLastDailyReports
+import ir.saltech.myapps.stutter.util.getUserSummary
 import ir.saltech.myapps.stutter.util.set
-import ir.saltech.myapps.stutter.util.toDayReportDate
 import ir.saltech.myapps.stutter.util.toJalali
 import ir.saltech.myapps.stutter.util.toJson
 import ir.saltech.myapps.stutter.util.toRegularTime
+import ir.saltech.myapps.stutter.util.toReportDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -137,7 +138,7 @@ class MainViewModel : ViewModel() {
                 )
             chatHistory =
                 MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-                    val userNameChatMessage = ChatMessage(id = -1, role = "user", content = "اسمم ${_uiState.value.user.name} هست؛ ")
+                    val userNameChatMessage = ChatMessage(id = -1, role = "user", content = _uiState.value.user.getUserSummary())
                     if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(0, userNameChatMessage)
                     it.add(requestContent)
                     it
@@ -170,7 +171,7 @@ class MainViewModel : ViewModel() {
                     modelName = BaseApplication.Ai.Gemini.Models.Flash,
                     BaseApplication.Ai.Gemini.apiKeys.random(),
                     systemInstruction = content {
-                        text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1)
+                        text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + _uiState.value.user.getUserSummary())
                     },
                     generationConfig = generationConfig {
                         temperature = 0.8f
@@ -328,7 +329,7 @@ class MainViewModel : ViewModel() {
         user = _uiState.value.dailyReport.user
         dailyReport = _uiState.value.dailyReport.copy(result = """
             📝"فرم گزارش روزانه"
-            ◾️تاریخ: ${Date(_uiState.value.dailyReport.date!!).toJalali().toDayReportDate()} 
+            ◾️تاریخ: ${Date(_uiState.value.dailyReport.date!!).toJalali().toReportDate()} 
             ◾️نام: ${(_uiState.value.dailyReport.user.name ?: "").ifEmpty { "ناشناس" }}
             ☑️مدت زمان تمرین: ${_uiState.value.dailyReport.practiceTime?.toRegularTime() ?: "-"}
             ☑️مدت زمان اجرای شیوه در انواع محیط ها👇
@@ -389,7 +390,8 @@ class MainViewModel : ViewModel() {
         weeklyReport = _uiState.value.weeklyReport.copy(
             result = """
             ..#گزارش_هفتگی
-            ${_uiState.value.weeklyReport.user.name ?: "ناشناس"}
+            ◾️ ${Date(_uiState.value.dailyReport.date!!).toJalali().toReportDate()} 
+            👤 ${_uiState.value.weeklyReport.user.name ?: "ناشناس"}
             
             👈تعداد روز هایی که تمرینات انجام شده: ${_uiState.value.weeklyReport.practiceDays ?: "-"}
             👈تعداد روزهای کنفرانس دادن: ${_uiState.value.weeklyReport.voicesProperties.conferenceDaysCount ?: "-"}
@@ -444,7 +446,7 @@ class MainViewModel : ViewModel() {
         )
     }
 
-    private fun saveUser() {
+    fun saveUser() {
         Log.i("TAG", "saving user json: ${toJson(_uiState.value.user)}")
         context.dataStore[BaseApplication.Key.User] =
             toJson(_uiState.value.user) ?: ""
@@ -453,6 +455,10 @@ class MainViewModel : ViewModel() {
     fun loadUser() {
         user = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "")
             ?: User()
+        if (user.name == null || user.age == null) {
+            Log.i("TAG", "User not registered!")
+            activePages = mutableStateListOf(BaseApplication.Page.Welcome)
+        }
         Log.i("TAG", "User loaded -> ${_uiState.value.user}")
     }
 }

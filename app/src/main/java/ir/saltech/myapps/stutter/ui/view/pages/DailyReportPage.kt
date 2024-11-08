@@ -47,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -154,7 +155,7 @@ fun DailyReportPage(
                         style = MaterialTheme.typography.titleLarge,
                         textAlign = TextAlign.Center
                     )
-                    IconButton(modifier = Modifier, onClick = {
+                    IconButton(modifier = Modifier.alpha(0f), onClick = {
                         Toast.makeText(mainViewModel.context, "هیچی توش نیس! ¯\\_( ͡° ͜ʖ ͡°)_/¯", Toast.LENGTH_SHORT).show()
                     }) {
                         Icon(

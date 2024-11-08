@@ -22,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -161,6 +164,52 @@ fun MethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit
 }
 
 @Composable
+fun DropDownTextField(label: String, choices: Array<String>, onChoiceSelected: (String) -> Unit, selectedChoice: String? = null, modifier: Modifier = Modifier, supportText: @Composable (() -> Unit)? = null) {
+    val focus = LocalFocusManager.current
+    var expand by remember {
+        mutableStateOf(false)
+    }
+    var choice: String? by remember {
+        mutableStateOf(selectedChoice)
+    }
+    Box (modifier = Modifier.fillMaxWidth()
+        .padding(16.dp)) {
+        OutlinedTextField(
+            value = choice ?: "",
+            onValueChange = {
+            },
+            label = { Text(label) },
+            modifier = modifier
+                .fillMaxWidth()
+                .onFocusChanged {
+                    if (it.isFocused) {
+                        Log.i("TAG", "Trans is expanded: $expand")
+                        expand = true
+                    } else {
+                        expand = false
+                    }
+                },
+            singleLine = true,
+            readOnly = true,
+            supportingText = supportText,
+            textStyle = MaterialTheme.typography.bodySmall
+        )
+        DropdownMenu(expand, onDismissRequest = { expand = false; focus.clearFocus() }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), shape = MaterialTheme.shapes.large.copy(
+            CornerSize(15.dp)
+        )) {
+            choices.forEach {
+                DropdownMenuItem({Text(it)}, onClick = {
+                    choice = it
+                    onChoiceSelected(it)
+                    expand = false
+                    focus.clearFocus()
+                })
+            }
+        }
+    }
+}
+
+@Composable
 fun TextFieldLayout(
     title: String,
     valueRange: IntRange,
@@ -169,11 +218,12 @@ fun TextFieldLayout(
     last: Boolean = false,
     enabled: Boolean = true,
     suffix: (@Composable () -> Unit)? = null,
-    supportText: (@Composable () -> Unit)? = null
+    supportText: (@Composable () -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
     val focus = LocalFocusManager.current
     OutlinedTextField(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         value = (value ?: "").toString(),

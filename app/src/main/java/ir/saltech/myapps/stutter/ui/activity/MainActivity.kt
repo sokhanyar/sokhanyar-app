@@ -44,6 +44,7 @@ import ir.saltech.myapps.stutter.ui.view.pages.ChatPage
 import ir.saltech.myapps.stutter.ui.view.pages.DailyReportPage
 import ir.saltech.myapps.stutter.ui.view.pages.MainPage
 import ir.saltech.myapps.stutter.ui.view.pages.WeeklyReportPage
+import ir.saltech.myapps.stutter.ui.view.pages.WelcomePage
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
 import ir.saltech.myapps.stutter.util.isTomorrow
 import ir.saltech.myapps.stutter.util.nowDay
@@ -96,6 +97,7 @@ class MainActivity : ComponentActivity() {
                         SnackbarHost(snackBarHostState)
                     }) { innerPadding ->
                         if (checkPermissions()) {
+                            // TODO: یه ایموجی هم بذاریم پشت تاریخ گزارش ها .. باحال میشه!
                             Launcher(snackBar = snackBarHostState, paddingValues = innerPadding)
                         } else {
                             permissionLauncher.launch(permissions)
@@ -131,9 +133,15 @@ private fun Launcher(
     mainViewModel: MainViewModel = viewModel()
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
-    val onPageWanted = fun(page: BaseApplication.Page) { mainViewModel.activePages = uiState.activePages.apply { if (!this.contains(page)) this.add(page) }; Log.i("TAG", "current activepages: ${uiState.activePages} + ${mainViewModel.activePages}") }
+    val onPageWanted = fun(page: BaseApplication.Page) {
+        mainViewModel.activePages =
+            uiState.activePages.apply { if (!this.contains(page)) this.add(page) }; Log.i(
+            "TAG",
+            "current activepages: ${uiState.activePages} + ${mainViewModel.activePages}"
+        )
+    }
     BackHandler {
-        if (uiState.activePages.last() == BaseApplication.Page.Home) {
+        if (uiState.activePages.last() == BaseApplication.Page.Home || uiState.activePages.last() == BaseApplication.Page.Welcome) {
             (mainViewModel.context as Activity).finishAfterTransition()
         } else {
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
@@ -144,7 +152,7 @@ private fun Launcher(
         }
     }
     if (uiState.activePages.last() == BaseApplication.Page.Home) {
-        LockedDirection (LayoutDirection.Ltr) {
+        LockedDirection(LayoutDirection.Ltr) {
             MainPage(
                 paddingValues,
                 motivationText = uiState.sentence ?: getGreetingBasedOnTime(),
@@ -241,6 +249,16 @@ private fun Launcher(
         exit = fadeOut()
     ) {
         ChatPage(paddingValues, uiState, snackBar)
+    }
+    AnimatedVisibility(
+        uiState.activePages.last() == BaseApplication.Page.Welcome,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        WelcomePage(uiState, snackBar, paddingValues) {
+            uiState.activePages.removeAt(uiState.activePages.lastIndex)
+            onPageWanted(BaseApplication.Page.Home)
+        }
     }
     if (uiState.activePages.last() == BaseApplication.Page.AnalyzePractice) {
 //        Intent(Intent.ACTION_VIEW, Uri.parse("https://saltech.ir/sokhanyar")).apply {

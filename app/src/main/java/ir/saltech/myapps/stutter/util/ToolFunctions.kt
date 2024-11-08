@@ -24,6 +24,7 @@ import ir.saltech.ai.client.generativeai.type.asTextOrNull
 import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.dto.model.api.ChatMessage
+import ir.saltech.myapps.stutter.dto.model.data.general.User
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReport
 import ir.saltech.myapps.stutter.dto.model.data.reports.DailyReports
 import ir.saltech.myapps.stutter.dto.model.data.reports.WeeklyReport
@@ -63,29 +64,18 @@ fun Date.toJalali(): IntArray {
     return intArrayOf(0, 0, 0, calendar[Calendar.DAY_OF_WEEK]).apply { jalali.copyInto(this) }
 }
 
-fun Int.asJalaliMonth(): String {
-    return arrayOf(
-        "فروردین",
-        "اردیبهشت",
-        "خرداد",
-        "تیر",
-        "مرداد",
-        "شهریور",
-        "مهر",
-        "آبان",
-        "آذر",
-        "دی",
-        "بهمن",
-        "اسفند"
-    )[this - 1]
+fun Int.asJalaliMonth(withEmoji: Boolean = false): String {
+    val jalaliMonth = BaseApplication.Constants.JalaliMonths[this - 1]
+    val selectedEmoji = BaseApplication.Constants.JalaliMonthsWithEmojies[jalaliMonth]?.random()
+    return if (withEmoji) "$jalaliMonth $selectedEmoji" else jalaliMonth
 }
 
 fun Int.asJalaliDay(): String {
-    return arrayOf("یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه")[this - 1]
+    return BaseApplication.Constants.JalaliDays[this - 1]
 }
 
-fun IntArray.toDayReportDate(): String {
-    return "${this[3].asJalaliDay()}، ${this[2]} ${this[1].asJalaliMonth()}"
+fun IntArray.toReportDate(): String {
+    return "${this[3].asJalaliDay()}، ${this[2]} ${this[1].asJalaliMonth(true)} "
 }
 
 private const val DAY_IN_MILLIS = 86400000
@@ -214,9 +204,20 @@ fun Long.epochToMonthDay(): String {
     val jalali = gregorian_to_jalali(year, month + 1, day)
 
     return if (Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year == year) {
-        String.format("%s، %d %s", BaseApplication.Constants.JalaliDays[dayId], jalali[2], BaseApplication.Constants.JalaliMonths[jalali[1] - 1])
+        String.format(
+            "%s، %d %s",
+            BaseApplication.Constants.JalaliDays[dayId],
+            jalali[2],
+            BaseApplication.Constants.JalaliMonths[jalali[1] - 1]
+        )
     } else {
-        String.format("%s، %d %s %d", BaseApplication.Constants.JalaliDays[dayId], jalali[2], BaseApplication.Constants.JalaliMonths[jalali[1] - 1], jalali[0])
+        String.format(
+            "%s، %d %s %d",
+            BaseApplication.Constants.JalaliDays[dayId],
+            jalali[2],
+            BaseApplication.Constants.JalaliMonths[jalali[1] - 1],
+            jalali[0]
+        )
     }
 }
 
@@ -232,7 +233,15 @@ fun Long.epochToFullDateTime(): String {
     val dayId = calendar.get(Calendar.DAY_OF_WEEK)
     val jalali = gregorian_to_jalali(year, month + 1, day)
 
-    return String.format("%s، %d/%s/%d، %d:%d", BaseApplication.Constants.JalaliDays[dayId], jalali[2], BaseApplication.Constants.JalaliMonths[jalali[1] - 1], jalali[0], hour, minute)
+    return String.format(
+        "%s، %d/%s/%d، %d:%d",
+        BaseApplication.Constants.JalaliDays[dayId],
+        jalali[2],
+        BaseApplication.Constants.JalaliMonths[jalali[1] - 1],
+        jalali[0],
+        hour,
+        minute
+    )
 }
 
 fun Modifier.fadingEdge(brush: Brush) = this
@@ -244,7 +253,8 @@ fun Modifier.fadingEdge(brush: Brush) = this
 
 fun isNetworkAvailable(context: Context): Boolean {
     val result: Boolean
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val networkCapabilities = connectivityManager.activeNetwork ?: return false
     val actNw = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
     result = when {
@@ -275,3 +285,65 @@ fun File.getMimeType(): String? {
     }
     return type
 }
+
+fun User.getUserSummary(): String {
+    return """
+        اطلاعات من در مورد خودم، لکنت و گفتارم که باید بدانی:
+        ${if (this.name != null) "اسم من ${this.name} است." else ""}
+        ${if (this.age != null) "من ${this.age} سال سن دارم." else ""}
+        ${if (this.yearOfStartStuttering != null) "من از ${this.yearOfStartStuttering} سالگی دچار لکنت شدم." else ""}
+        ${if (this.timesOfTherapy != null) "من ${this.timesOfTherapy} بار در طول این سالها برای درمانم تلاش کردم." else ""}
+        ${if (!this.stutteringType.isNullOrBlank()) "نوع لکنت من ${this.stutteringType} است." else ""}
+        ${if (!this.tirednessLevel.isNullOrBlank()) "از لکنت کردن ${this.tirednessLevel} هستم." else ""}
+        ${if (this.previousStutteringSeverity != null) "درجه شدت لکنت من قبل از درمان ${this.previousStutteringSeverity} بود." else ""}
+        ${if (this.currentStutteringSeverity != null) "درجه شدت لکنت من در حین درمان ${this.currentStutteringSeverity} شده." else ""}
+        ${if (!this.dailyTherapyTime.isNullOrBlank()) "من روزانه ${this.dailyTherapyTime} برای درمان وقت می‌گذارم." else ""}
+        ${if (this.currentTherapyDuration != null) "دوره درمان فعلی من ${this.currentTherapyDuration} ماه طول کشیده است." else ""}
+        ${if (!this.therapyStatus.isNullOrBlank()) "وضعیت فعلی درمان من: ${this.therapyStatus}." else ""}
+        ${if (!this.therapyMethod.isNullOrBlank()) "شیوه درمانی فعلی من ${this.therapyMethod} است." else ""}
+        ${if (!this.stutteringSituations.isNullOrBlank()) "من در موقعیت‌های ${this.stutteringSituations} بیشتر لکنت می‌کنم." else ""}
+        ${if (!this.emotionalImpact.isNullOrBlank()) "لکنت بر احساسات من این تأثیر را دارد: ${this.emotionalImpact}." else ""}
+        ${if (!this.therapyGoals.isNullOrBlank()) "هدف من از درمان: ${this.therapyGoals}." else ""}
+        ${if (!this.previousTherapies.isNullOrBlank()) "روش‌های درمانی قبلی که استفاده کرده‌ام: ${this.previousTherapies}." else ""}
+        ${if (!this.familyHistory.isNullOrBlank()) "سابقه خانوادگی لکنت من: ${this.familyHistory}." else ""}
+        ${if (!this.coOccurringConditions.isNullOrBlank()) "مشکلات گفتاری دیگر من: ${this.coOccurringConditions}." else ""}
+        ${if (!this.supportSystems.isNullOrBlank()) "حمایت خانواده و دوستان من: ${this.supportSystems}." else ""}
+        ${if (!this.escapingFromSpeechSituationsLevel.isNullOrBlank()) "میزان اجتناب من از موقعیت‌های گفتاری: ${this.escapingFromSpeechSituationsLevel}." else ""}
+        ${if (!this.escapingFromSpeechSituationsLevel.isNullOrBlank()) "میزان اجتناب از کلمه (تغییر دادن کلمه ای که حس میکنم قراره لکنت کنم): ${this.escapingFromStutteredWordLevel}." else ""}
+    """.trimIndent()
+}
+
+fun validateUserInputs(user: User): Boolean {
+    // First, check if any required field (except name and age) is blank.
+    val requiredFields = listOf(
+        user.yearOfStartStuttering,
+        user.timesOfTherapy,
+        user.stutteringType,
+        user.tirednessLevel,
+        user.currentStutteringSeverity,
+        user.previousStutteringSeverity,
+        user.dailyTherapyTime,
+        user.currentTherapyDuration,
+        user.therapyStatus,
+        user.therapyMethod,
+        user.stutteringSituations,
+        user.emotionalImpact,
+        user.therapyGoals,
+        user.previousTherapies,
+        user.familyHistory,
+        user.supportSystems,
+        user.escapingFromSpeechSituationsLevel,
+        user.escapingFromStutteredWordLevel
+    )
+
+    // Check if any required field is blank (other than name and age)
+    if (requiredFields.count { it != null } > 0) {
+        if (requiredFields.any { it == null }) {
+            return false // One or more required fields are missing
+        }
+    }
+
+    // If all fields are filled, return true
+    return !user.name.isNullOrEmpty() && user.age != null
+}
+
