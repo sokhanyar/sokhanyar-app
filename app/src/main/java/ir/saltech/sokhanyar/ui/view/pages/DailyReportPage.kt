@@ -81,11 +81,11 @@ fun DailyReportPage(
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
-    val defaultDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport by remember { mutableStateOf(uiState.dailyReport.copy(user = uiState.user)) }
+    val defaultDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport by remember { mutableStateOf(uiState.dailyReport.copy(user = uiState.user)) }
     var pageCounter by remember { mutableIntStateOf(0) }
     var isFinished by remember { mutableStateOf(false) }
     var effectSide: BaseApplication.EffectSide by remember { mutableStateOf(BaseApplication.EffectSide.Unknown) }
-    var dailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport by remember { mutableStateOf(defaultDailyReport) }
+    var dailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport by remember { mutableStateOf(defaultDailyReport) }
     Log.d("TAG", "state daily report: $dailyReport, uiState daily report ${uiState.dailyReport}")
     mainViewModel.dailyReport = dailyReport
     LockedDirection(LayoutDirection.Rtl) {

@@ -22,7 +22,7 @@ data class WeeklyReport(
     val sumOfActivities: Int? = null,
     override val description: String? = null,
     override val result: String? = null,
-) : _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.Report()
+) : ir.saltech.sokhanyar.dto.model.data.reports.Report()
 
 data class WeeklyReports(
     @SerializedName("weekly_reports")

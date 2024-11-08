@@ -20,9 +20,9 @@ data class MainUiState(
     val sentence: String? = null,
     val advice: MutableState<String?> = mutableStateOf(null),
     var chatHistory: StateFlow<ChatHistory> = MutableStateFlow(ChatHistory(0)),
-    val dailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport = _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport(),
+    val dailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport = ir.saltech.sokhanyar.dto.model.data.reports.DailyReport(),
     val weeklyReport: WeeklyReport = WeeklyReport(),
-    val dailyReports: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReports? = null,
+    val dailyReports: ir.saltech.sokhanyar.dto.model.data.reports.DailyReports? = null,
     val weeklyReports: WeeklyReports? = null,
     val user: User = User()
 )

@@ -16,7 +16,7 @@ data class DailyReport(
     @SerializedName("practice_time")
     val practiceTime: Int? = null,
     @SerializedName("methodUsage")
-    val methodUsage: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.MethodUsage = _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.MethodUsage(),
+    val methodUsage: ir.saltech.sokhanyar.dto.model.data.reports.MethodUsage = ir.saltech.sokhanyar.dto.model.data.reports.MethodUsage(),
     @SerializedName("desensitization_count")
     val desensitizationCount: Int? = null,
     @SerializedName("intentional_stuttering_count")
@@ -24,17 +24,17 @@ data class DailyReport(
     @SerializedName("avoidance_detection_count")
     val avoidanceDetectionCount: Int? = null,
     @SerializedName("calls_count")
-    val callsCount: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.CallsCount = _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.CallsCount(),
+    val callsCount: ir.saltech.sokhanyar.dto.model.data.reports.CallsCount = ir.saltech.sokhanyar.dto.model.data.reports.CallsCount(),
     @SerializedName("voices_properties")
-    val voicesProperties: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties = _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties(),
+    val voicesProperties: ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties = ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties(),
     @SerializedName("self_satisfaction")
     val selfSatisfaction: Int? = null,
     override val description: String? = null,
     override val result: String? = null
-) : _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.Report()
+) : ir.saltech.sokhanyar.dto.model.data.reports.Report()
 
 data class DailyReports(
     @SerializedName("daily_reports")
-    val list: MutableList<_root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport> = mutableListOf()
+    val list: MutableList<ir.saltech.sokhanyar.dto.model.data.reports.DailyReport> = mutableListOf()
 )
 

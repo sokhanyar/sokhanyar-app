@@ -19,9 +19,6 @@ import ir.saltech.sokhanyar.dto.model.api.ChatHistory
 import ir.saltech.sokhanyar.dto.model.api.ChatMessage
 import ir.saltech.sokhanyar.dto.model.data.general.User
 import ir.saltech.sokhanyar.dto.model.data.reports.CallsCount
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReport
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReports
-import ir.saltech.sokhanyar.dto.model.data.reports.Report
 import ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties
 import ir.saltech.sokhanyar.dto.model.data.reports.WeeklyReport
 import ir.saltech.sokhanyar.dto.model.data.reports.WeeklyReports
@@ -82,8 +79,8 @@ class MainViewModel : ViewModel() {
         set(value) {
             _uiState.update { it.copy(user = value) }
         }
-    var dailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport =
-        _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport()
+    var dailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport =
+        ir.saltech.sokhanyar.dto.model.data.reports.DailyReport()
         set(value) {
             _uiState.update { it.copy(dailyReport = value) }
         }
@@ -95,8 +92,8 @@ class MainViewModel : ViewModel() {
         set(value) {
             _uiState.update { it.copy(chatHistory = value) }
         }
-    private var dailyReports: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReports =
-        _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReports()
+    private var dailyReports: ir.saltech.sokhanyar.dto.model.data.reports.DailyReports =
+        ir.saltech.sokhanyar.dto.model.data.reports.DailyReports()
         set(value) {
             _uiState.update { it.copy(dailyReports = value) }
         }
@@ -178,7 +175,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun generateAdvice(reports: List<_root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.Report>?, reportType: BaseApplication.ReportType) {
+    private fun generateAdvice(reports: List<ir.saltech.sokhanyar.dto.model.data.reports.Report>?, reportType: BaseApplication.ReportType) {
         if (reports != null && reports.size >= 2) {
             viewModelScope.launch {
                 val model = GenerativeModel(
@@ -291,28 +288,28 @@ class MainViewModel : ViewModel() {
     fun getDefaultWeeklyReport(): WeeklyReport? {
         val res =
             if (_uiState.value.dailyReports != null && _uiState.value.dailyReports?.list?.isNotEmpty() == true) {
-                val lastDailyReports: List<_root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport> =
+                val lastDailyReports: List<ir.saltech.sokhanyar.dto.model.data.reports.DailyReport> =
                     _uiState.value.dailyReports?.getLastDailyReports() ?: return null
                 _uiState.value.weeklyReport.copy(user = _uiState.value.dailyReport.user,
                     voicesProperties = lastDailyReports.let { lastReports ->
-                        VoicesProperties(lastReports.sumOf { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        VoicesProperties(lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.voicesProperties.challengesCount ?: 0
-                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.voicesProperties.sumOfChallengesDuration ?: 0
-                        }.takeIf { it > 0 }, lastReports.count { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        }.takeIf { it > 0 }, lastReports.count { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.voicesProperties.sumOfConferencesDuration != 0
-                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.voicesProperties.sumOfConferencesDuration ?: 0
                         }.takeIf { it > 0 })
                     },
                     practiceDays = lastDailyReports.count { (it.practiceTime ?: 0) >= 3 }
                         .takeIf { it > 0 },
                     callsCount = lastDailyReports.let { lastReports ->
-                        CallsCount(lastReports.sumOf { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        CallsCount(lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.callsCount.groupCallsCount ?: 0
-                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.callsCount.adultSupportCallsCount ?: 0
-                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
+                        }.takeIf { it > 0 }, lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport ->
                             lastDailyReport.callsCount.teenSupportCallsCount ?: 0
                         }.takeIf { it > 0 })
                     },
@@ -329,8 +326,8 @@ class MainViewModel : ViewModel() {
 
     fun loadDailyReports() {
         dailyReports =
-            fromJson<_root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReports>(context.dataStore[BaseApplication.Key.DailyReports] ?: "")
-                ?: _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReports()
+            fromJson<ir.saltech.sokhanyar.dto.model.data.reports.DailyReports>(context.dataStore[BaseApplication.Key.DailyReports] ?: "")
+                ?: ir.saltech.sokhanyar.dto.model.data.reports.DailyReports()
         dailyReport = _uiState.value.dailyReport.copy(
 //            name = _uiState.value.dailyReports?.list?.lastOrNull()?.name,
             user = _uiState.value.user,

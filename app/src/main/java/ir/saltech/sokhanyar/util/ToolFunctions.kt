@@ -80,7 +80,7 @@ fun IntArray.toReportDate(): String {
 
 private const val DAY_IN_MILLIS = 86400000
 
-fun _root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReports.getLastDailyReports(): List<_root_ide_package_.ir.saltech.sokhanyar.dto.model.data.reports.DailyReport>? {
+fun ir.saltech.sokhanyar.dto.model.data.reports.DailyReports.getLastDailyReports(): List<ir.saltech.sokhanyar.dto.model.data.reports.DailyReport>? {
     return this.list.filter {
         (it.date ?: return null) > Clock.System.now().toEpochMilliseconds() - (DAY_IN_MILLIS * 7)
     }.ifEmpty { null }
