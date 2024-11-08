@@ -6,6 +6,20 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("D:\\AndroidStudioProjects\\Stutter\\AppKey.jks")
+            storePassword = "SalTech#1402"
+            keyAlias = "PuyaKhan"
+            keyPassword = "SalTech#1402"
+        }
+        create("release") {
+            storeFile = file("D:\\AndroidStudioProjects\\Stutter\\AppKey.jks")
+            storePassword = "SalTech#1402"
+            keyAlias = "PuyaKhan"
+            keyPassword = "SalTech#1402"
+        }
+    }
     namespace = "ir.saltech.myapps.stutter"
     compileSdk = 35
 
@@ -14,7 +28,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.5.9.149"
+        versionName = "1.5.9.150"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
@@ -22,6 +36,8 @@ android {
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
+
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
