@@ -1,6 +1,7 @@
 package ir.saltech.myapps.stutter.dto.model.data.reports
 
 import com.google.gson.annotations.SerializedName
+
 data class VoicesProperties(
     @SerializedName("challenges_count")
     val challengesCount: Int? = null,

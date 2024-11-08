@@ -16,6 +16,6 @@ interface SalTechAiApi {
     @POST("upload/v1beta/files")
     fun uploadVoice(
         @Header(AUTHORIZATION_HEADER) apiKey: String,
-        @Part file : MultipartBody.Part
-    ) : Call<Voice>
+        @Part file: MultipartBody.Part
+    ): Call<Voice>
 }

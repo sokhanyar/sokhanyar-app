@@ -299,9 +299,11 @@ fun ChatPage(
                         }
                     }
                 }
-                Column(modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.TopCenter)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.TopCenter)
+                ) {
                     AnimatedVisibility(
                         connectedLevel in 1..2,
                         enter = fadeIn() + slideInVertically { -it },

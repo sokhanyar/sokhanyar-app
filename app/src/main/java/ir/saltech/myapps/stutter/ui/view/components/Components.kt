@@ -164,7 +164,14 @@ fun MethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit
 }
 
 @Composable
-fun DropDownTextField(label: String, choices: Array<String>, onChoiceSelected: (String) -> Unit, selectedChoice: String? = null, modifier: Modifier = Modifier, supportText: @Composable (() -> Unit)? = null) {
+fun DropDownTextField(
+    label: String,
+    choices: Array<String>,
+    onChoiceSelected: (String) -> Unit,
+    selectedChoice: String? = null,
+    modifier: Modifier = Modifier,
+    supportText: @Composable (() -> Unit)? = null
+) {
     val focus = LocalFocusManager.current
     var expand by remember {
         mutableStateOf(false)
@@ -172,8 +179,11 @@ fun DropDownTextField(label: String, choices: Array<String>, onChoiceSelected: (
     var choice: String? by remember {
         mutableStateOf(selectedChoice)
     }
-    Box (modifier = Modifier.fillMaxWidth()
-        .padding(16.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
         OutlinedTextField(
             value = choice ?: "",
             onValueChange = {
@@ -194,11 +204,18 @@ fun DropDownTextField(label: String, choices: Array<String>, onChoiceSelected: (
             supportingText = supportText,
             textStyle = MaterialTheme.typography.bodySmall
         )
-        DropdownMenu(expand, onDismissRequest = { expand = false; focus.clearFocus() }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), shape = MaterialTheme.shapes.large.copy(
-            CornerSize(15.dp)
-        )) {
+        DropdownMenu(
+            expand,
+            onDismissRequest = { expand = false; focus.clearFocus() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = MaterialTheme.shapes.large.copy(
+                CornerSize(15.dp)
+            )
+        ) {
             choices.forEach {
-                DropdownMenuItem({Text(it)}, onClick = {
+                DropdownMenuItem({ Text(it) }, onClick = {
                     choice = it
                     onChoiceSelected(it)
                     expand = false
@@ -351,7 +368,11 @@ fun AiAdvice(
                     ) {
                         val (text, icon) = createRefs()
                         Text(
-                            text = advice.let { if ((it ?: "").length >= MAX_OF_DISPLAYED_CHAR_COLLAPSE && !expanded) "${it?.substring(0..MAX_OF_DISPLAYED_CHAR_COLLAPSE)} ..." else it } ?: "در حال تحلیل و بررسی گزارش ...",
+                            text = advice.let {
+                                if ((it
+                                        ?: "").length >= MAX_OF_DISPLAYED_CHAR_COLLAPSE && !expanded
+                                ) "${it?.substring(0..MAX_OF_DISPLAYED_CHAR_COLLAPSE)} ..." else it
+                            } ?: "در حال تحلیل و بررسی گزارش ...",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 textDirection = TextDirection.ContentOrRtl,
                                 textAlign = TextAlign.Justify

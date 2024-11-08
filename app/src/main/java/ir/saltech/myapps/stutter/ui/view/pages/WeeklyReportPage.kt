@@ -133,7 +133,9 @@ fun WeeklyReportPage(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(bottom = with(density) { WindowInsets.ime.getBottom(density).toDp() }), // For bringing up the layout to visible all of views
+                    .padding(bottom = with(density) {
+                        WindowInsets.ime.getBottom(density).toDp()
+                    }), // For bringing up the layout to visible all of views
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -160,7 +162,11 @@ fun WeeklyReportPage(
                         textAlign = TextAlign.Center
                     )
                     IconButton(modifier = Modifier.alpha(0f), onClick = {
-                        Toast.makeText(mainViewModel.context, "هیچی توش نیس! ¯\\_( ͡° ͜ʖ ͡°)_/¯", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            mainViewModel.context,
+                            "هیچی توش نیس! ¯\\_( ͡° ͜ʖ ͡°)_/¯",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -242,7 +248,8 @@ fun WeeklyReportPage(
                                             }
                                     },
                                     suffix = { Text("دقیقه") },
-                                    enabled = (weeklyReport.voicesProperties.conferenceDaysCount ?: 0) > 0
+                                    enabled = (weeklyReport.voicesProperties.conferenceDaysCount
+                                        ?: 0) > 0
                                     //enabled = defaultWeeklyReport?.voicesProperties?.sumOfConferencesDuration == null
                                 )
                                 TextFieldLayout(
@@ -285,7 +292,8 @@ fun WeeklyReportPage(
                                             }
                                     },
                                     suffix = { Text("دقیقه") },
-                                    enabled = (weeklyReport.voicesProperties.challengesCount ?: 0) > 0
+                                    enabled = (weeklyReport.voicesProperties.challengesCount
+                                        ?: 0) > 0
                                     //enabled = defaultWeeklyReport?.voicesProperties?.sumOfConferencesDuration == null
                                 )
                                 TextFieldLayout(

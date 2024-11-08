@@ -25,10 +25,6 @@ public class RecursiveFileObserver extends FileObserver {
     public boolean isObserving = false;
 
 
-    public interface EventListener {
-        void onEvent(int event, File file);
-    }
-
     public RecursiveFileObserver(String path, EventListener listener) {
         this(path, ALL_EVENTS, listener);
     }
@@ -114,6 +110,10 @@ public class RecursiveFileObserver extends FileObserver {
         if (mListener != null) {
             mListener.onEvent(event & FileObserver.ALL_EVENTS, file);
         }
+    }
+
+    public interface EventListener {
+        void onEvent(int event, File file);
     }
 
     private class SingleFileObserver extends FileObserver {

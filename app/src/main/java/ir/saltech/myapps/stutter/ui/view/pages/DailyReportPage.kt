@@ -129,7 +129,9 @@ fun DailyReportPage(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(bottom = with(density) { WindowInsets.ime.getBottom(density).toDp() }), // For bringing up the layout to visible all of views
+                    .padding(bottom = with(density) {
+                        WindowInsets.ime.getBottom(density).toDp()
+                    }), // For bringing up the layout to visible all of views
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -156,7 +158,11 @@ fun DailyReportPage(
                         textAlign = TextAlign.Center
                     )
                     IconButton(modifier = Modifier.alpha(0f), onClick = {
-                        Toast.makeText(mainViewModel.context, "هیچی توش نیس! ¯\\_( ͡° ͜ʖ ͡°)_/¯", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            mainViewModel.context,
+                            "هیچی توش نیس! ¯\\_( ͡° ͜ʖ ͡°)_/¯",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -377,7 +383,8 @@ fun DailyReportPage(
                                                 )
                                             }
                                     },
-                                    enabled = (dailyReport.voicesProperties.challengesCount ?: 0) > 0,
+                                    enabled = (dailyReport.voicesProperties.challengesCount
+                                        ?: 0) > 0,
                                     //enabled = defaultDailyReport.voicesProperties.sumOfChallengesDuration == null,
                                     suffix = { Text("دقیقه") }
                                 )
@@ -433,8 +440,10 @@ fun DailyReportPage(
                                     value = dailyReport.user.name ?: "",
                                     onValueChange = {
                                         dailyReport = dailyReport.copy(
-                                            user = uiState.user.copy(name = if (it.length in 1..MAX_OF_NAME_CHARS) it else ""
-                                        ))
+                                            user = uiState.user.copy(
+                                                name = if (it.length in 1..MAX_OF_NAME_CHARS) it else ""
+                                            )
+                                        )
                                     },
                                     enabled = defaultDailyReport.user.name == null,
                                     singleLine = true,

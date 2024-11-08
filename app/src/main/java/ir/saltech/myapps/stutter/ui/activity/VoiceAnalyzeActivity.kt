@@ -283,12 +283,20 @@ private fun Launcher(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        parseMarkdown(uiState.voice.response?.feedback ?: "خطا در بازیابی اطلاعات!!\nلطفاً مجدداً امتحان کنید."),
+                        parseMarkdown(
+                            uiState.voice.response?.feedback
+                                ?: "خطا در بازیابی اطلاعات!!\nلطفاً مجدداً امتحان کنید."
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .clickable {
-                                clipboardManager.setText(AnnotatedString(uiState.voice.response?.feedback ?: "¯\\_(ツ)_/¯", ParagraphStyle()))
+                                clipboardManager.setText(
+                                    AnnotatedString(
+                                        uiState.voice.response?.feedback ?: "¯\\_(ツ)_/¯",
+                                        ParagraphStyle()
+                                    )
+                                )
                                 scope.launch {
                                     snackBar.showSnackbar("متن در کلیپ بورد کپی شد.")
                                 }
@@ -347,7 +355,9 @@ private fun Launcher(
                                 isDebugInfoWanted = !isDebugInfoWanted
                             }) {
                                 Icon(
-                                    if (isDebugInfoWanted) painterResource(R.drawable.baseline_bug_report_24) else painterResource(R.drawable.outline_bug_report_24),
+                                    if (isDebugInfoWanted) painterResource(R.drawable.baseline_bug_report_24) else painterResource(
+                                        R.drawable.outline_bug_report_24
+                                    ),
                                     "Info / Debug",
                                     tint = MaterialTheme.colorScheme.secondary
                                 )
@@ -355,15 +365,31 @@ private fun Launcher(
                         }
                     }
                     AnimatedVisibility(isFeedbackOfFeedbackShowed) {
-                        Card (modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
-                            Column (modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 16.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
                                 Text("چه مشکلی داشت؟")
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Row {
                                     OutlinedButton(onClick = {
                                         voiceAnalyzeViewModel.voice = uiState.voice.let {
                                             val lastFeedback = it.response?.feedback
-                                            it.copy(response = it.response?.copy(lastFeedback = lastFeedback, feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse, feedback = null, transcription = it.response.transcription ?: "نمیدونم چرا ویس نیست!!!"))
+                                            it.copy(
+                                                response = it.response?.copy(
+                                                    lastFeedback = lastFeedback,
+                                                    feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse,
+                                                    feedback = null,
+                                                    transcription = it.response.transcription
+                                                        ?: "نمیدونم چرا ویس نیست!!!"
+                                                )
+                                            )
                                         }
                                         isBePatientShowed = false
                                         isOptionsShowed = true
@@ -380,7 +406,15 @@ private fun Launcher(
                                     OutlinedButton(onClick = {
                                         voiceAnalyzeViewModel.voice = uiState.voice.let {
                                             val lastFeedback = it.response?.feedback
-                                            it.copy(response = it.response?.copy(lastFeedback = lastFeedback, feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse, feedback = null,  transcription = it.response.transcription ?: "نمیدونم چرا ویس نیست!!!"))
+                                            it.copy(
+                                                response = it.response?.copy(
+                                                    lastFeedback = lastFeedback,
+                                                    feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse,
+                                                    feedback = null,
+                                                    transcription = it.response.transcription
+                                                        ?: "نمیدونم چرا ویس نیست!!!"
+                                                )
+                                            )
                                         }
                                         isBePatientShowed = false
                                         isOptionsShowed = true

@@ -204,7 +204,7 @@ fun MainPage(
                     )
                 }
             }
-            LockedDirection (LayoutDirection.Rtl) {
+            LockedDirection(LayoutDirection.Rtl) {
                 LazyVerticalStaggeredGrid(
                     modifier = Modifier
                         .weight(1f)
@@ -257,7 +257,7 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
                 text = { Text("${menuPageItem.disabledReason}") })
         }
     }
-    LockedDirection (LayoutDirection.Ltr) {
+    LockedDirection(LayoutDirection.Ltr) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

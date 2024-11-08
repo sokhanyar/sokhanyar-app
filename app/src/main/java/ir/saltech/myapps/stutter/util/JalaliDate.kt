@@ -20,8 +20,8 @@ fun gregorian_to_jalali(gy: Int, gm: Int, gd: Int): IntArray {
         jy += ((days - 1) / 365).toInt()
         days = (days - 1) % 365
     }
-    var jm: Int;
-    var jd: Int;
+    var jm: Int
+    var jd: Int
     if (days < 186) {
         jm = 1 + (days / 31).toInt()
         jd = 1 + (days % 31)

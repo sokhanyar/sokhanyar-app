@@ -55,7 +55,8 @@ import kotlin.math.roundToInt
 
 class MainViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
-//    private val openai = OpenAI(
+
+    //    private val openai = OpenAI(
 //        token = BaseApplication.Constants.API_KEY,
 //        host = OpenAIHost("${BaseApplication.Constants.BASE_URL}/v1/")
 //    )
@@ -118,7 +119,11 @@ class MainViewModel : ViewModel() {
                 modelName = BaseApplication.Ai.Gemini.Models.Flash,
                 BaseApplication.Ai.Gemini.apiKeys.random(),
                 systemInstruction = content {
-                    text("${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${Clock.System.now().toEpochMilliseconds().epochToFullDateTime()}")
+                    text(
+                        "${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${
+                            Clock.System.now().toEpochMilliseconds().epochToFullDateTime()
+                        }"
+                    )
                 },
                 generationConfig = generationConfig {
                     temperature = 1.3f
@@ -138,8 +143,15 @@ class MainViewModel : ViewModel() {
                 )
             chatHistory =
                 MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-                    val userNameChatMessage = ChatMessage(id = -1, role = "user", content = _uiState.value.user.getUserSummary())
-                    if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(0, userNameChatMessage)
+                    val userNameChatMessage = ChatMessage(
+                        id = -1,
+                        role = "user",
+                        content = _uiState.value.user.getUserSummary()
+                    )
+                    if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(
+                        0,
+                        userNameChatMessage
+                    )
                     it.add(requestContent)
                     it
                 }))

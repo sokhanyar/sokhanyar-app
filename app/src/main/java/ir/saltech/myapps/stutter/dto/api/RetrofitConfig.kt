@@ -48,7 +48,9 @@ inline fun <reified T> Call<T>.call(callback: ApiCallback<T>) {
                     } catch (e: Exception) {
                         Log.e(
                             "TAG",
-                            "ERROR OCCURRED (NOT JSON!): ${response.errorBody()?.string()} || ${response.code()} || ${response.message()}"
+                            "ERROR OCCURRED (NOT JSON!): ${
+                                response.errorBody()?.string()
+                            } || ${response.code()} || ${response.message()}"
                         )
                         e.printStackTrace()
                         callback.onFailure(t = e)

@@ -52,7 +52,14 @@ import ir.saltech.myapps.stutter.util.validateUserInputs
 import kotlinx.coroutines.launch
 
 @Composable
-fun WelcomePage(uiState: MainUiState, snackBar: SnackbarHostState, innerPadding: PaddingValues = PaddingValues(0.dp), modifier: Modifier = Modifier, mainViewModel: MainViewModel = viewModel(), onCompleted: () -> Unit) {
+fun WelcomePage(
+    uiState: MainUiState,
+    snackBar: SnackbarHostState,
+    innerPadding: PaddingValues = PaddingValues(0.dp),
+    modifier: Modifier = Modifier,
+    mainViewModel: MainViewModel = viewModel(),
+    onCompleted: () -> Unit
+) {
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
     val density = LocalDensity.current
@@ -101,11 +108,20 @@ fun WelcomePage(uiState: MainUiState, snackBar: SnackbarHostState, innerPadding:
             )
             Text(
                 "خوبی؟ چه خبرا؟! لطفاً برای آشنایی بیشتر من باهات، این فرم رو تکمیل کن. 📝  دمتم گرم!! 😉",
-                modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, lineHeight = 32.sp)
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 16.sp,
+                    lineHeight = 32.sp
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
                 Row {
                     OutlinedTextField(
                         modifier = Modifier
@@ -140,7 +156,7 @@ fun WelcomePage(uiState: MainUiState, snackBar: SnackbarHostState, innerPadding:
                     value = timesOfTherapy,
                     onValueChanged = { timesOfTherapy = it },
                     valueRange = 1..10,
-                    supportText = {Text("چندبار تا حالا برای درمان لکنتت، تلاش کردی؟ لزومی نداره حتماً گفتار درمان باشه!")}
+                    supportText = { Text("چندبار تا حالا برای درمان لکنتت، تلاش کردی؟ لزومی نداره حتماً گفتار درمان باشه!") }
                 )
                 DropDownTextField(
                     "نوع لکنتت چیه؟",
@@ -328,8 +344,19 @@ fun WelcomePage(uiState: MainUiState, snackBar: SnackbarHostState, innerPadding:
                 )
             }
             HorizontalDivider(thickness = 0.7.dp)
-            Row (modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-                Text("* اگر به عنوان یاریگر از این اَپ استفاده میکنید، فقط اسم و سنِتون رو بنویسید کافیه!", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium.copy(textDirection = TextDirection.Rtl), color = MaterialTheme.colorScheme.secondary)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "* اگر به عنوان یاریگر از این اَپ استفاده میکنید، فقط اسم و سنِتون رو بنویسید کافیه!",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium.copy(textDirection = TextDirection.Rtl),
+                    color = MaterialTheme.colorScheme.secondary
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 Button(onClick = {
                     focus.clearFocus()
@@ -364,12 +391,18 @@ fun WelcomePage(uiState: MainUiState, snackBar: SnackbarHostState, innerPadding:
                             onCompleted()
                         } else {
                             scope.launch {
-                                snackBar.showSnackbar("حالا که یکی دوتاش رو پر کردی، لطف کن بقیه اش هم پر کن. ممنون :)", duration = SnackbarDuration.Short)
+                                snackBar.showSnackbar(
+                                    "حالا که یکی دوتاش رو پر کردی، لطف کن بقیه اش هم پر کن. ممنون :)",
+                                    duration = SnackbarDuration.Short
+                                )
                             }
                         }
                     } else {
                         scope.launch {
-                            snackBar.showSnackbar("حداقل اسم و سنِت رو وارد کن", duration = SnackbarDuration.Short)
+                            snackBar.showSnackbar(
+                                "حداقل اسم و سنِت رو وارد کن",
+                                duration = SnackbarDuration.Short
+                            )
                         }
                     }
                 }) {
