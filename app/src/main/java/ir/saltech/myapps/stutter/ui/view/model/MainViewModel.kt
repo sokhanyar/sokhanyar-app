@@ -403,7 +403,6 @@ class MainViewModel : ViewModel() {
         weeklyReport = _uiState.value.weeklyReport.copy(
             result = """
             ..#گزارش_هفتگی
-            ◾️ ${Date(_uiState.value.dailyReport.date!!).toJalali().toReportDate()} 
             👤 ${_uiState.value.weeklyReport.user.name ?: "ناشناس"}
             
             👈تعداد روز هایی که تمرینات انجام شده: ${_uiState.value.weeklyReport.practiceDays ?: "-"}

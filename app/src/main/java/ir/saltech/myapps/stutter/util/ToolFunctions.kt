@@ -206,14 +206,14 @@ fun Long.epochToMonthDay(): String {
     return if (Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year == year) {
         String.format(
             "%s، %d %s",
-            BaseApplication.Constants.JalaliDays[dayId],
+            BaseApplication.Constants.JalaliDays[dayId - 1],
             jalali[2],
             BaseApplication.Constants.JalaliMonths[jalali[1] - 1]
         )
     } else {
         String.format(
             "%s، %d %s %d",
-            BaseApplication.Constants.JalaliDays[dayId],
+            BaseApplication.Constants.JalaliDays[dayId - 1],
             jalali[2],
             BaseApplication.Constants.JalaliMonths[jalali[1] - 1],
             jalali[0]
@@ -235,7 +235,7 @@ fun Long.epochToFullDateTime(): String {
 
     return String.format(
         "%s، %d/%s/%d، %d:%d",
-        BaseApplication.Constants.JalaliDays[dayId],
+        BaseApplication.Constants.JalaliDays[dayId - 1],
         jalali[2],
         BaseApplication.Constants.JalaliMonths[jalali[1] - 1],
         jalali[0],
