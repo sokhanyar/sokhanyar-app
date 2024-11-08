@@ -23,5 +23,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Stutter"
+rootProject.name = "Sokhanyar"
 include(":app")
