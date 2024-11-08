@@ -101,9 +101,9 @@ fun WeeklyReportPage(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val result by remember { mutableStateOf(uiState.weeklyReport.result) }
-                Log.i("TAG", "Solution is $result")
                 AiAdvice(BaseApplication.ReportType.Weekly, uiState)
-                Text("برای اشتراک فرم، روی اون ضربه بزنید.")
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(".: برای اشتراک فرم، روی اون ضربه بزنید :.", color = MaterialTheme.colorScheme.secondary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     modifier = Modifier

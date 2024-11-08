@@ -97,9 +97,9 @@ fun DailyReportPage(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val result: String? by remember { mutableStateOf(uiState.dailyReport.result) }
-                Log.i("TAG", "Solution is $result")
                 AiAdvice(BaseApplication.ReportType.Daily, uiState)
-                Text("برای اشتراک فرم، روی اون ضربه بزنید.")
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(".: برای اشتراک فرم، روی اون ضربه بزنید :.", color = MaterialTheme.colorScheme.secondary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     modifier = Modifier

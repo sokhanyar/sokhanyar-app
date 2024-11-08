@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivities
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.myapps.stutter.BaseApplication
 import ir.saltech.myapps.stutter.R
@@ -48,7 +47,6 @@ import ir.saltech.myapps.stutter.ui.view.pages.WelcomePage
 import ir.saltech.myapps.stutter.util.getGreetingBasedOnTime
 import ir.saltech.myapps.stutter.util.isTomorrow
 import ir.saltech.myapps.stutter.util.nowDay
-import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -84,7 +82,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startProgram() {
-        loadPresets()
+        mainViewModel.context = this
+        mainViewModel.loadPresets()
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
@@ -105,17 +104,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        }
-    }
-
-    private fun loadPresets() {
-        mainViewModel.viewModelScope.launch {
-            mainViewModel.context = this@MainActivity
-            mainViewModel.loadUser()
-            mainViewModel.generateNewMotivationText()
-            mainViewModel.loadDailyReports()
-            mainViewModel.loadWeeklyReports()
-            mainViewModel.loadChatHistory()
         }
     }
 
@@ -256,6 +244,7 @@ private fun Launcher(
         exit = fadeOut()
     ) {
         WelcomePage(uiState, snackBar, paddingValues) {
+            mainViewModel.loadPresets()
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
             onPageWanted(BaseApplication.Page.Home)
         }

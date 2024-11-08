@@ -343,7 +343,7 @@ fun AiAdvice(
             (uiState.dailyReports?.list?.size ?: 0) >= 2
 
         BaseApplication.ReportType.Weekly ->
-            (uiState.dailyReports?.list?.size ?: 0) >= 2
+            (uiState.weeklyReports?.list?.size ?: 0) >= 2
     }
     var expanded by remember { mutableStateOf(false) }
     if (hasAdvice || test) {

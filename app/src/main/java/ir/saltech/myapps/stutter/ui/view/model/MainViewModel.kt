@@ -371,11 +371,12 @@ class MainViewModel : ViewModel() {
         """.trimIndent())
         val res = _uiState.value.dailyReports?.list?.add(_uiState.value.dailyReport)
         saveDailyReports()
-        saveUser()
-        generateAdvice(
-            _uiState.value.dailyReports?.list?.toList(),
-            BaseApplication.ReportType.Daily
-        )
+        if ((_uiState.value.dailyReports?.list?.size ?: 0) > 1) {
+            generateAdvice(
+                _uiState.value.dailyReports?.list?.toList(),
+                BaseApplication.ReportType.Daily
+            )
+        }
         return res == true
     }
 
@@ -423,11 +424,12 @@ class MainViewModel : ViewModel() {
         )
         val res = _uiState.value.weeklyReports?.list?.add(_uiState.value.weeklyReport)
         saveWeeklyReports()
-        saveUser()
-        generateAdvice(
-            _uiState.value.weeklyReports?.list?.toList(),
-            BaseApplication.ReportType.Weekly
-        )
+        if ((_uiState.value.weeklyReports?.list?.size ?: 0) > 1) {
+            generateAdvice(
+                _uiState.value.weeklyReports?.list?.toList(),
+                BaseApplication.ReportType.Weekly
+            )
+        }
         return res == true
     }
 
@@ -472,5 +474,15 @@ class MainViewModel : ViewModel() {
             activePages = mutableStateListOf(BaseApplication.Page.Welcome)
         }
         Log.i("TAG", "User loaded -> ${_uiState.value.user}")
+    }
+
+    fun loadPresets() {
+        viewModelScope.launch {
+            loadUser()
+            generateNewMotivationText()
+            loadDailyReports()
+            loadWeeklyReports()
+            loadChatHistory()
+        }
     }
 }
