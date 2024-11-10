@@ -196,7 +196,7 @@ fun WeeklyReportPage(
                                 }
                             } + fadeOut()) {
                             Column {
-                                MinimalHelpText("فعلاً چالش ها و کنفرانس هایی که در ضبط صوت موبایل (فعلاً سامسونگ) ضبط شوند، قابل تشخیص هستند.")
+                                MinimalHelpText("فعلاً چالش ها و کنفرانس هایی که در ضبط صوت موبایل (در پوشه Recordings) ضبط شوند، قابل تشخیص هستند.")
                                 TextFieldLayout(
                                     title = "روزهای تمرین شده",
                                     valueRange = 1..7,

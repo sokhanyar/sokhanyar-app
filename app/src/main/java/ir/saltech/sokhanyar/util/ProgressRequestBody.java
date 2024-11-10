@@ -58,7 +58,7 @@ public class ProgressRequestBody extends RequestBody {
     }
 
     public interface UploadCallbacks {
-        void onProgressUpdate(int percentage);
+        void onProgressUpdate(float percentage);
 
         void onError();
 
@@ -76,7 +76,7 @@ public class ProgressRequestBody extends RequestBody {
 
         @Override
         public void run() {
-            mListener.onProgressUpdate((int) (100 * mUploaded / mTotal));
+            mListener.onProgressUpdate((float) (100 * mUploaded) / mTotal);
         }
     }
 }
