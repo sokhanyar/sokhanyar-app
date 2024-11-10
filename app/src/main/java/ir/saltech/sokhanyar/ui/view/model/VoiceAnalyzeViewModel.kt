@@ -7,12 +7,12 @@ import android.os.FileObserver
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import ir.saltech.ai.client.generativeai.GenerativeModel
 import ir.saltech.ai.client.generativeai.type.FunctionType
 import ir.saltech.ai.client.generativeai.type.ResponseStoppedException
 import ir.saltech.ai.client.generativeai.type.Schema
+import ir.saltech.ai.client.generativeai.type.asTextOrNull
 import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.ai.client.generativeai.type.generationConfig
 import ir.saltech.sokhanyar.BaseApplication
@@ -23,7 +23,6 @@ import ir.saltech.sokhanyar.dto.api.call
 import ir.saltech.sokhanyar.dto.model.data.general.User
 import ir.saltech.sokhanyar.dto.model.data.general.Voice
 import ir.saltech.sokhanyar.ui.state.VoiceAnalyzeUiState
-import ir.saltech.sokhanyar.util.ProgressRequestBody
 import ir.saltech.sokhanyar.util.RecursiveFileObserver
 import ir.saltech.sokhanyar.util.fromJson
 import ir.saltech.sokhanyar.util.getMimeType
@@ -50,7 +49,6 @@ class VoiceAnalyzeViewModel : ViewModel() {
         set(value) {
             _uiState.update { _uiState.value.copy(voice = value) }
         }
-    val fileObserver = MutableStateFlow(null).asLiveData()
     private var wantedApiKey = BaseApplication.Ai.Gemini.apiKeys.random()
 
 
@@ -75,8 +73,34 @@ class VoiceAnalyzeViewModel : ViewModel() {
         }
     }
 
-    fun initialVoiceObserving(): ir.saltech.sokhanyar.util.RecursiveFileObserver {
-        return _root_ide_package_.ir.saltech.sokhanyar.util.RecursiveFileObserver(
+    fun initialVoiceObservingPublicFolders(folderType: String): RecursiveFileObserver {
+        Log.i("TAG", "Initializing public $folderType File Observer ...")
+        val rootFolder = Environment.getExternalStoragePublicDirectory(folderType)
+        return RecursiveFileObserver(
+            rootFolder.absolutePath,
+            FileObserver.CREATE
+        ) { _, file ->
+            Log.d(
+                "TAG",
+                "New File is detected an $folderType Audio: ${file.name} | Date modified: ${file.lastModified()} | NewFile is dir: ${file.isDirectory} || RESL: ${
+                    Environment.getExternalStorageState(file)
+                }"
+            )
+            if (file.isFile && file.name.substring(file.name.lastIndexOf('.')) in expectedExtensions) {
+                voice =
+                    _uiState.value.voice.copy(selectedFile = file.let {
+                        val cachedFile = File("${context.cacheDir}/${it.name}")
+                        cachedFile.createNewFile()
+                        cachedFile.writeBytes(it.readBytes())
+                        cachedFile
+                    })
+            }
+        }
+    }
+
+    fun initialVoiceObservingEitaa(): RecursiveFileObserver {
+        Log.i("TAG", "Initializing Eitaa File Observer ...")
+        return RecursiveFileObserver(
             File("${Environment.getExternalStorageDirectory().absolutePath}/Eitaa/Eitaa Audio").absolutePath,
             FileObserver.CREATE
         ) { _, file ->
@@ -106,6 +130,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
             }
         }
     }
+
 
     fun startVoiceAnalyzing() {
         if (_uiState.value.voice.selectedFile != null) {
@@ -265,8 +290,17 @@ class VoiceAnalyzeViewModel : ViewModel() {
             Log.w("TAG", "contents: ${_uiState.value.voice}")
             val generatedResponse =
                 chat.sendMessage(getEnhancedResponse())
-            voice = (fromJson<Voice>(generatedResponse.text) ?: return).let {
-                _uiState.value.voice.copy(response = it.response)
+            voice = (fromJson<Voice>(generatedResponse.text) ?: return).let { voice ->
+                val transcriptions = chatHist.map { content -> content.parts[0].asTextOrNull() }.let { chatTexts ->
+                    chatTexts.filterIndexed { index, _ -> if (index + 1 <= chatTexts.lastIndex) chatTexts[index + 1]?.contains("feedback:") == true else false }
+                }
+                _uiState.value.voice.copy(response = voice.response.let {
+                    if (it?.transcription in transcriptions) {
+                        it?.copy(transcription = null)
+                    } else {
+                        it
+                    }
+                })
             }
             Log.i("TAG", "VERTO ${generatedResponse.text}")
         } catch (e: ResponseStoppedException) {
@@ -275,7 +309,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
             return
         } catch (e: Exception) {
             e.printStackTrace()
-            voice = _uiState.value.voice.copy(error = e)
+            voice = _uiState.value.voice.copy(error = e.message)
         }
     }
 
@@ -300,11 +334,11 @@ class VoiceAnalyzeViewModel : ViewModel() {
 
             _uiState.value.voice.selectedFile!!.let {
                 val progressiveRequestBody =
-                    _root_ide_package_.ir.saltech.sokhanyar.util.ProgressRequestBody(
+                    ir.saltech.sokhanyar.util.ProgressRequestBody(
                         it,
                         "audio",
                         object : ir.saltech.sokhanyar.util.ProgressRequestBody.UploadCallbacks {
-                            override fun onProgressUpdate(percentage: Int) {
+                            override fun onProgressUpdate(percentage: Float) {
                                 voice = _uiState.value.voice.copy(progress = percentage)
                             }
 
@@ -313,7 +347,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
                             }
 
                             override fun onFinish() {
-                                voice = _uiState.value.voice.copy(progress = 100)
+                                voice = _uiState.value.voice.copy(progress = 100f)
                             }
 
                         })
@@ -325,7 +359,10 @@ class VoiceAnalyzeViewModel : ViewModel() {
             }).call(object :
             ApiCallback<Voice> {
             override fun onSuccessful(responseObject: Voice?) {
-                if (responseObject?.serverFile == null) return
+                if (responseObject?.serverFile == null) {
+                    voice = _uiState.value.voice.copy(error = "File not uploaded because of null!")
+                    return
+                }
                 voice = _uiState.value.voice.copy(serverFile = responseObject.serverFile)
                 Log.i("TAG", "FILE UPLOADED SUCCESSFULLY: $responseObject")
                 viewModelScope.launch {
@@ -336,6 +373,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
             override fun onFailure(response: ErrorResponse?, t: Throwable?) {
                 t?.printStackTrace()
                 Log.e("TAG", "ERROR OCCURRED: ${t?.message} | RESPONSE ERROR $response")
+                voice = _uiState.value.voice.copy(error = response?.error?.message ?: t?.message)
             }
 
         })

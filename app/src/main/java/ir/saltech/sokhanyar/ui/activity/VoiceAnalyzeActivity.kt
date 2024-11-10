@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -37,6 +38,7 @@ import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,6 +55,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,6 +87,10 @@ import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.VoiceAnalyzeViewModel
 import ir.saltech.sokhanyar.util.RecursiveFileObserver
 import ir.saltech.sokhanyar.util.toDurationMinuteSecond
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.Thread.sleep
@@ -169,7 +177,7 @@ class VoiceAnalyzeActivity : ComponentActivity() {
     }
 }
 
-
+@OptIn(DelicateCoroutinesApi::class)
 @Composable
 private fun Launcher(
     snackBar: SnackbarHostState,
@@ -180,9 +188,8 @@ private fun Launcher(
     val uiState by voiceAnalyzeViewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
-    var fileObserver: ir.saltech.sokhanyar.util.RecursiveFileObserver? by remember {
-        mutableStateOf(null)
-    }
+    val fileObservers: MutableList<RecursiveFileObserver?> = remember { mutableStateListOf() }
+    var observeStartedCount by rememberSaveable { mutableIntStateOf(0) }
     var mediaPlayer: MediaPlayer? by remember {
         mutableStateOf(null)
     }
@@ -199,14 +206,24 @@ private fun Launcher(
         mutableStateOf(true)
     }
     BackHandler {
-        fileObserver?.stopWatching()
+        fileObservers.forEach { it?.stopWatching() }
         (voiceAnalyzeViewModel.context as Activity).finish()
     }
     LaunchedEffect(LocalLifecycleOwner.current) {
-        fileObserver = voiceAnalyzeViewModel.initialVoiceObserving()
-        fileObserver!!.startWatching()
+        // TODO: این dispatchers.IO خیلی چیز خوبیه!
+        GlobalScope.launch(Dispatchers.IO) {
+            delay(800)
+            BaseApplication.Constants.VoiceDirectories.forEach { folderType ->
+                 fileObservers.add(if (folderType == BaseApplication.DirectoryType.Eitaa) voiceAnalyzeViewModel.initialVoiceObservingEitaa() else voiceAnalyzeViewModel.initialVoiceObservingPublicFolders(folderType))
+            }
+            delay(50)
+            fileObservers.forEach { it?.startWatching(); Log.i("TAG", "Observation started for $it. Listening ..."); observeStartedCount++ }
+        }
     }
-    if (fileObserver != null) {
+    // حاجی با لاگ گذاشتن درست شد!!
+    // It may be because of this log effects on recomposition!
+    Log.i("TAG", "recomposing layout with observe started count >>>> $observeStartedCount | file observers size>>> ${fileObservers.size}")
+    if (fileObservers.any { it != null } && observeStartedCount == fileObservers.size) {
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -224,7 +241,7 @@ private fun Launcher(
             Spacer(modifier = Modifier.height(8.dp))
             if (uiState.voice.selectedFile == null) {
                 Text(
-                    "برای آپلود فایل ویس، لطفاً وارد ایتا شوید و در ایتا، فایلی که میخواهید بازخورد دهید را بارگیری نمایید (فقط یک فایل در لحظه).\nپس از بارگیری فایل، برای آپلود و پردازش به اپلیکیشن بازگردید.\nبرای شروع بهتر است، محتویات پوشه Eitaa Audio رو پاک کنید.\nمن منتظر دریافت فایل هستم ...",
+                    "برای آپلود فایل ویس، لطفاً وارد ایتا شوید و در ایتا، فایلی که میخواهید بازخورد دهید را بارگیری نمایید (فقط یک فایل در لحظه).\nپس از بارگیری فایل، برای آپلود و پردازش به اپلیکیشن بازگردید.\nاگر مشکلی وجود داشت، محتویات پوشه ${BaseApplication.Constants.VoiceDirectories.joinToString(" یا ")} رو پاک کنید.\nمن منتظر دریافت فایل هستم ...",
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp),
@@ -235,8 +252,10 @@ private fun Launcher(
                 LaunchedEffect(
                     LocalLifecycleOwner.current
                 ) {
-                    voiceAnalyzeViewModel.startVoiceAnalyzing()
-                    fileObserver!!.stopWatching()
+                    GlobalScope.launch(Dispatchers.IO) {
+                        fileObservers.forEach { it?.stopWatching() }
+                        voiceAnalyzeViewModel.startVoiceAnalyzing()
+                    }
                 }
 
                 if (uiState.voice.response?.feedback == null && uiState.voice.error == null) {
@@ -249,7 +268,7 @@ private fun Launcher(
                         Spacer(modifier = Modifier.height(8.dp))
                         if (uiState.voice.serverFile == null) {
                             LinearProgressIndicator(progress = {
-                                (uiState.voice.progress?.toFloat() ?: 0f) / 100f
+                                (uiState.voice.progress ?: 0f) / 100f
                             })
                         } else {
                             LinearProgressIndicator()
@@ -268,7 +287,7 @@ private fun Launcher(
                         ) {
                             AnimatedVisibility(uiState.voice.serverFile == null && uiState.voice.progress != null) {
                                 Text(
-                                    text = "${uiState.voice.progress!!}%",
+                                    text = "${uiState.voice.progress!!.toString().substring(0..4)}%",
                                     style = MaterialTheme.typography.labelMedium.copy(
                                         textDirection = TextDirection.Ltr,
                                         textAlign = TextAlign.Start
@@ -507,6 +526,17 @@ private fun Launcher(
                     }
                 }
             }
+        }
+    } else {
+        Column (modifier = modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator(modifier = Modifier.scale(1.3f), strokeWidth = 2.4.dp)
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("در حال بارگذاری ...", color = MaterialTheme.colorScheme.primary, style= MaterialTheme.typography.bodyLarge)
         }
     }
 }

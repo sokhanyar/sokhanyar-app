@@ -1,6 +1,7 @@
 package ir.saltech.sokhanyar
 
 import android.app.Application
+import android.os.Environment
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlin.random.Random
 
@@ -44,6 +45,14 @@ class BaseApplication : Application() {
         val JalaliDays = arrayOf(
             "یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"
         )
+        val VoiceDirectories = arrayOf(DirectoryType.Eitaa, DirectoryType.Downloads, DirectoryType.Music, DirectoryType.Recordings)
+    }
+
+    object DirectoryType {
+        val Eitaa = "Eitaa Audio"
+        val Downloads = Environment.DIRECTORY_DOWNLOADS
+        val Music = Environment.DIRECTORY_MUSIC
+        val Recordings = "Recordings"
     }
 
     object Ai {
