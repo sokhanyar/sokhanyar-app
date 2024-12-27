@@ -35,7 +35,7 @@ import androidx.core.content.ContextCompat.startActivities
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.R
-import ir.saltech.sokhanyar.dto.model.ui.MenuPageItem
+import ir.saltech.sokhanyar.model.ui.MenuPageItem
 import ir.saltech.sokhanyar.ui.theme.AppTheme
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.MainViewModel
@@ -96,7 +96,6 @@ class MainActivity : ComponentActivity() {
                         SnackbarHost(snackBarHostState)
                     }) { innerPadding ->
                         if (checkPermissions()) {
-                            // TODO: یه ایموجی هم بذاریم پشت تاریخ گزارش ها .. باحال میشه!
                             Launcher(snackBar = snackBarHostState, paddingValues = innerPadding)
                         } else {
                             permissionLauncher.launch(permissions)

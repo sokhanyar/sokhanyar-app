@@ -1,7 +1,7 @@
-package ir.saltech.sokhanyar.dto.model.data.reports
+package ir.saltech.sokhanyar.model.data.reports
 
 import com.google.gson.annotations.SerializedName
-import ir.saltech.sokhanyar.dto.model.data.general.User
+import ir.saltech.sokhanyar.model.data.general.User
 
 abstract class Report {
     abstract val user: User
@@ -16,7 +16,7 @@ data class DailyReport(
     @SerializedName("practice_time")
     val practiceTime: Int? = null,
     @SerializedName("methodUsage")
-    val methodUsage: ir.saltech.sokhanyar.dto.model.data.reports.MethodUsage = ir.saltech.sokhanyar.dto.model.data.reports.MethodUsage(),
+    val methodUsage: MethodUsage = MethodUsage(),
     @SerializedName("desensitization_count")
     val desensitizationCount: Int? = null,
     @SerializedName("intentional_stuttering_count")
@@ -24,17 +24,17 @@ data class DailyReport(
     @SerializedName("avoidance_detection_count")
     val avoidanceDetectionCount: Int? = null,
     @SerializedName("calls_count")
-    val callsCount: ir.saltech.sokhanyar.dto.model.data.reports.CallsCount = ir.saltech.sokhanyar.dto.model.data.reports.CallsCount(),
+    val callsCount: CallsCount = CallsCount(),
     @SerializedName("voices_properties")
-    val voicesProperties: ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties = ir.saltech.sokhanyar.dto.model.data.reports.VoicesProperties(),
+    val voicesProperties: VoicesProperties = VoicesProperties(),
     @SerializedName("self_satisfaction")
     val selfSatisfaction: Int? = null,
     override val description: String? = null,
     override val result: String? = null
-) : ir.saltech.sokhanyar.dto.model.data.reports.Report()
+) : Report()
 
 data class DailyReports(
     @SerializedName("daily_reports")
-    val list: MutableList<ir.saltech.sokhanyar.dto.model.data.reports.DailyReport> = mutableListOf()
+    val list: MutableList<DailyReport> = mutableListOf()
 )
 

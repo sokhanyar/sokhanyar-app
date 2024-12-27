@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.dto.model.data.general
+package ir.saltech.sokhanyar.model.data.general
 
 data class User(
     val id: Int = 0,

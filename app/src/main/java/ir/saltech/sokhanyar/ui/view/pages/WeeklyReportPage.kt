@@ -59,8 +59,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.BaseApplication.Constants.MAX_OF_NAME_CHARS
 import ir.saltech.sokhanyar.BaseApplication.Constants.MAX_OF_WEEKLY_REPORT_PAGES
-import ir.saltech.sokhanyar.dto.model.data.general.User
-import ir.saltech.sokhanyar.dto.model.data.reports.WeeklyReport
+import ir.saltech.sokhanyar.model.data.general.User
+import ir.saltech.sokhanyar.model.data.reports.WeeklyReport
 import ir.saltech.sokhanyar.ui.state.MainUiState
 import ir.saltech.sokhanyar.ui.view.components.AiAdvice
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection

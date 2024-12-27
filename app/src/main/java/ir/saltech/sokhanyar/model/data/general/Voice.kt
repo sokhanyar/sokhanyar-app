@@ -1,8 +1,8 @@
-package ir.saltech.sokhanyar.dto.model.data.general
+package ir.saltech.sokhanyar.model.data.general
 
 import com.google.gson.annotations.SerializedName
-import ir.saltech.sokhanyar.dto.model.api.ServerFile
-import ir.saltech.sokhanyar.dto.model.api.VoiceResponse
+import ir.saltech.sokhanyar.model.api.ServerFile
+import ir.saltech.sokhanyar.model.api.VoiceResponse
 import java.io.File
 
 data class Voice(

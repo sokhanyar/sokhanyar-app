@@ -335,7 +335,7 @@ fun AiAdvice(
     reportType: BaseApplication.ReportType,
     uiState: MainUiState,
     modifier: Modifier = Modifier,
-    test: Boolean = false
+    test: Boolean = false // If it for test, some disabilities will be ignored
 ) {
     val advice by remember { uiState.advice }
     val hasAdvice = when (reportType) {

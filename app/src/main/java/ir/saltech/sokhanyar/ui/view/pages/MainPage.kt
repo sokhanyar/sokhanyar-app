@@ -65,7 +65,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.R
-import ir.saltech.sokhanyar.dto.model.ui.MenuPageItem
+import ir.saltech.sokhanyar.model.ui.MenuPageItem
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.MainViewModel
 import ir.saltech.sokhanyar.util.wrapToScreen

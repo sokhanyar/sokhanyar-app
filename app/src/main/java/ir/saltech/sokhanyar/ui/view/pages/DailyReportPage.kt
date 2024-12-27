@@ -59,8 +59,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.BaseApplication.Constants.MAX_OF_DAILY_REPORT_PAGES
 import ir.saltech.sokhanyar.BaseApplication.Constants.MAX_OF_NAME_CHARS
-import ir.saltech.sokhanyar.dto.model.data.general.User
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReport
+import ir.saltech.sokhanyar.model.data.general.User
+import ir.saltech.sokhanyar.model.data.reports.DailyReport
 import ir.saltech.sokhanyar.ui.state.MainUiState
 import ir.saltech.sokhanyar.ui.view.components.AiAdvice
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection
@@ -81,11 +81,11 @@ fun DailyReportPage(
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
-    val defaultDailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport by remember { mutableStateOf(uiState.dailyReport.copy(user = uiState.user)) }
+    val defaultDailyReport: DailyReport by remember { mutableStateOf(uiState.dailyReport.copy(user = uiState.user)) }
     var pageCounter by remember { mutableIntStateOf(0) }
     var isFinished by remember { mutableStateOf(false) }
     var effectSide: BaseApplication.EffectSide by remember { mutableStateOf(BaseApplication.EffectSide.Unknown) }
-    var dailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport by remember { mutableStateOf(defaultDailyReport) }
+    var dailyReport: DailyReport by remember { mutableStateOf(defaultDailyReport) }
     Log.d("TAG", "state daily report: $dailyReport, uiState daily report ${uiState.dailyReport}")
     mainViewModel.dailyReport = dailyReport
     LockedDirection(LayoutDirection.Rtl) {

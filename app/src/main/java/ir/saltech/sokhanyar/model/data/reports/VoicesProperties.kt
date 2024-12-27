@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.dto.model.data.reports
+package ir.saltech.sokhanyar.model.data.reports
 
 import com.google.gson.annotations.SerializedName
 

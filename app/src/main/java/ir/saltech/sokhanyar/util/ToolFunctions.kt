@@ -23,11 +23,11 @@ import ir.saltech.ai.client.generativeai.type.Content
 import ir.saltech.ai.client.generativeai.type.asTextOrNull
 import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.dto.model.api.ChatMessage
-import ir.saltech.sokhanyar.dto.model.data.general.User
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReport
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReports
-import ir.saltech.sokhanyar.dto.model.data.reports.WeeklyReport
+import ir.saltech.sokhanyar.model.api.ChatMessage
+import ir.saltech.sokhanyar.model.data.general.User
+import ir.saltech.sokhanyar.model.data.reports.DailyReport
+import ir.saltech.sokhanyar.model.data.reports.DailyReports
+import ir.saltech.sokhanyar.model.data.reports.WeeklyReport
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -80,7 +80,7 @@ fun IntArray.toReportDate(): String {
 
 private const val DAY_IN_MILLIS = 86400000
 
-fun ir.saltech.sokhanyar.dto.model.data.reports.DailyReports.getLastDailyReports(): List<ir.saltech.sokhanyar.dto.model.data.reports.DailyReport>? {
+fun DailyReports.getLastDailyReports(): List<DailyReport>? {
     return this.list.filter {
         (it.date ?: return null) > Clock.System.now().toEpochMilliseconds() - (DAY_IN_MILLIS * 7)
     }.ifEmpty { null }

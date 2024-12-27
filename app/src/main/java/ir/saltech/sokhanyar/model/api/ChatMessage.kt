@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.dto.model.api
+package ir.saltech.sokhanyar.model.api
 
 import androidx.compose.runtime.mutableStateListOf
 import com.google.gson.annotations.SerializedName

@@ -1,7 +1,8 @@
-package ir.saltech.sokhanyar.dto.api
+package ir.saltech.sokhanyar.api
 
 import android.util.Log
 import ir.saltech.sokhanyar.BaseApplication
+import ir.saltech.sokhanyar.model.api.ErrorResponse
 import ir.saltech.sokhanyar.util.fromJson
 import retrofit2.Call
 import retrofit2.Callback

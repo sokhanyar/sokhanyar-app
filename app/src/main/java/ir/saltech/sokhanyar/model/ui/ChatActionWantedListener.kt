@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.dto.model.ui
+package ir.saltech.sokhanyar.model.ui
 
 interface ChatActionWantedListener {
     fun onSendWanted()

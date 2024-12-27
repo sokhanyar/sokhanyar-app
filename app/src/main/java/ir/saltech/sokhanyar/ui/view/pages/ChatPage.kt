@@ -49,7 +49,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -86,6 +88,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -102,9 +105,10 @@ import com.lottiefiles.dotlottie.core.util.DotLottieSource
 import ir.saltech.sokhanyar.BaseApplication.Greeting.greetingIcon
 import ir.saltech.sokhanyar.BaseApplication.Greeting.greetingText
 import ir.saltech.sokhanyar.R
-import ir.saltech.sokhanyar.dto.model.api.ChatMessage
-import ir.saltech.sokhanyar.dto.model.ui.ChatActionWantedListener
+import ir.saltech.sokhanyar.model.api.ChatMessage
+import ir.saltech.sokhanyar.model.ui.ChatActionWantedListener
 import ir.saltech.sokhanyar.ui.state.MainUiState
+import ir.saltech.sokhanyar.ui.theme.AppTheme
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.MainViewModel
 import ir.saltech.sokhanyar.util.ConnectionState
@@ -673,4 +677,18 @@ fun ResponseText(text: String, modifier: Modifier = Modifier) {
         lineHeight = 26.sp,
         style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl)
     )
+}
+
+@Preview
+@Composable
+fun TestChatPage(mainViewModel: MainViewModel = viewModel()) {
+    val mainUiState by mainViewModel.uiState.collectAsState()
+    val snackBarHostState = remember { SnackbarHostState() }
+    AppTheme {
+        Scaffold (snackbarHost = {
+            SnackbarHost(snackBarHostState)
+        }) { innerPadding ->
+            ChatPage(innerPadding = innerPadding, uiState = mainUiState, snackBar = snackBarHostState)
+        }
+    }
 }

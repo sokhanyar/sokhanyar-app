@@ -1,7 +1,7 @@
-package ir.saltech.sokhanyar.dto.model.data.reports
+package ir.saltech.sokhanyar.model.data.reports
 
 import com.google.gson.annotations.SerializedName
-import ir.saltech.sokhanyar.dto.model.data.general.User
+import ir.saltech.sokhanyar.model.data.general.User
 
 data class WeeklyReport(
     override val user: User = User(),
@@ -22,7 +22,7 @@ data class WeeklyReport(
     val sumOfActivities: Int? = null,
     override val description: String? = null,
     override val result: String? = null,
-) : ir.saltech.sokhanyar.dto.model.data.reports.Report()
+) : Report()
 
 data class WeeklyReports(
     @SerializedName("weekly_reports")

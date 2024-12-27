@@ -4,12 +4,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.dto.model.api.ChatHistory
-import ir.saltech.sokhanyar.dto.model.data.general.User
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReport
-import ir.saltech.sokhanyar.dto.model.data.reports.DailyReports
-import ir.saltech.sokhanyar.dto.model.data.reports.WeeklyReport
-import ir.saltech.sokhanyar.dto.model.data.reports.WeeklyReports
+import ir.saltech.sokhanyar.model.api.ChatHistory
+import ir.saltech.sokhanyar.model.data.general.User
+import ir.saltech.sokhanyar.model.data.reports.DailyReport
+import ir.saltech.sokhanyar.model.data.reports.DailyReports
+import ir.saltech.sokhanyar.model.data.reports.WeeklyReport
+import ir.saltech.sokhanyar.model.data.reports.WeeklyReports
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -20,9 +20,9 @@ data class MainUiState(
     val sentence: String? = null,
     val advice: MutableState<String?> = mutableStateOf(null),
     var chatHistory: StateFlow<ChatHistory> = MutableStateFlow(ChatHistory(0)),
-    val dailyReport: ir.saltech.sokhanyar.dto.model.data.reports.DailyReport = ir.saltech.sokhanyar.dto.model.data.reports.DailyReport(),
+    val dailyReport: DailyReport = DailyReport(),
     val weeklyReport: WeeklyReport = WeeklyReport(),
-    val dailyReports: ir.saltech.sokhanyar.dto.model.data.reports.DailyReports? = null,
+    val dailyReports: DailyReports? = null,
     val weeklyReports: WeeklyReports? = null,
     val user: User = User()
 )

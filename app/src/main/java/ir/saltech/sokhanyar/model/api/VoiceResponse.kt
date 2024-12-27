@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.dto.model.api
+package ir.saltech.sokhanyar.model.api
 
 import ir.saltech.sokhanyar.BaseApplication
 

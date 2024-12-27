@@ -1,6 +1,6 @@
-package ir.saltech.sokhanyar.dto.api
+package ir.saltech.sokhanyar.api
 
-import ir.saltech.sokhanyar.dto.model.data.general.Voice
+import ir.saltech.sokhanyar.model.data.general.Voice
 import okhttp3.MultipartBody
 import retrofit2.Call
 import retrofit2.http.Header
