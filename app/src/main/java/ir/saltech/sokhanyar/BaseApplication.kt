@@ -83,7 +83,7 @@ class BaseApplication : Application() {
 				BuildConfig.GEMINI_API_KEY_XI,
 				BuildConfig.GEMINI_API_KEY_XII,
 				BuildConfig.GEMINI_API_KEY_XIII,
-				BuildConfig.GEMINI_API_KEY_XIIII
+				BuildConfig.GEMINI_API_KEY_XIV
 			)
 			const val BASE_SYSTEM_INSTRUCTIONS = """
 The Definition of weekly report's parameters is:

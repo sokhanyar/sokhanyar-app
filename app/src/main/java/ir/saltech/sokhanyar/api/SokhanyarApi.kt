@@ -6,6 +6,8 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
 
+private const val AUTHORIZATION_HEADER = "Authorization"
+
 interface SokhanyarApi {
 	@POST("api/v1/auth/send-otp")
 	fun doSignIn(@Body authInfo: AuthInfo): Call<ResponseObject>

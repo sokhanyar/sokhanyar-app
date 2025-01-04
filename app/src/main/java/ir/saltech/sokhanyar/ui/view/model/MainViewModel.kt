@@ -478,10 +478,11 @@ class MainViewModel : ViewModel() {
 
 	fun loadUser() {
 		user = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "") ?: User()
-		if (_uiState.value.user.authInfo == null) {
-			Log.i("TAG", "User not registered in account!")
-            activePages = mutableStateListOf(BaseApplication.Page.Login)
-		} else if (_uiState.value.user.name == null || _uiState.value.user.age == null) {
+//		if (_uiState.value.user.authInfo == null) {
+//			Log.i("TAG", "User not registered in account!")
+//            activePages = mutableStateListOf(BaseApplication.Page.Login)
+//		} else
+		if (_uiState.value.user.name == null || _uiState.value.user.age == null) {
 			Log.i("TAG", "User not registered in form!")
 			activePages = mutableStateListOf(BaseApplication.Page.Welcome)
 		} else {
