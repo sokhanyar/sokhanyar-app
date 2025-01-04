@@ -27,8 +27,8 @@ android {
         applicationId = "ir.saltech.sokhanyar"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.5.13"
+        versionCode = 4
+        versionName = "1.5.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
