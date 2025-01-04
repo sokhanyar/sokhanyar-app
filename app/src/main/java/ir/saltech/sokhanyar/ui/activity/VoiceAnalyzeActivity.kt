@@ -97,544 +97,594 @@ import java.lang.Thread.sleep
 
 
 class VoiceAnalyzeActivity : ComponentActivity() {
-    private val voiceAnalyzeViewModel by viewModels<VoiceAnalyzeViewModel>()
-    private var folderChooserLauncher: ActivityResultLauncher<Uri?> =
-        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-            if (uri != null) {
-                applicationContext.contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                startProgram()
-            } else {
-                finish()
-            }
-        }
+	private val voiceAnalyzeViewModel by viewModels<VoiceAnalyzeViewModel>()
+	private var folderChooserLauncher: ActivityResultLauncher<Uri?> =
+		registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+			if (uri != null) {
+				applicationContext.contentResolver.takePersistableUriPermission(
+					uri,
+					Intent.FLAG_GRANT_READ_URI_PERMISSION
+				)
+				startProgram()
+			} else {
+				finish()
+			}
+		}
 
-    private fun startProgram() {
-        enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
-        setContent {
-            AppTheme {
-                voiceAnalyzeViewModel.context = this
-                LockedDirection(LayoutDirection.Rtl) {
-                    val snackBarHostState = remember { SnackbarHostState() }
-                    Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
-                        SnackbarHost(snackBarHostState)
-                    }) { innerPadding ->
-                        val wantedFolder =
-                            File("${Environment.getExternalStorageDirectory().absolutePath}/Eitaa/Eitaa Audio")
-                        var showPermissionDialog by rememberSaveable {
-                            mutableStateOf(
-                                contentResolver.persistedUriPermissions.isEmpty()
-                            )
-                        }
-                        if (showPermissionDialog) {
-                            if (wantedFolder.exists()) {
-                                AlertDialog(
-                                    onDismissRequest = { (voiceAnalyzeViewModel.context as Activity).finish() },
-                                    confirmButton = {
-                                        Button(onClick = {
-                                            folderChooserLauncher.launch(
-                                                wantedFolder.toUri()
-                                            )
-                                            showPermissionDialog = false
-                                        }) {
-                                            Text("باشه")
-                                        }
-                                    },
-                                    title = { Text("دسترسی به فایل های ایتا") },
-                                    text = { Text("فعلاً تحلیل ویس های داخل ایتا، توسط تحلیلگر پشتیبانی می گردد؛ لذا برای دسترسی به فایلهای داخل پوشه ایتا، لازم است تا این مجوز را به سخن یار اعطا کنید.\nمسیر مورد نیاز: Eitaa/Eitaa Audio") }
-                                )
-                            } else {
-                                AlertDialog(
-                                    onDismissRequest = { (voiceAnalyzeViewModel.context as Activity).finish() },
-                                    confirmButton = {
-                                        Button(onClick = {
-                                            (voiceAnalyzeViewModel.context as Activity).finish()
-                                        }) {
-                                            Text("باشه")
-                                        }
-                                    },
-                                    title = { Text("صوتی داخل ایتا نیست!") },
-                                    text = { Text("پوشه ایتا صوتی یافت نشد.. لطفاً یه فایل صوتی دلخواه داخل ایتا دانلود کنید تا پوشه ظاهر شود. و دوباره امتحان کنید.") }
-                                )
-                            }
-                        } else {
-                            Launcher(snackBar = snackBarHostState, paddingValues = innerPadding)
-                        }
-                    }
-                }
-            }
-        }
-    }
+	private fun startProgram() {
+		enableEdgeToEdge()
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			window.isNavigationBarContrastEnforced = false
+		}
+		setContent {
+			AppTheme {
+				voiceAnalyzeViewModel.context = this
+				LockedDirection(LayoutDirection.Rtl) {
+					val snackBarHostState = remember { SnackbarHostState() }
+					Scaffold(modifier = Modifier.fillMaxSize(), snackbarHost = {
+						SnackbarHost(snackBarHostState)
+					}) { innerPadding ->
+						val wantedFolder =
+							File("${Environment.getExternalStorageDirectory().absolutePath}/Eitaa/Eitaa Audio")
+						var showPermissionDialog by rememberSaveable {
+							mutableStateOf(
+								contentResolver.persistedUriPermissions.isEmpty()
+							)
+						}
+						if (showPermissionDialog) {
+							if (wantedFolder.exists()) {
+								AlertDialog(
+									onDismissRequest = { (voiceAnalyzeViewModel.context as Activity).finish() },
+									confirmButton = {
+										Button(onClick = {
+											folderChooserLauncher.launch(
+												wantedFolder.toUri()
+											)
+											showPermissionDialog = false
+										}) {
+											Text("باشه")
+										}
+									},
+									title = { Text("دسترسی به فایل های ایتا") },
+									text = { Text("فعلاً تحلیل ویس های داخل ایتا، توسط تحلیلگر پشتیبانی می گردد؛ لذا برای دسترسی به فایلهای داخل پوشه ایتا، لازم است تا این مجوز را به سخن یار اعطا کنید.\nمسیر مورد نیاز: Eitaa/Eitaa Audio") }
+								)
+							} else {
+								AlertDialog(
+									onDismissRequest = { (voiceAnalyzeViewModel.context as Activity).finish() },
+									confirmButton = {
+										Button(onClick = {
+											(voiceAnalyzeViewModel.context as Activity).finish()
+										}) {
+											Text("باشه")
+										}
+									},
+									title = { Text("صوتی داخل ایتا نیست!") },
+									text = { Text("پوشه ایتا صوتی یافت نشد.. لطفاً یه فایل صوتی دلخواه داخل ایتا دانلود کنید تا پوشه ظاهر شود. و دوباره امتحان کنید.") }
+								)
+							}
+						} else {
+							Launcher(snackBar = snackBarHostState, paddingValues = innerPadding)
+						}
+					}
+				}
+			}
+		}
+	}
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        startProgram()
-    }
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		setIntent(intent)
+		handleIntent(intent)
+	}
+
+	private fun handleIntent(intent: Intent) {
+		if (intent.action == Intent.ACTION_SEND && intent.type?.startsWith("audio/") == true) {
+			val audioUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+			} else {
+				@Suppress("DEPRECATION")
+				intent.getParcelableExtra(Intent.EXTRA_STREAM)
+			}
+			audioUri?.let {
+				val tempFile = File.createTempFile("audio", ".tmp", cacheDir)
+				contentResolver.openInputStream(audioUri)?.use { input ->
+					tempFile.outputStream().use { output ->
+						input.copyTo(output)
+					}
+				}
+				voiceAnalyzeViewModel.handleIncomingAudio(tempFile)
+			}
+		}
+	}
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		handleIntent(intent)
+		startProgram()
+	}
 }
 
 @OptIn(DelicateCoroutinesApi::class)
 @Composable
 private fun Launcher(
-    snackBar: SnackbarHostState,
-    modifier: Modifier = Modifier,
-    paddingValues: PaddingValues = PaddingValues(0.dp),
-    voiceAnalyzeViewModel: VoiceAnalyzeViewModel = viewModel()
+	snackBar: SnackbarHostState,
+	modifier: Modifier = Modifier,
+	paddingValues: PaddingValues = PaddingValues(0.dp),
+	voiceAnalyzeViewModel: VoiceAnalyzeViewModel = viewModel()
 ) {
-    val uiState by voiceAnalyzeViewModel.uiState.collectAsState()
-    val scope = rememberCoroutineScope()
-    val clipboardManager = LocalClipboardManager.current
-    val fileObservers: MutableList<RecursiveFileObserver?> = remember { mutableStateListOf() }
-    var observeStartedCount by rememberSaveable { mutableIntStateOf(0) }
-    var mediaPlayer: MediaPlayer? by remember {
-        mutableStateOf(null)
-    }
-    var isDebugInfoWanted by remember {
-        mutableStateOf(false)
-    }
-    var isBePatientShowed by remember {
-        mutableStateOf(false)
-    }
-    var isFeedbackOfFeedbackShowed by remember {
-        mutableStateOf(false)
-    }
-    var isOptionsShowed by remember {
-        mutableStateOf(true)
-    }
-    BackHandler {
-        fileObservers.forEach { it?.stopWatching() }
-        (voiceAnalyzeViewModel.context as Activity).finish()
-    }
-    LaunchedEffect(LocalLifecycleOwner.current) {
-        // TODO: این dispatchers.IO خیلی چیز خوبیه!
-        GlobalScope.launch(Dispatchers.IO) {
-            delay(800)
-            BaseApplication.Constants.VoiceDirectories.forEach { folderType ->
-                 fileObservers.add(if (folderType == BaseApplication.DirectoryType.Eitaa) voiceAnalyzeViewModel.initialVoiceObservingEitaa() else voiceAnalyzeViewModel.initialVoiceObservingPublicFolders(folderType))
-            }
-            delay(50)
-            fileObservers.forEach { it?.startWatching(); Log.i("TAG", "Observation started for $it. Listening ..."); observeStartedCount++ }
-        }
-    }
-    // حاجی با لاگ گذاشتن درست شد!!
-    // It may be because of this log effects on recomposition!
-    Log.i("TAG", "recomposing layout with observe started count >>>> $observeStartedCount | file observers size>>> ${fileObservers.size}")
-    if (fileObservers.any { it != null } && observeStartedCount == fileObservers.size) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                "تحلیلگر صوت",
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.displaySmall.copy(fontSize = 35.sp),
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (uiState.voice.selectedFile == null) {
-                Text(
-                    "برای آپلود فایل ویس، لطفاً وارد ایتا شوید و در ایتا، فایلی که میخواهید بازخورد دهید را بارگیری نمایید (فقط یک فایل در لحظه).\nپس از بارگیری فایل، برای آپلود و پردازش به اپلیکیشن بازگردید.\nاگر مشکلی وجود داشت، محتویات پوشه ${BaseApplication.Constants.VoiceDirectories.joinToString(" یا ")} رو پاک کنید.\nمن منتظر دریافت فایل هستم ...",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                LaunchedEffect(
-                    LocalLifecycleOwner.current
-                ) {
-                    GlobalScope.launch(Dispatchers.IO) {
-                        fileObservers.forEach { it?.stopWatching() }
-                        voiceAnalyzeViewModel.startVoiceAnalyzing()
-                    }
-                }
+	val uiState by voiceAnalyzeViewModel.uiState.collectAsState()
+	val scope = rememberCoroutineScope()
+	val clipboardManager = LocalClipboardManager.current
+	val fileObservers: MutableList<RecursiveFileObserver?> = remember { mutableStateListOf() }
+	var observeStartedCount by rememberSaveable { mutableIntStateOf(0) }
+	var mediaPlayer: MediaPlayer? by remember {
+		mutableStateOf(null)
+	}
+	var isDebugInfoWanted by remember {
+		mutableStateOf(false)
+	}
+	var isBePatientShowed by remember {
+		mutableStateOf(false)
+	}
+	var isFeedbackOfFeedbackShowed by remember {
+		mutableStateOf(false)
+	}
+	var isOptionsShowed by remember {
+		mutableStateOf(true)
+	}
+	BackHandler {
+		fileObservers.forEach { it?.stopWatching() }
+		(voiceAnalyzeViewModel.context as Activity).finish()
+	}
+	LaunchedEffect(LocalLifecycleOwner.current) {
+		// TODO: این dispatchers.IO خیلی چیز خوبیه!
+		if (uiState.intentVoiceFiles == null) {
+			GlobalScope.launch(Dispatchers.IO) {
+				delay(50)
+				BaseApplication.Constants.VoiceDirectories.forEach { folderType ->
+					fileObservers.add(
+						if (folderType == BaseApplication.DirectoryType.Eitaa) voiceAnalyzeViewModel.initialVoiceObservingEitaa() else voiceAnalyzeViewModel.initialVoiceObservingPublicFolders(
+							folderType
+						)
+					)
+				}
+				delay(50)
+				fileObservers.forEach {
+					it?.startWatching(); Log.i(
+					"TAG",
+					"Observation started for $it. Listening ..."
+				); observeStartedCount++
+				}
+			}
+		}
+	}
+	// حاجی با لاگ گذاشتن درست شد!!
+	// It may be because of this log effects on recomposition!
+	Log.i(
+		"TAG",
+		"recomposing layout with observe started count >>>> $observeStartedCount | file observers size>>> ${fileObservers.size}"
+	)
+	if (uiState.intentVoiceFiles != null || (fileObservers.any { it != null } && observeStartedCount == fileObservers.size)) {
+		Column(
+			modifier = modifier
+				.fillMaxSize()
+				.padding(paddingValues)
+				.verticalScroll(rememberScrollState()),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			Text(
+				"تحلیلگر صوت",
+				modifier = Modifier.padding(16.dp),
+				style = MaterialTheme.typography.displaySmall.copy(fontSize = 35.sp),
+				textAlign = TextAlign.Center
+			)
+			Spacer(modifier = Modifier.height(8.dp))
+			if (uiState.voice.selectedFile == null) {
+				Text(
+					"برای تحلیل ویس در سخن یار از طریق پیامرسان واتساپ، لطفاً ویسی که داخل واتساپ هست را انتخاب کرده و سپس دکمه \"اشتراک گذاری (همرسانی)\" رو بزنید.\nسپس، از بین برنامه های نمایش داده شده، اپلیکیشن سخنیار رو انتخاب کنید و منتظر آپلود ویس باشید." + "\n** نکته: برای همه فایل های صوتی غیر از ویس، این قضیه برقرار است. ",
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 24.dp, vertical = 16.dp),
+					style = MaterialTheme.typography.bodyMedium,
+					textAlign = TextAlign.Center
+				)
+			} else {
+				LaunchedEffect(
+					LocalLifecycleOwner.current
+				) {
+					GlobalScope.launch(Dispatchers.IO) {
+						fileObservers.forEach { it?.stopWatching() }
+						voiceAnalyzeViewModel.startVoiceAnalyzing()
+					}
+				}
 
-                if (uiState.voice.response?.feedback == null && uiState.voice.error == null) {
-                    Column(
-                        modifier = Modifier.height(IntrinsicSize.Min),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+				if (uiState.voice.response?.feedback == null && uiState.voice.error == null) {
+					Column(
+						modifier = Modifier.height(IntrinsicSize.Min),
+						horizontalAlignment = Alignment.CenterHorizontally
+					) {
 
-                        Text(if (uiState.voice.serverFile == null) "فایل در حال آپلود می باشد ..." else "فایل در حال پردازش می باشد.")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (uiState.voice.serverFile == null) {
-                            LinearProgressIndicator(progress = {
-                                (uiState.voice.progress ?: 0f) / 100f
-                            })
-                        } else {
-                            LinearProgressIndicator()
-                        }
-                        LaunchedEffect(!isBePatientShowed) {
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                run {
-                                    isBePatientShowed = true
-                                }
-                            }, 6000)
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.align(Alignment.Start),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            AnimatedVisibility(uiState.voice.serverFile == null && uiState.voice.progress != null) {
-                                Text(
-                                    text = "${uiState.voice.progress!!.toString().substring(0..4)}%",
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        textDirection = TextDirection.Ltr,
-                                        textAlign = TextAlign.Start
-                                    ),
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            AnimatedVisibility(isBePatientShowed) {
-                                Text(
-                                    "ممکن است مدتی طول بکشد. لطفاً منتظر بمانید...",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                    }
-                } else if (uiState.voice.error == null) {
-                    Text(
-                        ".: برای کپی، روی متن کلیک کنید :.",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        parseMarkdown(
-                            uiState.voice.response?.feedback
-                                ?: "خطا در بازیابی اطلاعات!!\nلطفاً مجدداً امتحان کنید."
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .clickable {
-                                clipboardManager.setText(
-                                    AnnotatedString(
-                                        uiState.voice.response?.feedback ?: "¯\\_(ツ)_/¯",
-                                        ParagraphStyle()
-                                    )
-                                )
-                                scope.launch {
-                                    snackBar.showSnackbar("متن در کلیپ بورد کپی شد.")
-                                }
-                            },
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            textDirection = TextDirection.ContentOrRtl,
-                            textAlign = TextAlign.Justify,
-                            lineHeight = 28.sp
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    AnimatedVisibility(isOptionsShowed) {
-                        Row(modifier = Modifier.scale(0.9f)) {
-                            IconButton(onClick = {
-                                if (mediaPlayer != null) {
-                                    if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
-                                        mediaPlayer!!.pause()
-                                    }
-                                }
-                                isDebugInfoWanted = false
-                                isFeedbackOfFeedbackShowed = !isFeedbackOfFeedbackShowed
-                            }) {
-                                Icon(
-                                    modifier = Modifier.rotate(180f),
-                                    imageVector = if (isFeedbackOfFeedbackShowed) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                                    contentDescription = "Don't Like it",
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                            IconButton(onClick = {
-                                isOptionsShowed = false
-                                isDebugInfoWanted = false
-                                isFeedbackOfFeedbackShowed = false
-                                if (mediaPlayer != null) {
-                                    if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
-                                        mediaPlayer!!.pause()
-                                    }
-                                }
-                                scope.launch {
-                                    snackBar.showSnackbar("این عالیست! موفق باشید!")
-                                }
-                            }) {
-                                Icon(
-                                    Icons.Outlined.ThumbUp,
-                                    "Like it",
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                            IconButton(onClick = {
-                                if (mediaPlayer != null) {
-                                    if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
-                                        mediaPlayer!!.pause()
-                                    }
-                                }
-                                isFeedbackOfFeedbackShowed = false
-                                isDebugInfoWanted = !isDebugInfoWanted
-                            }) {
-                                Icon(
-                                    if (isDebugInfoWanted) painterResource(R.drawable.baseline_bug_report_24) else painterResource(
-                                        R.drawable.outline_bug_report_24
-                                    ),
-                                    "Info / Debug",
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                    }
-                    AnimatedVisibility(isFeedbackOfFeedbackShowed) {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 16.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text("چه مشکلی داشت؟")
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row {
-                                    OutlinedButton(onClick = {
-                                        voiceAnalyzeViewModel.voice = uiState.voice.let {
-                                            val lastFeedback = it.response?.feedback
-                                            it.copy(
-                                                response = it.response?.copy(
-                                                    lastFeedback = lastFeedback,
-                                                    feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse,
-                                                    feedback = null,
-                                                    transcription = it.response.transcription
-                                                        ?: "نمیدونم چرا ویس نیست!!!"
-                                                )
-                                            )
-                                        }
-                                        isBePatientShowed = false
-                                        isOptionsShowed = true
-                                        isDebugInfoWanted = false
-                                        isFeedbackOfFeedbackShowed = false
-                                        voiceAnalyzeViewModel.resetOperation(false)
-                                        scope.launch {
-                                            snackBar.showSnackbar("متأسفیم! ویس شما مجدداً تا لحظاتی دیگر بررسی میشود. لطفاً منتظر بمانید.")
-                                        }
-                                    }) {
-                                        Text("غلط / ناقص بود")
-                                    }
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    OutlinedButton(onClick = {
-                                        voiceAnalyzeViewModel.voice = uiState.voice.let {
-                                            val lastFeedback = it.response?.feedback
-                                            it.copy(
-                                                response = it.response?.copy(
-                                                    lastFeedback = lastFeedback,
-                                                    feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse,
-                                                    feedback = null,
-                                                    transcription = it.response.transcription
-                                                        ?: "نمیدونم چرا ویس نیست!!!"
-                                                )
-                                            )
-                                        }
-                                        isBePatientShowed = false
-                                        isOptionsShowed = true
-                                        isDebugInfoWanted = false
-                                        isFeedbackOfFeedbackShowed = false
-                                        voiceAnalyzeViewModel.resetOperation(false)
-                                        scope.launch {
-                                            snackBar.showSnackbar("متأسفیم! ویس شما مجدداً تا لحظاتی دیگر بررسی میشود. لطفاً منتظر بمانید.")
-                                        }
-                                    }) {
-                                        Text("طولانی بود")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    AnimatedVisibility(isDebugInfoWanted) {
-                        Column {
-                            LaunchedEffect(LocalLifecycleOwner.current) {
-                                try {
-                                    mediaPlayer =
-                                        MediaPlayer.create(
-                                            voiceAnalyzeViewModel.context,
-                                            uiState.voice.selectedFile?.toUri()
-                                        )
-                                    mediaPlayer?.prepare()
-                                    mediaPlayer?.isLooping = false
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }
-                            if (mediaPlayer != null) {
-                                CardMediaPlayer(mediaPlayer!!, uiState)
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            if (uiState.voice.response?.transcription != null) {
-                                Text(
-                                    "--- متن صحبت های داخل ویس ---",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    uiState.voice.response?.transcription
-                                        ?: "متنی برای نمایش وجود ندارد!",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        textDirection = TextDirection.Rtl,
-                                        textAlign = TextAlign.Justify,
-                                        lineHeight = 28.sp
-                                    )
-                                )
-                            }
-                        }
+						Text(if (uiState.voice.serverFile == null) "فایل در حال آپلود می باشد ..." else "فایل در حال پردازش می باشد.")
+						Spacer(modifier = Modifier.height(8.dp))
+						if (uiState.voice.serverFile == null) {
+							LinearProgressIndicator(progress = {
+								(uiState.voice.progress ?: 0f) / 100f
+							})
+						} else {
+							LinearProgressIndicator()
+						}
+						LaunchedEffect(!isBePatientShowed) {
+							Handler(Looper.getMainLooper()).postDelayed({
+								run {
+									isBePatientShowed = true
+								}
+							}, 6000)
+						}
+						Spacer(modifier = Modifier.height(16.dp))
+						Row(
+							modifier = Modifier.align(Alignment.Start),
+							horizontalArrangement = Arrangement.Start
+						) {
+							AnimatedVisibility(uiState.voice.serverFile == null && uiState.voice.progress != null) {
+								Text(
+									text = "${
+										uiState.voice.progress!!.toString().substring(0..4)
+									}%",
+									style = MaterialTheme.typography.labelMedium.copy(
+										textDirection = TextDirection.Ltr,
+										textAlign = TextAlign.Start
+									),
+									color = MaterialTheme.colorScheme.secondary
+								)
+							}
+							Spacer(modifier = Modifier.width(8.dp))
+							AnimatedVisibility(isBePatientShowed) {
+								Text(
+									"ممکن است مدتی طول بکشد. لطفاً منتظر بمانید...",
+									style = MaterialTheme.typography.labelMedium,
+									textAlign = TextAlign.Center,
+									color = MaterialTheme.colorScheme.secondary
+								)
+							}
+						}
+					}
+				} else if (uiState.voice.error == null) {
+					Text(
+						".: برای کپی، روی متن کلیک کنید :.",
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 24.dp, vertical = 8.dp),
+						style = MaterialTheme.typography.labelLarge,
+						color = MaterialTheme.colorScheme.secondary,
+						textAlign = TextAlign.Center
+					)
+					Spacer(modifier = Modifier.height(8.dp))
+					Text(
+						parseMarkdown(
+							uiState.voice.response?.feedback
+								?: "خطا در بازیابی اطلاعات!!\nلطفاً مجدداً امتحان کنید."
+						),
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(horizontal = 16.dp)
+							.clickable {
+								clipboardManager.setText(
+									AnnotatedString(
+										uiState.voice.response?.feedback ?: "¯\\_(ツ)_/¯",
+										ParagraphStyle()
+									)
+								)
+								scope.launch {
+									snackBar.showSnackbar("متن در کلیپ بورد کپی شد.")
+								}
+							},
+						style = MaterialTheme.typography.bodyMedium.copy(
+							textDirection = TextDirection.ContentOrRtl,
+							textAlign = TextAlign.Justify,
+							lineHeight = 28.sp
+						)
+					)
+					Spacer(modifier = Modifier.height(16.dp))
+					AnimatedVisibility(isOptionsShowed) {
+						Row(modifier = Modifier.scale(0.9f)) {
+							IconButton(onClick = {
+								if (mediaPlayer != null) {
+									if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
+										mediaPlayer!!.pause()
+									}
+								}
+								isDebugInfoWanted = false
+								isFeedbackOfFeedbackShowed = !isFeedbackOfFeedbackShowed
+							}) {
+								Icon(
+									modifier = Modifier.rotate(180f),
+									imageVector = if (isFeedbackOfFeedbackShowed) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+									contentDescription = "Don't Like it",
+									tint = MaterialTheme.colorScheme.secondary
+								)
+							}
+							IconButton(onClick = {
+								isOptionsShowed = false
+								isDebugInfoWanted = false
+								isFeedbackOfFeedbackShowed = false
+								if (mediaPlayer != null) {
+									if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
+										mediaPlayer!!.pause()
+									}
+								}
+								scope.launch {
+									snackBar.showSnackbar("این عالیست! موفق باشید!")
+								}
+							}) {
+								Icon(
+									Icons.Outlined.ThumbUp,
+									"Like it",
+									tint = MaterialTheme.colorScheme.secondary
+								)
+							}
+							IconButton(onClick = {
+								if (mediaPlayer != null) {
+									if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
+										mediaPlayer!!.pause()
+									}
+								}
+								isFeedbackOfFeedbackShowed = false
+								isDebugInfoWanted = !isDebugInfoWanted
+							}) {
+								Icon(
+									if (isDebugInfoWanted) painterResource(R.drawable.baseline_bug_report_24) else painterResource(
+										R.drawable.outline_bug_report_24
+									),
+									"Info / Debug",
+									tint = MaterialTheme.colorScheme.secondary
+								)
+							}
+						}
+					}
+					AnimatedVisibility(isFeedbackOfFeedbackShowed) {
+						Card(
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(horizontal = 24.dp, vertical = 16.dp)
+						) {
+							Column(
+								modifier = Modifier
+									.fillMaxWidth()
+									.padding(horizontal = 16.dp, vertical = 8.dp)
+							) {
+								Text("چه مشکلی داشت؟")
+								Spacer(modifier = Modifier.height(8.dp))
+								Row {
+									OutlinedButton(onClick = {
+										voiceAnalyzeViewModel.voice = uiState.voice.let {
+											val lastFeedback = it.response?.feedback
+											it.copy(
+												response = it.response?.copy(
+													lastFeedback = lastFeedback,
+													feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse,
+													feedback = null,
+													transcription = it.response.transcription
+														?: "نمیدونم چرا ویس نیست!!!"
+												)
+											)
+										}
+										isBePatientShowed = false
+										isOptionsShowed = true
+										isDebugInfoWanted = false
+										isFeedbackOfFeedbackShowed = false
+										voiceAnalyzeViewModel.resetOperation(false)
+										scope.launch {
+											snackBar.showSnackbar("متأسفیم! ویس شما مجدداً تا لحظاتی دیگر بررسی میشود. لطفاً منتظر بمانید.")
+										}
+									}) {
+										Text("غلط / ناقص بود")
+									}
+									Spacer(modifier = Modifier.width(16.dp))
+									OutlinedButton(onClick = {
+										voiceAnalyzeViewModel.voice = uiState.voice.let {
+											val lastFeedback = it.response?.feedback
+											it.copy(
+												response = it.response?.copy(
+													lastFeedback = lastFeedback,
+													feedbackOfFeedback = BaseApplication.FeedbackOfFeedback.TooLargeResponse,
+													feedback = null,
+													transcription = it.response.transcription
+														?: "نمیدونم چرا ویس نیست!!!"
+												)
+											)
+										}
+										isBePatientShowed = false
+										isOptionsShowed = true
+										isDebugInfoWanted = false
+										isFeedbackOfFeedbackShowed = false
+										voiceAnalyzeViewModel.resetOperation(false)
+										scope.launch {
+											snackBar.showSnackbar("متأسفیم! ویس شما مجدداً تا لحظاتی دیگر بررسی میشود. لطفاً منتظر بمانید.")
+										}
+									}) {
+										Text("طولانی بود")
+									}
+								}
+							}
+						}
+					}
+					AnimatedVisibility(isDebugInfoWanted) {
+						Column {
+							LaunchedEffect(LocalLifecycleOwner.current) {
+								try {
+									mediaPlayer =
+										MediaPlayer.create(
+											voiceAnalyzeViewModel.context,
+											uiState.voice.selectedFile?.toUri()
+										)
+									mediaPlayer?.prepare()
+									mediaPlayer?.isLooping = false
+								} catch (e: Exception) {
+									e.printStackTrace()
+								}
+							}
+							if (mediaPlayer != null) {
+								CardMediaPlayer(mediaPlayer!!, uiState)
+							}
+							Spacer(modifier = Modifier.height(8.dp))
+							if (uiState.voice.response?.transcription != null) {
+								Text(
+									"--- متن صحبت های داخل ویس ---",
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 24.dp, vertical = 8.dp),
+									style = MaterialTheme.typography.labelLarge,
+									color = MaterialTheme.colorScheme.secondary,
+									textAlign = TextAlign.Center
+								)
+								Text(
+									uiState.voice.response?.transcription
+										?: "متنی برای نمایش وجود ندارد!",
+									modifier = Modifier
+										.fillMaxWidth()
+										.padding(horizontal = 16.dp),
+									style = MaterialTheme.typography.bodySmall.copy(
+										textDirection = TextDirection.Rtl,
+										textAlign = TextAlign.Justify,
+										lineHeight = 28.sp
+									)
+								)
+							}
+						}
 
-                    }
-                } else {
-                    Text("خطایی در حین بررسی ویس رخ داد!\n${uiState.voice.error}")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        modifier = Modifier.padding(16.dp),
-                        onClick = {
-                            isBePatientShowed = false
-                            isOptionsShowed = true
-                            voiceAnalyzeViewModel.resetOperation()
-                        }
-                    ) {
-                        Text("یه بار دیگه امتحان کن!")
-                    }
-                }
-            }
-        }
-    } else {
-        Column (modifier = modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(modifier = Modifier.scale(1.3f), strokeWidth = 2.4.dp)
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("در حال بارگذاری ...", color = MaterialTheme.colorScheme.primary, style= MaterialTheme.typography.bodyLarge)
-        }
-    }
+					}
+				} else {
+					Text("خطایی در حین بررسی ویس رخ داد!\n${uiState.voice.error}")
+					Spacer(modifier = Modifier.height(16.dp))
+					Button(
+						modifier = Modifier.padding(16.dp),
+						onClick = {
+							isBePatientShowed = false
+							isOptionsShowed = true
+							voiceAnalyzeViewModel.resetOperation()
+						}
+					) {
+						Text("یه بار دیگه امتحان کن!")
+					}
+				}
+			}
+		}
+	} else {
+		Column(
+			modifier = modifier
+				.fillMaxSize()
+				.padding(paddingValues)
+				.verticalScroll(rememberScrollState()),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.CenterHorizontally
+		) {
+			CircularProgressIndicator(modifier = Modifier.scale(1.3f), strokeWidth = 2.4.dp)
+			Spacer(modifier = Modifier.height(24.dp))
+			Text(
+				"در حال بارگذاری ...",
+				color = MaterialTheme.colorScheme.primary,
+				style = MaterialTheme.typography.bodyLarge
+			)
+		}
+	}
 }
 
 @Composable
 fun CardMediaPlayer(
-    mediaPlayer: MediaPlayer,
-    uiState: VoiceAnalyzeUiState,
-    modifier: Modifier = Modifier
+	mediaPlayer: MediaPlayer,
+	uiState: VoiceAnalyzeUiState,
+	modifier: Modifier = Modifier
 ) {
-    var seekValue by remember {
-        mutableFloatStateOf(mediaPlayer.currentPosition.toFloat())
-    }
-    var isThreadRunning by remember {
-        mutableStateOf(false)
-    }
-    var isMediaPlaying by remember {
-        mutableStateOf(false)
-    }
-    val playThread = Thread {
-        run {
-            var currentPosition = mediaPlayer.currentPosition
-            val total = mediaPlayer.duration
-            while (currentPosition < total) {
-                try {
-                    if (isMediaPlaying) {
-                        currentPosition = mediaPlayer.currentPosition
-                        seekValue = (currentPosition / 1000).toFloat()
-                        sleep(1000)
-                    } else {
-                        continue
-                    }
+	var seekValue by remember {
+		mutableFloatStateOf(mediaPlayer.currentPosition.toFloat())
+	}
+	var isThreadRunning by remember {
+		mutableStateOf(false)
+	}
+	var isMediaPlaying by remember {
+		mutableStateOf(false)
+	}
+	val playThread = Thread {
+		run {
+			var currentPosition = mediaPlayer.currentPosition
+			val total = mediaPlayer.duration
+			while (currentPosition < total) {
+				try {
+					if (isMediaPlaying) {
+						currentPosition = mediaPlayer.currentPosition
+						seekValue = (currentPosition / 1000).toFloat()
+						sleep(1000)
+					} else {
+						continue
+					}
 
-                } catch (e: InterruptedException) {
-                    return@Thread
-                } catch (e: Exception) {
-                    return@Thread
-                }
-            }
-        }
-    }
-    LaunchedEffect(LocalLifecycleOwner.current) {
-        mediaPlayer.setOnCompletionListener {
-            isMediaPlaying = false
-        }
-    }
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, top = 8.dp),
-            text = "${uiState.voice.selectedFile?.name}  ||  ${(seekValue.toInt() * 1000).toDurationMinuteSecond()}  -  ${mediaPlayer.duration.toDurationMinuteSecond()}",
-            style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Ltr),
-            textAlign = TextAlign.Start
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp, top = 3.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Slider(value = seekValue, onValueChange = { seekValue = it },
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .padding(16.dp),
-                valueRange = 0f..(mediaPlayer.duration / 1000).toFloat(),
-                onValueChangeFinished = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        mediaPlayer.seekTo(
-                            (seekValue * 1000).toLong(),
-                            MediaPlayer.SEEK_PREVIOUS_SYNC
-                        )
-                    } else {
-                        mediaPlayer.seekTo((seekValue * 1000).toInt())
-                    }
-                }
-            )
-            FilledTonalIconButton(onClick = {
-                if (isMediaPlaying) {
-                    mediaPlayer.pause(); isMediaPlaying = false
-                } else {
-                    isMediaPlaying = true; mediaPlayer.start(); if (!isThreadRunning) {
-                        playThread.start(); isThreadRunning = true
-                    }
-                }
-            }) {
-                Icon(
-                    if (isMediaPlaying) painterResource(R.drawable.baseline_pause_24) else painterResource(
-                        R.drawable.baseline_play_arrow_24
-                    ), "Play Or Pause"
-                )
-            }
-        }
-    }
+				} catch (e: InterruptedException) {
+					return@Thread
+				} catch (e: Exception) {
+					return@Thread
+				}
+			}
+		}
+	}
+	LaunchedEffect(LocalLifecycleOwner.current) {
+		mediaPlayer.setOnCompletionListener {
+			isMediaPlaying = false
+		}
+	}
+	Card(
+		modifier = modifier
+			.fillMaxWidth()
+			.padding(16.dp)
+	) {
+		Text(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(start = 8.dp, end = 8.dp, top = 8.dp),
+			text = "${uiState.voice.selectedFile?.name}  ||  ${(seekValue.toInt() * 1000).toDurationMinuteSecond()}  -  ${mediaPlayer.duration.toDurationMinuteSecond()}",
+			style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Ltr),
+			textAlign = TextAlign.Start
+		)
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(start = 8.dp, end = 8.dp, bottom = 8.dp, top = 3.dp),
+			horizontalArrangement = Arrangement.SpaceAround,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Slider(
+				value = seekValue, onValueChange = { seekValue = it },
+				modifier = Modifier
+					.fillMaxWidth(0.8f)
+					.padding(16.dp),
+				valueRange = 0f..(mediaPlayer.duration / 1000).toFloat(),
+				onValueChangeFinished = {
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+						mediaPlayer.seekTo(
+							(seekValue * 1000).toLong(),
+							MediaPlayer.SEEK_PREVIOUS_SYNC
+						)
+					} else {
+						mediaPlayer.seekTo((seekValue * 1000).toInt())
+					}
+				}
+			)
+			FilledTonalIconButton(onClick = {
+				if (isMediaPlaying) {
+					mediaPlayer.pause(); isMediaPlaying = false
+				} else {
+					isMediaPlaying = true; mediaPlayer.start(); if (!isThreadRunning) {
+						playThread.start(); isThreadRunning = true
+					}
+				}
+			}) {
+				Icon(
+					if (isMediaPlaying) painterResource(R.drawable.baseline_pause_24) else painterResource(
+						R.drawable.baseline_play_arrow_24
+					), "Play Or Pause"
+				)
+			}
+		}
+	}
 }
 

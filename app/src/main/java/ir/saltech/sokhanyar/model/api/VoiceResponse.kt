@@ -4,8 +4,8 @@ import ir.saltech.sokhanyar.BaseApplication
 
 
 data class VoiceResponse(
-    val feedback: String? = null,
-    val lastFeedback: String? = null,
-    val transcription: String? = null,
-    val feedbackOfFeedback: BaseApplication.FeedbackOfFeedback? = null
+	val feedback: String? = null,
+	val lastFeedback: String? = null,
+	val transcription: String? = null,
+	val feedbackOfFeedback: BaseApplication.FeedbackOfFeedback? = null
 )

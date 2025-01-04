@@ -41,6 +41,7 @@ import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.MainViewModel
 import ir.saltech.sokhanyar.ui.view.pages.ChatPage
 import ir.saltech.sokhanyar.ui.view.pages.DailyReportPage
+import ir.saltech.sokhanyar.ui.view.pages.LoginPage
 import ir.saltech.sokhanyar.ui.view.pages.MainPage
 import ir.saltech.sokhanyar.ui.view.pages.WeeklyReportPage
 import ir.saltech.sokhanyar.ui.view.pages.WelcomePage
@@ -128,7 +129,7 @@ private fun Launcher(
         )
     }
     BackHandler {
-        if (uiState.activePages.last() == BaseApplication.Page.Home || uiState.activePages.last() == BaseApplication.Page.Welcome) {
+        if (uiState.activePages.last() in  BaseApplication.Constants.exitPages) {
             (mainViewModel.context as Activity).finishAfterTransition()
         } else {
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
@@ -217,6 +218,17 @@ private fun Launcher(
         }
     }
     AnimatedVisibility(
+        uiState.activePages.last() == BaseApplication.Page.Login,
+        enter = fadeIn() + scaleIn(initialScale = 0.75f),
+        exit = fadeOut()
+    ) {
+        LoginPage(modifier.padding(paddingValues)) {
+            uiState.activePages.removeAt(uiState.activePages.lastIndex)
+            mainViewModel.loadPresets()
+            //onPageWanted(BaseApplication.Page.Home)
+        }
+    }
+    AnimatedVisibility(
         uiState.activePages.last() == BaseApplication.Page.SendDailyReport,
         enter = fadeIn() + scaleIn(initialScale = 0.75f),
         exit = fadeOut()
@@ -243,9 +255,9 @@ private fun Launcher(
         exit = fadeOut()
     ) {
         WelcomePage(uiState, snackBar, paddingValues) {
-            mainViewModel.loadPresets()
             uiState.activePages.removeAt(uiState.activePages.lastIndex)
-            onPageWanted(BaseApplication.Page.Home)
+            mainViewModel.loadPresets()
+            //onPageWanted(BaseApplication.Page.Home)
         }
     }
     if (uiState.activePages.last() == BaseApplication.Page.AnalyzePractice) {

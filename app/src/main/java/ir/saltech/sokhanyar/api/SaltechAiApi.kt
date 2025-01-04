@@ -10,12 +10,12 @@ import retrofit2.http.Part
 
 private const val AUTHORIZATION_HEADER = "x-goog-api-key"
 
-interface SalTechAiApi {
-
-    @Multipart
-    @POST("upload/v1beta/files")
-    fun uploadVoice(
-        @Header(AUTHORIZATION_HEADER) apiKey: String,
-        @Part file: MultipartBody.Part
-    ): Call<Voice>
+@Deprecated("Use `SokhanyarApi` instead")
+interface SaltechAiApi {
+	@Multipart
+	@POST("upload/v1beta/files")
+	fun uploadVoice(
+		@Header(AUTHORIZATION_HEADER) apiKey: String,
+		@Part file: MultipartBody.Part
+	): Call<Voice>
 }

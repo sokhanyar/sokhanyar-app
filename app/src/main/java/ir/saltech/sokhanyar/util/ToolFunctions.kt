@@ -35,6 +35,8 @@ import kotlinx.datetime.todayIn
 import java.io.File
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 
 @Override
@@ -66,7 +68,7 @@ fun Date.toJalali(): IntArray {
 
 fun Int.asJalaliMonth(withEmoji: Boolean = false): String {
     val jalaliMonth = BaseApplication.Constants.JalaliMonths[this - 1]
-    val selectedEmoji = BaseApplication.Constants.JalaliMonthsWithEmojies[jalaliMonth]?.random()
+    val selectedEmoji = BaseApplication.Constants.JalaliMonthsWithEmojis[jalaliMonth]?.random()
     return if (withEmoji) "$jalaliMonth $selectedEmoji" else jalaliMonth
 }
 
@@ -182,6 +184,13 @@ fun Content.asChatMessage(previousMessage: ChatMessage?): ChatMessage? {
     } else {
         null
     }
+}
+
+fun Long.epochToMinutesSeconds(): String {
+    val minutes = TimeUnit.SECONDS.toMinutes(this) % 60
+    val seconds = TimeUnit.SECONDS.toSeconds(this) % 60
+
+    return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 }
 
 @SuppressLint("DefaultLocale")
@@ -345,5 +354,16 @@ fun validateUserInputs(user: User): Boolean {
 
     // If all fields are filled, return true
     return !user.name.isNullOrEmpty() && user.age != null
+}
+
+fun String.analyzeError(): String {
+    return when {
+        this.contains("Connection failed") -> "اتصال به اینترنت ممکن نیست. لطفا اتصال خود را بررسی کنید و دوباره تلاش کنید."
+        this.contains("otp code was sent recently") -> "کد قبلاً ارسال شده است."
+        this.contains("Failed to send OTP code") -> "ارسال کد otp ناموفق بود"
+        this.contains("invalid otp code") -> "کد otp وارد شده اشتباه است"
+        this.contains("invalid phone number") -> "شماره تلفن وارد شده اشتباه است"
+        else -> "خطای ناشناخته در سیستم"
+    }
 }
 

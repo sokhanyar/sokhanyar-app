@@ -6,80 +6,86 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlin.random.Random
 
 class BaseApplication : Application() {
-    object Constants {
-        //const val AVAL_AI_API_KEY = "aa-f2NLiIj2PuzdAXTcOBOYtCr4l1eORHkX5o1Raj1tKi0pNtJZU"
-        //const val AVAL_AI_BASE_URL = "https://api.avalai.ir/"
-        const val SALTECH_AI_BASE_URL = "https://ai.saltech.ir/api/"
-        const val MAX_OF_NAME_CHARS = 25
-        const val MAX_OF_DAILY_REPORT_PAGES = 4
-        const val MAX_OF_WEEKLY_REPORT_PAGES = 3
-        const val MAX_OF_DISPLAYED_CHAR_COLLAPSE = 100
-        val JalaliMonths = arrayOf(
-            "فروردین",
-            "اردیبهشت",
-            "خرداد",
-            "تیر",
-            "مرداد",
-            "شهریور",
-            "مهر",
-            "آبان",
-            "آذر",
-            "دی",
-            "بهمن",
-            "اسفند"
-        )
-        val JalaliMonthsWithEmojies = mapOf(
-            "فروردین" to listOf("🌸", "🌱", "🌦", "🐣", "🌷"),
-            "اردیبهشت" to listOf("🌼", "☀️", "🌻", "🐝", "🌳"),
-            "خرداد" to listOf("🌞", "🌿", "🍃", "🐞", "🍓"),
-            "تیر" to listOf("🌞", "🏖", "🍉", "🏊‍♂️", "🦋"),
-            "مرداد" to listOf("🌞", "🌊", "🍦", "🍑", "🚤"),
-            "شهریور" to listOf("🌻", "🍇", "🍂", "🏞", "🍁"),
-            "مهر" to listOf("🍁", "🎃", "🌰", "🌧", "🍂"),
-            "آبان" to listOf("🍂", "☔️", "🦉", "🍄", "🦔"),
-            "آذر" to listOf("🍁", "❄️", "🌬️", "🎄", "☃️"),
-            "دی" to listOf("❄️", "⛄️", "🎁", "🔥", "🧣"),
-            "بهمن" to listOf("❄️", "⛄️", "🍵", "🌨️", "🏂"),
-            "اسفند" to listOf("❄️", "☃️", "🔥", "🌨️", "🧣")
-        )
-        val JalaliDays = arrayOf(
-            "یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"
-        )
-        val VoiceDirectories = arrayOf(DirectoryType.Eitaa, DirectoryType.Downloads, DirectoryType.Music, DirectoryType.Recordings)
-    }
+	object Constants {
+		@Deprecated("Use `SOKHANYAR_BASE_URL` instead.")
+		const val SALTECH_AI_BASE_URL = "https://ai.saltech.ir/api/"
+		const val SOKHANYAR_BASE_URL = "https://api.sokhanyaar.ir/"
+		const val MAX_OF_NAME_CHARS = 25
+		const val MAX_OF_DAILY_REPORT_PAGES = 4
+		const val MAX_OF_WEEKLY_REPORT_PAGES = 3
+		const val MAX_OF_DISPLAYED_CHAR_COLLAPSE = 100
+		const val OTP_EXPIRATION_DURATION_SECONDS: Long = 120
+		val JalaliMonths = arrayOf(
+			"فروردین",
+			"اردیبهشت",
+			"خرداد",
+			"تیر",
+			"مرداد",
+			"شهریور",
+			"مهر",
+			"آبان",
+			"آذر",
+			"دی",
+			"بهمن",
+			"اسفند"
+		)
+		val JalaliMonthsWithEmojis = mapOf(
+			"فروردین" to listOf("🌸", "🌱", "🌦", "🐣", "🌷", "☘️", "🌿", "💐", "🦋", "🌈"),
+			"اردیبهشت" to listOf("🌼", "☀️", "🌻", "🐝", "🌳", "🌷", "🌹", "🌺", "🏞", "🏕"),
+			"خرداد" to listOf("🌞", "🌿", "🍃", "🐞", "🍓", "🍉", "🍒", "🌞", "🌻", "🌳"),
+			"تیر" to listOf("🌞", "🏖", "🍉", "🏊‍♂️", "🦋", "☀️", "🍦", "🍹", "🕶️", "⛱️"),
+			"مرداد" to listOf("🌞", "🌊", "🍦", "🍑", "🚤", "🏖", "🍉", "☀️", "🌴", "🌡️"),
+			"شهریور" to listOf("🌻", "🍇", "🍂", "🏞", "🍁", "🍎", "🍐", "🌾", "🍄", "🌞"),
+			"مهر" to listOf("🍁", "🎃", "🌰", "🌧", "🍂", "🍄", "🌾", "🎃", "🌰", "🌧"),
+			"آبان" to listOf("🍂", "☔️", "🦉", "🍄", "🦔", "🍁", "🌧", "🌬️", "☔️", "🍄"),
+			"آذر" to listOf("🍁", "❄️", "🌬️", "🎄", "☃️", "🧣", "🧤", "🌨️", "❄️", "⛄️"),
+			"دی" to listOf("❄️", "⛄️", "🎁", "🔥", "🧣", "🎄", "🎅", "🌨️", "☃️", "❄️"),
+			"بهمن" to listOf("❄️", "⛄️", "🍵", "🌨️", "🏂", "⛷️", "☃️", "❄️", "🧣", "🧤"),
+			"اسفند" to listOf("❄️", "☃️", "🔥", "🌨️", "🧣", "🌱", "🌷", "☘️", "💐", "🦋")
+		)
+		val JalaliDays = arrayOf(
+			"یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"
+		)
+		val VoiceDirectories = arrayOf(
+			DirectoryType.Downloads,
+			DirectoryType.Music,
+			DirectoryType.Recordings
+		)
+		val exitPages = listOf(Page.Home, Page.Welcome, Page.Login)
+	}
 
-    object DirectoryType {
-        val Eitaa = "Eitaa Audio"
-        val Downloads = Environment.DIRECTORY_DOWNLOADS
-        val Music = Environment.DIRECTORY_MUSIC
-        val Recordings = "Recordings"
-    }
+	object DirectoryType {
+		val Eitaa = "Eitaa Audio"
+		val Downloads = Environment.DIRECTORY_DOWNLOADS
+		val Music = Environment.DIRECTORY_MUSIC
+		val Recordings = "Recordings"
+	}
 
-    object Ai {
-        object Gemini {
-            object Models {
-                const val Flash = "gemini-1.5-flash-002"
-                const val Pro = "gemini-1.5-pro-002"
-            }
+	object Ai {
+		object Gemini {
+			object Models {
+				const val Flash = "gemini-1.5-flash-002"
+				const val Pro = "gemini-1.5-pro-002"
+			}
 
-            val apiKeys = listOf(
-                BuildConfig.GEMINI_API_KEY,
-                BuildConfig.GEMINI_API_KEY_I,
-                BuildConfig.GEMINI_API_KEY_II,
-                BuildConfig.GEMINI_API_KEY_III,
-                BuildConfig.GEMINI_API_KEY_IV,
-                BuildConfig.GEMINI_API_KEY_V,
-                BuildConfig.GEMINI_API_KEY_VI,
-                BuildConfig.GEMINI_API_KEY_VII,
-                BuildConfig.GEMINI_API_KEY_VIII,
-                BuildConfig.GEMINI_API_KEY_IX,
-                BuildConfig.GEMINI_API_KEY_X,
-                BuildConfig.GEMINI_API_KEY_XI,
-                BuildConfig.GEMINI_API_KEY_XII,
-                BuildConfig.GEMINI_API_KEY_XIII,
-                BuildConfig.GEMINI_API_KEY_XIIII
-            )
-            const val BASE_SYSTEM_INSTRUCTIONS = """
+			val apiKeys = listOf(
+				BuildConfig.GEMINI_API_KEY,
+				BuildConfig.GEMINI_API_KEY_I,
+				BuildConfig.GEMINI_API_KEY_II,
+				BuildConfig.GEMINI_API_KEY_III,
+				BuildConfig.GEMINI_API_KEY_IV,
+				BuildConfig.GEMINI_API_KEY_V,
+				BuildConfig.GEMINI_API_KEY_VI,
+				BuildConfig.GEMINI_API_KEY_VII,
+				BuildConfig.GEMINI_API_KEY_VIII,
+				BuildConfig.GEMINI_API_KEY_IX,
+				BuildConfig.GEMINI_API_KEY_X,
+				BuildConfig.GEMINI_API_KEY_XI,
+				BuildConfig.GEMINI_API_KEY_XII,
+				BuildConfig.GEMINI_API_KEY_XIII,
+				BuildConfig.GEMINI_API_KEY_XIIII
+			)
+			const val BASE_SYSTEM_INSTRUCTIONS = """
 The Definition of weekly report's parameters is:
 تعداد روز های که تمرینات انجام شده یعنی چند روز مطالعه کتاب، با رعایت شیوه ای که گفتار درمان گفته است انجام داده ایم و بهتر است کل 7 روز هفته تمرین شده باشد.
 تعداد روزهای کنفرانس دادن یعنی چند روز در مورد موضوعات مختلف صحبت کرده و ویس داخل گروهی که داخل پیامرسان ایتا هست، ارسال کرده ام. هر چه تعداد روز ها بیشتر باشه بهتر است.
@@ -427,7 +433,7 @@ Response:
 جنسیت صدا رو تشخیص بده و اگه پسر بود، به جای «عزیزم» بگو «پسر عزیزم» یا «دختر عزیزم».
 Recognize the gender of the voice and if it was a boy, say "my dear boy" or "my dear girl" instead of "my dear".
 """
-            const val BASE_SYSTEM_INSTRUCTIONS_V1_1 = """
+			const val BASE_SYSTEM_INSTRUCTIONS_V1_1 = """
                 Stuttering Dataset:
 لکنت یک اختلال در سیستم عصبی مغز می باشد که به واسطه این اختلال، مغز قادر به ساختن یک الگوریتم واحدی برای تنظیم شدت نیرو ماهیچه های فک، دهان و زبان نمی باشد و ممکن است برای ادای یک حرف، ماهیچه ها را زیاد از حد فشار دهد یا کم و یا به طور ناخودآگاه آن حرف یا کلمه را چند بار تکرار کند.
 لکنت معمولاً به دو صورت قفل و تکرار حرف یا کلمه است. که در زیر توضیح داده شده اند:
@@ -729,43 +735,39 @@ o   Your analytics must be with highest accuracy.
 o   You must detect the gender of user.
 o   You must ask the name of user at the start of chat, if not said.
             """
-        }
-    }
+		}
+	}
 
-    object Key {
-        val DailyReports = stringPreferencesKey("daily_reports")
-        val WeeklyReports = stringPreferencesKey("weekly_reports")
-        val ChatHistory = stringPreferencesKey("chat_history")
-        val User = stringPreferencesKey("user")
-    }
+	object Key {
+		val DailyReports = stringPreferencesKey("daily_reports")
+		val WeeklyReports = stringPreferencesKey("weekly_reports")
+		val ChatHistory = stringPreferencesKey("chat_history")
+		val User = stringPreferencesKey("user")
+	}
 
-    object Greeting {
-        val greetingIcon = if (Random.nextBoolean()) "chat_greeting.json" else "greeting.lottie"
-        const val greetingText =
-            "سلام!! خوش اومدی!\nعه! ببینم از درمان و لکنت خسته شدی؟  بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
-    }
+	object Greeting {
+		val greetingIcon = if (Random.nextBoolean()) "chat_greeting.json" else "greeting.lottie"
+		const val greetingText =
+			"سلام!! خوش اومدی!\nعه! ببینم از درمان و لکنت خسته شدی؟  بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
+	}
 
-    enum class Page {
-        Home,
-        Welcome,
-        Menu,
-        Search,
-        ChatRoom,
-        Practice,
-        AnalyzePractice,
-        SendDailyReport,
-        SendWeeklyReport
-    }
+	enum class Page {
+		Home, Welcome, Login, Menu, Search, ChatRoom, Practice, AnalyzePractice, SendDailyReport, SendWeeklyReport
+	}
 
-    enum class ReportType {
-        Daily, Weekly
-    }
 
-    enum class EffectSide {
-        Forward, Backward, Unknown
-    }
+	enum class ReportType {
+		Daily, Weekly
+	}
 
-    enum class FeedbackOfFeedback {
-        IncorrectOrIncomplete, TooLargeResponse, Good
-    }
+	enum class EffectSide {
+		Forward, Backward, Unknown
+	}
+
+	enum class FeedbackOfFeedback {
+		IncorrectOrIncomplete, TooLargeResponse, Good
+	}
+
+	enum class LoginScreens { Login, Otp }
+
 }

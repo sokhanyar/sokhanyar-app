@@ -373,9 +373,13 @@ class VoiceAnalyzeViewModel : ViewModel() {
             override fun onFailure(response: ErrorResponse?, t: Throwable?) {
                 t?.printStackTrace()
                 Log.e("TAG", "ERROR OCCURRED: ${t?.message} | RESPONSE ERROR $response")
-                voice = _uiState.value.voice.copy(error = response?.error?.message ?: t?.message)
+                voice = _uiState.value.voice.copy(error = response?.detail?.message ?: t?.message)
             }
 
         })
+    }
+
+    fun handleIncomingAudio(audioTempFile: File) {
+        voice = _uiState.value.voice.copy(selectedFile = audioTempFile)
     }
 }

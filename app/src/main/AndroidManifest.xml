@@ -29,8 +29,16 @@
         <activity
             android:name=".ui.activity.VoiceAnalyzeActivity"
             android:configChanges="orientation|keyboard|keyboardHidden"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+            android:exported="true"
+            android:label="@string/voice_analyzer"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="audio/*" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.activity.MainActivity"
             android:configChanges="orientation|keyboard|keyboardHidden"

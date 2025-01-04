@@ -4,6 +4,7 @@ data class User(
     val id: Int = 0,
     val name: String? = null,
     val age: Int? = null,
+    val authInfo: AuthInfo? = null,
     val yearOfStartStuttering: Int? = null,
     val timesOfTherapy: Int? = null,
     val stutteringType: String? = null,

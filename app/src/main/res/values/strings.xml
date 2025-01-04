@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">سخن یار</string>
+    <string name="unknown_error_occurred">خطایی حین انجام عملیات رخ داد</string>
+    <string name="voice_analyzer">تحلیلگر صوت</string>
 </resources>

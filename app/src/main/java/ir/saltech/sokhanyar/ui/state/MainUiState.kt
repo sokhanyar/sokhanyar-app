@@ -14,9 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 data class MainUiState(
-    @Deprecated("use activePages instead")
-    val page: BaseApplication.Page = BaseApplication.Page.Home,
-    val activePages: MutableList<BaseApplication.Page> = mutableStateListOf(BaseApplication.Page.Home),
+    val activePages: MutableList<BaseApplication.Page> = mutableStateListOf(),
     val sentence: String? = null,
     val advice: MutableState<String?> = mutableStateOf(null),
     var chatHistory: StateFlow<ChatHistory> = MutableStateFlow(ChatHistory(0)),
@@ -24,5 +22,5 @@ data class MainUiState(
     val weeklyReport: WeeklyReport = WeeklyReport(),
     val dailyReports: DailyReports? = null,
     val weeklyReports: WeeklyReports? = null,
-    val user: User = User()
+    val user: User = User(),
 )

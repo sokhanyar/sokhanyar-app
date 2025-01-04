@@ -11,17 +11,28 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
+    @Deprecated("Use `sokhanyar` retrofit client instead")
     val saltechAi: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BaseApplication.Constants.SALTECH_AI_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+    val sokhanyar: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(BaseApplication.Constants.SOKHANYAR_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 }
 
 object ApiClient {
-    val saltechAi: SalTechAiApi by lazy {
-        RetrofitClient.saltechAi.create(SalTechAiApi::class.java)
+    @Deprecated("Use `sokhanyar` api client instead")
+    val saltechAi: SaltechAiApi by lazy {
+        RetrofitClient.saltechAi.create(SaltechAiApi::class.java)
+    }
+    val sokhanyar: SokhanyarApi by lazy {
+        RetrofitClient.sokhanyar.create(SokhanyarApi::class.java)
     }
 }
 
