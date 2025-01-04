@@ -48,6 +48,7 @@ import ir.saltech.sokhanyar.util.toJalali
 import ir.saltech.sokhanyar.util.toJson
 import ir.saltech.sokhanyar.util.toRegularTime
 import ir.saltech.sokhanyar.util.toReportDate
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -128,58 +129,81 @@ class MainViewModel : ViewModel() {
 
 	fun generateNewMessage(message: String) {
 		viewModelScope.launch {
-			val model = GenerativeModel(
-				modelName = BaseApplication.Ai.Gemini.Models.Flash,
-				BaseApplication.Ai.Gemini.apiKeys.random(),
-				systemInstruction = content {
-					text(
-						"${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${
-							Clock.System.now().toEpochMilliseconds().epochToFullDateTime()
-						}"
-					)
-				},
-				generationConfig = generationConfig {
-					temperature = 1.3f
-					topK = 40
-					topP = 0.95f
-					maxOutputTokens = 1024
-					responseMimeType = "text/plain"
-					frequencyPenalty = 0.7f
-					presencePenalty = 1.2f
-				})
-			val requestContent = ChatMessage(
-				(_uiState.value.chatHistory.value.contents.lastOrNull()?.id ?: -1) + 1,
-				"user",
-				message
-			)
-			chatHistory =
-				MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-					val userNameChatMessage = ChatMessage(
-						id = -1, role = "user", content = _uiState.value.user.getUserSummary()
-					)
-					if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(
-						0, userNameChatMessage
-					)
-					it.add(requestContent)
-					it
-				}))
-			saveChatHistory()
-			val backupChatHistory = _uiState.value.chatHistory.value.contents.asAiContents()
-			chatHistory =
-				MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-					it.add(ChatMessage(0, "assistant", "...")); it
-				}))
-			val response =
-				model.startChat(backupChatHistory).sendMessage(requestContent.asAiContent())
-			Log.i("TAG", "Response got: $response")
-			// TODO: You can set function calling here
-			chatHistory =
-				MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-					it[_uiState.value.chatHistory.value.contents.lastIndex] =
-						(response.candidates[0].content.asChatMessage(_uiState.value.chatHistory.value.contents.lastOrNull())
-							?: return@launch); it
-				}))
-			saveChatHistory()
+			try {
+				val model = GenerativeModel(
+					modelName = BaseApplication.Ai.Gemini.Models.Flash,
+					BaseApplication.Ai.Gemini.apiKeys.random(),
+					systemInstruction = content {
+						text(
+							"${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${
+								Clock.System.now().toEpochMilliseconds().epochToFullDateTime()
+							}"
+						)
+					},
+					generationConfig = generationConfig {
+						temperature = 1.3f
+						topK = 40
+						topP = 0.95f
+						maxOutputTokens = 1024
+						responseMimeType = "text/plain"
+						frequencyPenalty = 0.7f
+						presencePenalty = 1.2f
+					})
+				val requestContent = ChatMessage(
+					(_uiState.value.chatHistory.value.contents.lastOrNull()?.id ?: -1) + 1,
+					"user",
+					message
+				)
+				chatHistory =
+					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+						val userNameChatMessage = ChatMessage(
+							id = -1, role = "user", content = _uiState.value.user.getUserSummary()
+						)
+						if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(
+							0, userNameChatMessage
+						)
+						it.add(requestContent)
+						it
+					}))
+				saveChatHistory()
+				val backupChatHistory = _uiState.value.chatHistory.value.contents.asAiContents()
+				chatHistory =
+					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+						it.add(ChatMessage(0, "assistant", "...")); it
+					}))
+				val response =
+					model.startChat(backupChatHistory).sendMessage(requestContent.asAiContent())
+				Log.i("TAG", "Response got: $response")
+				// TODO: You can set function calling here
+				chatHistory =
+					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+						it[_uiState.value.chatHistory.value.contents.lastIndex] =
+							(response.candidates[0].content.asChatMessage(_uiState.value.chatHistory.value.contents.lastOrNull())
+								?: return@launch); it
+					}))
+				saveChatHistory()
+			} catch (e: Exception) {
+//				Toast.makeText(context, "ناتوانی در دریافت پیام از هوش مصنوعی", Toast.LENGTH_SHORT).show()
+				if (_uiState.value.chatHistory.value.contents.lastOrNull()?.content == "...") {
+					viewModelScope.launch(Dispatchers.IO) {
+						chatHistory =
+							MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+								it[it.size - 1] = ChatMessage(0, "assistant", "❌ ناتوانی در دریافت پیام از هوش مصنوعی!!"); it
+							}))
+						delay(3000)
+						chatHistory =
+							MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let { contents ->
+								repeat(2) { contents.removeAt(contents.size - 1) }; contents
+							}))
+						delay(10)
+						saveChatHistory()
+						delay(10)
+						if (_uiState.value.chatHistory.value.contents.size in 0..1) {
+							startOverChat()
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -189,37 +213,43 @@ class MainViewModel : ViewModel() {
 	) {
 		if (reports != null && reports.size >= 2) {
 			viewModelScope.launch {
-				val model = GenerativeModel(
-					modelName = BaseApplication.Ai.Gemini.Models.Flash,
-					BaseApplication.Ai.Gemini.apiKeys.random(),
-					systemInstruction = content {
-						text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + _uiState.value.user.getUserSummary())
-					},
-					generationConfig = generationConfig {
-						temperature = 0.8f
-						topK = 40
-						topP = 0.95f
-						maxOutputTokens = 1024
-						responseMimeType = "text/plain"
-					})
-				val chat = model.startChat()
-				val generatedResponse = chat.sendMessage(content {
-					text(
-						"""سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
+				try {
+					val model = GenerativeModel(
+						modelName = BaseApplication.Ai.Gemini.Models.Flash,
+						BaseApplication.Ai.Gemini.apiKeys.random(),
+						systemInstruction = content {
+							text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + _uiState.value.user.getUserSummary())
+						},
+						generationConfig = generationConfig {
+							temperature = 0.8f
+							topK = 40
+							topP = 0.95f
+							maxOutputTokens = 1024
+							responseMimeType = "text/plain"
+						})
+					val chat = model.startChat()
+					val generatedResponse = chat.sendMessage(content {
+						text(
+							"""سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
                     گزارش این هفته / امروز:
                     ${
-							reports.last().result
-						}
+								reports.last().result
+							}
                     گزارش های قبلی:
                     ${
-							reports.subList(0, reports.lastIndex)
-						}
+								reports.subList(0, reports.lastIndex)
+							}
                     """
-					)
-				})
-				Log.i("TAG", "Advice generated: ${generatedResponse.text}")
-				advice.value = generatedResponse.text
-				_uiState.value.advice.value = generatedResponse.text?.trim()
+						)
+					})
+					Log.i("TAG", "Advice generated: ${generatedResponse.text}")
+					advice.value = generatedResponse.text?.trim()
+					_uiState.value.advice.value = generatedResponse.text?.trim()
+				} catch (e: Exception) {
+					// TODO: بعداً یادت باشه این رو حذف کنی! چون باید advice رو ذخیره کنی و نباید خطا ها ذخیره بشن .. اینو طور دیگه هندل کن
+					advice.value = "ناتوانی در دریافت توصیه از هوش مصنوعی!"
+					_uiState.value.advice.value = "ناتوانی در دریافت توصیه از هوش مصنوعی!"
+				}
 			}
 		}
 	}

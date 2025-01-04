@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.daksh.mdparserkit.core.parseMarkdown
 import ir.saltech.sokhanyar.BaseApplication
@@ -151,7 +152,7 @@ private fun Launcher(
 		(voiceAnalyzeViewModel.context as Activity).finish()
 	}
 	LaunchedEffect(LocalLifecycleOwner.current) {
-		GlobalScope.launch(Dispatchers.IO) {
+		voiceAnalyzeViewModel.viewModelScope.launch(Dispatchers.IO) {
 			delay(100)
 		}
 	}
@@ -175,7 +176,7 @@ private fun Launcher(
 			LaunchedEffect(
 				LocalLifecycleOwner.current
 			) {
-				GlobalScope.launch(Dispatchers.IO) {
+				voiceAnalyzeViewModel.viewModelScope.launch(Dispatchers.IO) {
 					voiceAnalyzeViewModel.startVoiceAnalyzing()
 				}
 			}
