@@ -67,6 +67,7 @@ import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.components.MethodUsageObject
 import ir.saltech.sokhanyar.ui.view.components.MinimalHelpText
 import ir.saltech.sokhanyar.ui.view.components.SelfSatisfactionLayout
+import ir.saltech.sokhanyar.ui.view.components.StutterSeverityRatingLayout
 import ir.saltech.sokhanyar.ui.view.components.TextFieldLayout
 import ir.saltech.sokhanyar.ui.view.model.MainViewModel
 import kotlinx.coroutines.launch
@@ -255,7 +256,7 @@ fun DailyReportPage(
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 TextFieldLayout(
                                     title = "مدت زمان تمرین",
-                                    valueRange = 1..120,
+                                    valueRange = 1..720,
                                     value = dailyReport.practiceTime,
                                     onValueChanged = {
                                         dailyReport = dailyReport.copy(
@@ -266,7 +267,7 @@ fun DailyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "تعداد حساسیت زدایی",
-                                    valueRange = 1..10,
+                                    valueRange = 1..100,
                                     value = dailyReport.desensitizationCount,
                                     onValueChanged = {
                                         dailyReport = dailyReport.copy(
@@ -276,7 +277,7 @@ fun DailyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "تعداد لکنت عمدی",
-                                    valueRange = 1..50,
+                                    valueRange = 1..100,
                                     value = dailyReport.intentionalStutteringCount,
                                     onValueChanged = {
                                         dailyReport = dailyReport.copy(
@@ -286,7 +287,7 @@ fun DailyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "تعداد تشخیص اجتناب",
-                                    valueRange = 1..50,
+                                    valueRange = 1..100,
                                     value = dailyReport.avoidanceDetectionCount,
                                     onValueChanged = {
                                         dailyReport = dailyReport.copy(
@@ -295,15 +296,15 @@ fun DailyReportPage(
                                     }
                                 )
                                 TextFieldLayout(
-                                    title = "تعداد تماس همیار نوجوان",
+                                    title = "تعداد تماس همیاری",
                                     valueRange = 1..2,
-                                    value = dailyReport.callsCount.teenSupportCallsCount,
+                                    value = dailyReport.callsCount.supportingP2PCallsCount,
                                     onValueChanged = {
                                         dailyReport =
                                             dailyReport.let { dailyReport ->
                                                 dailyReport.copy(
                                                     callsCount = dailyReport.callsCount.copy(
-                                                        teenSupportCallsCount = it
+                                                        supportingP2PCallsCount = it
                                                     )
                                                 )
                                             }
@@ -371,7 +372,7 @@ fun DailyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "چالش برحسب دقیقه",
-                                    valueRange = 1..60,
+                                    valueRange = 1..90,
                                     value = dailyReport.voicesProperties.sumOfChallengesDuration,
                                     onValueChanged = {
                                         dailyReport =
@@ -390,7 +391,7 @@ fun DailyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "کنفرانس برحسب دقیقه",
-                                    valueRange = 1..60,
+                                    valueRange = 1..90,
                                     value = dailyReport.voicesProperties.sumOfConferencesDuration,
                                     onValueChanged = {
                                         dailyReport =
@@ -405,6 +406,14 @@ fun DailyReportPage(
                                     last = true,
                                     //enabled = defaultDailyReport.voicesProperties.sumOfConferencesDuration == null,
                                     suffix = { Text("دقیقه") }
+                                )
+                                StutterSeverityRatingLayout(
+                                    value = dailyReport.stutterSeverityRating ?: 0,
+                                    onValueChanged = {
+                                        dailyReport = dailyReport.copy(
+                                            stutterSeverityRating = it
+                                        )
+                                    }
                                 )
                                 SelfSatisfactionLayout(
                                     value = (dailyReport.selfSatisfaction ?: 0) / 2,

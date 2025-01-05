@@ -2,7 +2,9 @@ package ir.saltech.sokhanyar.ui.view.components
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -41,8 +45,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -63,6 +69,7 @@ import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.BaseApplication.Constants.MAX_OF_DISPLAYED_CHAR_COLLAPSE
 import ir.saltech.sokhanyar.R
 import ir.saltech.sokhanyar.ui.state.MainUiState
+import kotlin.math.roundToInt
 
 @Composable
 fun LockedDirection(
@@ -168,8 +175,8 @@ fun DropDownTextField(
     label: String,
     choices: Array<String>,
     onChoiceSelected: (String) -> Unit,
-    selectedChoice: String? = null,
     modifier: Modifier = Modifier,
+    selectedChoice: String? = null,
     supportText: @Composable (() -> Unit)? = null
 ) {
     val focus = LocalFocusManager.current
@@ -232,11 +239,11 @@ fun TextFieldLayout(
     valueRange: IntRange,
     value: Int?,
     onValueChanged: (Int?) -> Unit,
+    modifier: Modifier = Modifier,
     last: Boolean = false,
     enabled: Boolean = true,
     suffix: (@Composable () -> Unit)? = null,
-    supportText: (@Composable () -> Unit)? = null,
-    modifier: Modifier = Modifier
+    supportText: (@Composable () -> Unit)? = null
 ) {
     val focus = LocalFocusManager.current
     OutlinedTextField(
@@ -267,21 +274,64 @@ fun TextFieldLayout(
 }
 
 @Composable
+fun StutterSeverityRatingLayout(value: Int, onValueChanged: (Int) -> Unit) {
+    var ssrValue by remember {
+        mutableFloatStateOf(value.toFloat())
+    }
+    Column (modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "درجه شدت لکنت",
+            modifier = Modifier
+                .padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier
+            .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically ) {
+            Slider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                value = ssrValue,
+                onValueChange = { ssrValue = it },
+                valueRange = 0f..9f,
+                steps = 9,
+                onValueChangeFinished = {
+                    onValueChanged(ssrValue.roundToInt())
+                }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(modifier = Modifier.padding(start = 8.dp)
+                .background(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.04f), shape = RoundedCornerShape(100.dp))
+                , text = "   ${ssrValue.roundToInt()}   ", style = MaterialTheme.typography.bodySmall.copy(textDirection = TextDirection.Rtl, fontSize = 16.sp), textAlign = TextAlign.Center)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(modifier = Modifier.fillMaxWidth(), text = "به طور میانگین، امروز در موقعیت های مختلف، نسبت تعداد کلماتی که لکنت کردین به کل جملاتی که گفتین، چقدر بوده.", style = MaterialTheme.typography.labelMedium.copy(textDirection = TextDirection.Rtl), color = MaterialTheme.colorScheme.secondary)
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
 fun SelfSatisfactionLayout(value: Int, onValueChanged: (Int) -> Unit) {
+    val context = LocalContext.current
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "رضـایـت از خـودم",
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 21.sp),
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp),
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         LockedDirection {
             var score by remember { mutableFloatStateOf(value.toFloat()) }
-            RatingBar(modifier = Modifier.padding(horizontal = 16.dp),
+            RatingBar(modifier = Modifier.padding(horizontal = 16.dp).scale(0.8f),
                 value = score,
                 stepSize = StepSize.HALF,
                 style = RatingBarStyle.Default,
@@ -289,12 +339,13 @@ fun SelfSatisfactionLayout(value: Int, onValueChanged: (Int) -> Unit) {
                     score = it
                 },
                 onRatingChanged = {
-                    Log.i("TAG", "SelfSatisfaction Rating Changed: $it | $score")
                     onValueChanged((it * 2).toInt())
                 }
             )
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp), text = "یعنی چقدر امروز، از تمرین و اجرای شیوه خود در محیط های مختلف راضی هستین.", style = MaterialTheme.typography.labelMedium.copy(textDirection = TextDirection.Rtl), color = MaterialTheme.colorScheme.secondary)
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -407,7 +458,7 @@ fun AiAdvice(
                         IconButton(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
-                                .offset(-3.dp, -3.dp),
+                                .offset((-3).dp, (-3).dp),
                             onClick = {
                                 expanded = !expanded
                             }

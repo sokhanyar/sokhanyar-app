@@ -27,6 +27,8 @@ data class DailyReport(
     val callsCount: CallsCount = CallsCount(),
     @SerializedName("voices_properties")
     val voicesProperties: VoicesProperties = VoicesProperties(),
+    @SerializedName("stutter_severity_rating")
+    val stutterSeverityRating: Int? = null,
     @SerializedName("self_satisfaction")
     val selfSatisfaction: Int? = null,
     override val description: String? = null,

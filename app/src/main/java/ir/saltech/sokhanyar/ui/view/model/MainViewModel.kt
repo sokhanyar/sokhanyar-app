@@ -183,12 +183,12 @@ class MainViewModel : ViewModel() {
 					}))
 				saveChatHistory()
 			} catch (e: Exception) {
-//				Toast.makeText(context, "ناتوانی در دریافت پیام از هوش مصنوعی", Toast.LENGTH_SHORT).show()
+				e.printStackTrace()
 				if (_uiState.value.chatHistory.value.contents.lastOrNull()?.content == "...") {
 					viewModelScope.launch(Dispatchers.IO) {
 						chatHistory =
 							MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-								it[it.size - 1] = ChatMessage(0, "assistant", "❌ ناتوانی در دریافت پیام از هوش مصنوعی!!"); it
+								it[it.size - 1] = ChatMessage(0, "assistant", "❌ ناتوانی در دریافت پیام از هوش مصنوعی!"); it
 							}))
 						delay(3000)
 						chatHistory =
@@ -246,6 +246,7 @@ class MainViewModel : ViewModel() {
 					advice.value = generatedResponse.text?.trim()
 					_uiState.value.advice.value = generatedResponse.text?.trim()
 				} catch (e: Exception) {
+					e.printStackTrace()
 					// TODO: بعداً یادت باشه این رو حذف کنی! چون باید advice رو ذخیره کنی و نباید خطا ها ذخیره بشن .. اینو طور دیگه هندل کن
 					advice.value = "ناتوانی در دریافت توصیه از هوش مصنوعی!"
 					_uiState.value.advice.value = "ناتوانی در دریافت توصیه از هوش مصنوعی!"
@@ -353,10 +354,7 @@ class MainViewModel : ViewModel() {
 								lastDailyReport.callsCount.groupCallsCount ?: 0
 							}.takeIf { it > 0 },
 							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
-								lastDailyReport.callsCount.adultSupportCallsCount ?: 0
-							}.takeIf { it > 0 },
-							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
-								lastDailyReport.callsCount.teenSupportCallsCount ?: 0
+								lastDailyReport.callsCount.supportingP2PCallsCount ?: 0
 							}.takeIf { it > 0 })
 					},
 					desensitizationCount = lastDailyReports.sumOf { lastReports ->
@@ -392,8 +390,8 @@ class MainViewModel : ViewModel() {
             ☑️مدت زمان اجرای شیوه در انواع محیط ها👇
             بین 5 تا 15 دقیقه 👈 1 
             بین 15 تا 30 دقیقه 👈 2 
-            بین 30 تا 60 دقیقه 👈 3
-            بیشتر از یک ساعت 👈 4
+            بین 30 تا 60 دقیقه 👈 3 
+            بیشتر از یک ساعت 👈 4 
              خانه: ${_uiState.value.dailyReport.methodUsage.atHome ?: "-"}
              مدرسه (دانشگاه): ${_uiState.value.dailyReport.methodUsage.atSchool ?: "-"}
              غریبه ها: ${_uiState.value.dailyReport.methodUsage.withOthers ?: "-"}
@@ -401,12 +399,7 @@ class MainViewModel : ViewModel() {
             ☑️تعداد حساسیت زدایی: ${_uiState.value.dailyReport.desensitizationCount ?: "-"}
             ☑️تعداد لکنت عمدی: ${_uiState.value.dailyReport.intentionalStutteringCount ?: "-"}
             ☑️تعداد تشخیص اجتناب: ${_uiState.value.dailyReport.avoidanceDetectionCount ?: "-"}
-            ☑️تعداد تماس همیاری: ${
-				_uiState.value.dailyReport.callsCount.let {
-					val res =
-						(it.teenSupportCallsCount ?: 0) + (it.adultSupportCallsCount ?: 0); if (res == 0) "-" else res
-				}
-			}
+            ☑️تعداد تماس همیاری: ${_uiState.value.dailyReport.callsCount.supportingP2PCallsCount ?: "-"}
             ☑️تعداد تماس گروهی: ${_uiState.value.dailyReport.callsCount.groupCallsCount ?: "-"}
             ☑️تعداد چالش: ${_uiState.value.dailyReport.voicesProperties.challengesCount ?: "-"}
             ☑️چالش بر حسب دقیقه: ${_uiState.value.dailyReport.voicesProperties.sumOfChallengesDuration ?: "-"}
@@ -453,8 +446,7 @@ class MainViewModel : ViewModel() {
             👈 مجموع کنفرانس هفته بر حسب دقیقه: ${_uiState.value.weeklyReport.voicesProperties.sumOfConferencesDuration ?: "-"}
             👈 مجموع چالش هفته بر حسب دقیقه: ${_uiState.value.weeklyReport.voicesProperties.sumOfChallengesDuration ?: "-"}
             👈تعداد شرکت در چالش (مثلا ۳ از n): ${_uiState.value.weeklyReport.voicesProperties.challengesCount ?: "-"}
-            👈تعداد  تماس با همیار نوجوان: ${_uiState.value.weeklyReport.callsCount.teenSupportCallsCount ?: "-"}
-            👈تعداد تماس با همیار بزرگسال: ${_uiState.value.weeklyReport.callsCount.adultSupportCallsCount ?: "-"}
+            👈تعداد  تماس همیاری: ${_uiState.value.weeklyReport.callsCount.supportingP2PCallsCount ?: "-"}
             👈تعداد تماس گروهی: ${_uiState.value.weeklyReport.callsCount.groupCallsCount ?: "-"}
             👈تعداد گزارش حساسیت زدایی هفته: ${_uiState.value.weeklyReport.desensitizationCount ?: "-"}
             👈خلق استثنای هفته: ${_uiState.value.weeklyReport.creationOfExceptionCount ?: "-"}

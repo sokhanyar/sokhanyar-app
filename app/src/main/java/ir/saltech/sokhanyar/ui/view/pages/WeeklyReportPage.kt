@@ -235,7 +235,7 @@ fun WeeklyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "مجموع زمان کنفرانس ها",
-                                    valueRange = 1..350,
+                                    valueRange = 1..720,
                                     value = weeklyReport.voicesProperties.sumOfConferencesDuration,
                                     onValueChanged = {
                                         weeklyReport =
@@ -279,7 +279,7 @@ fun WeeklyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "مجموع زمان چالش ها",
-                                    valueRange = 1..350,
+                                    valueRange = 1..720,
                                     value = weeklyReport.voicesProperties.sumOfChallengesDuration,
                                     onValueChanged = {
                                         weeklyReport =
@@ -297,20 +297,20 @@ fun WeeklyReportPage(
                                     //enabled = defaultWeeklyReport?.voicesProperties?.sumOfConferencesDuration == null
                                 )
                                 TextFieldLayout(
-                                    title = "تعداد تماس همیاری نوجوان",
-                                    valueRange = 1..9,
-                                    value = weeklyReport.callsCount.teenSupportCallsCount,
+                                    title = "تعداد تماس همیاری",
+                                    valueRange = 1..20,
+                                    value = weeklyReport.callsCount.supportingP2PCallsCount,
                                     onValueChanged = {
                                         weeklyReport =
                                             weeklyReport.let { weeklyReport ->
                                                 weeklyReport.copy(
                                                     callsCount = weeklyReport.callsCount.copy(
-                                                        teenSupportCallsCount = it
+                                                        supportingP2PCallsCount = it
                                                     )
                                                 )
                                             }
                                     },
-                                    //enabled = defaultWeeklyReport?.callsCount?.teenSupportCallsCount == null,
+                                    //enabled = defaultWeeklyReport?.callsCount?.supportingP2PCallsCount == null,
                                     last = true
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -332,22 +332,6 @@ fun WeeklyReportPage(
                             } + fadeOut()) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 TextFieldLayout(
-                                    title = "تعداد تماس همیاری بزرگسال",
-                                    valueRange = 1..9,
-                                    value = weeklyReport.callsCount.adultSupportCallsCount,
-                                    onValueChanged = {
-                                        weeklyReport =
-                                            weeklyReport.let { weeklyReport ->
-                                                weeklyReport.copy(
-                                                    callsCount = weeklyReport.callsCount.copy(
-                                                        adultSupportCallsCount = it
-                                                    )
-                                                )
-                                            }
-                                    },
-                                    //enabled = defaultWeeklyReport?.callsCount?.adultSupportCallsCount == null
-                                )
-                                TextFieldLayout(
                                     title = "تعداد تماس گروهی",
                                     valueRange = 1..2,
                                     value = weeklyReport.callsCount.groupCallsCount,
@@ -365,7 +349,7 @@ fun WeeklyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "مجموع حساسیت زدایی هفته",
-                                    valueRange = 1..50,
+                                    valueRange = 1..200,
                                     value = weeklyReport.desensitizationCount,
                                     onValueChanged = {
                                         weeklyReport = weeklyReport.copy(
@@ -376,7 +360,7 @@ fun WeeklyReportPage(
                                 )
                                 TextFieldLayout(
                                     title = "تعداد خلق استثنای هفته",
-                                    valueRange = 1..7,
+                                    valueRange = 1..30,
                                     value = weeklyReport.creationOfExceptionCount,
                                     onValueChanged = {
                                         weeklyReport = weeklyReport.copy(

@@ -123,7 +123,7 @@ infix fun Int?.plusNull(second: Int?): Int {
 fun WeeklyReport.getSumOfActivities(): WeeklyReport {
     return this.copy(sumOfActivities = this.let {
         val sumOfAllActivities =
-            it.practiceDays plusNull it.desensitizationCount plusNull it.voicesProperties.challengesCount plusNull it.voicesProperties.sumOfChallengesDuration plusNull it.voicesProperties.sumOfConferencesDuration plusNull it.voicesProperties.conferenceDaysCount plusNull it.dailyReportsCount plusNull it.creationOfExceptionCount plusNull it.callsCount.groupCallsCount plusNull it.callsCount.teenSupportCallsCount plusNull it.callsCount.adultSupportCallsCount
+            it.practiceDays plusNull it.desensitizationCount plusNull it.voicesProperties.challengesCount plusNull it.voicesProperties.sumOfChallengesDuration plusNull it.voicesProperties.sumOfConferencesDuration plusNull it.voicesProperties.conferenceDaysCount plusNull it.dailyReportsCount plusNull it.creationOfExceptionCount plusNull it.callsCount.groupCallsCount plusNull it.callsCount.supportingP2PCallsCount
         sumOfAllActivities
     })
 }
