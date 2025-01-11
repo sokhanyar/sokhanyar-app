@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.aallam.openai.api.chat.ChatChunk
 import com.google.gson.Gson
@@ -33,6 +34,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import java.io.File
+import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -144,9 +146,14 @@ fun getGreetingBasedOnTime(command: Boolean = false): String {
 }
 
 @Composable
+fun checkScreenIsMinimal(): Boolean {
+    return LocalConfiguration.current.screenHeightDp.dp < BaseApplication.Constants.RESPONSIVE_MIN_HEIGHT.dp
+}
+
+@Composable
 fun Modifier.wrapToScreen(reverse: Boolean = false): Modifier {
     return this.let {
-        if (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp < 600.dp) {
+        if (checkScreenIsMinimal()) {
             if (reverse) {
                 it.height(0.dp)
             } else {
@@ -365,5 +372,10 @@ fun String.analyzeError(): String {
         this.contains("invalid phone number") -> "شماره تلفن وارد شده اشتباه است"
         else -> "خطای ناشناخته در سیستم"
     }
+}
+
+fun Long?.showingPrice(): String {
+    if (this == null) return ""
+    return NumberFormat.getNumberInstance(Locale.US).format(this)
 }
 

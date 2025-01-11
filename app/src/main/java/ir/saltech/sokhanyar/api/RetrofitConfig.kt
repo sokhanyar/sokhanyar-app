@@ -18,6 +18,12 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+    val saltechPay: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(BaseApplication.Constants.SALTECH_PAY_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
     val sokhanyar: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BaseApplication.Constants.SOKHANYAR_BASE_URL)
@@ -30,6 +36,9 @@ object ApiClient {
     @Deprecated("Use `sokhanyar` api client instead")
     val saltechAi: SaltechAiApi by lazy {
         RetrofitClient.saltechAi.create(SaltechAiApi::class.java)
+    }
+    val saltechPay: SaltechPayApi by lazy {
+        RetrofitClient.saltechPay.create(SaltechPayApi::class.java)
     }
     val sokhanyar: SokhanyarApi by lazy {
         RetrofitClient.sokhanyar.create(SokhanyarApi::class.java)

@@ -3,9 +3,12 @@ package ir.saltech.sokhanyar.ui.view.model
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ir.saltech.ai.client.generativeai.GenerativeModel
@@ -46,6 +49,10 @@ class VoiceAnalyzeViewModel : ViewModel() {
 	var voice: Voice = Voice()
 		set(value) {
 			_uiState.update { _uiState.value.copy(voice = value) }
+		}
+	var mediaPlayer: MediaPlayer? = null
+		set(value) {
+			_uiState.update { _uiState.value.copy(mediaPlayer = value) }
 		}
 	private var wantedApiKey = BaseApplication.Ai.Gemini.apiKeys.random()
 
@@ -345,5 +352,34 @@ class VoiceAnalyzeViewModel : ViewModel() {
 				handleIncomingAudio(tempFile)
 			}
 		}
+	}
+
+	fun pauseAudioPlayer() {
+		if (_uiState.value.mediaPlayer != null) {
+			if (_uiState.value.mediaPlayer!!.isPlaying) {
+				_uiState.value.mediaPlayer!!.pause()
+			}
+		}
+	}
+
+	fun initAudioPlayer() {
+		try {
+			mediaPlayer =
+				MediaPlayer.create(
+					context,
+					_uiState.value.voice.selectedFile?.toUri()
+				)
+			mediaPlayer?.prepare()
+			mediaPlayer?.isLooping = false
+		} catch (e: Exception) {
+			e.printStackTrace()
+			Toast.makeText(context, "ناتوانی در آماده سازی ویس!", Toast.LENGTH_SHORT).show()
+		}
+	}
+
+	fun destroyAudioPlayer() {
+		_uiState.value.voice.selectedFile?.delete()
+		mediaPlayer?.stop()
+		mediaPlayer = null
 	}
 }

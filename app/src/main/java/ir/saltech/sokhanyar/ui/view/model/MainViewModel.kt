@@ -2,9 +2,13 @@ package ir.saltech.sokhanyar.ui.view.model
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Environment
+import android.provider.Browser
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +26,9 @@ import ir.saltech.sokhanyar.api.ApiClient
 import ir.saltech.sokhanyar.api.call
 import ir.saltech.sokhanyar.model.api.ChatHistory
 import ir.saltech.sokhanyar.model.api.ChatMessage
+import ir.saltech.sokhanyar.model.api.DonationPayment
 import ir.saltech.sokhanyar.model.api.ErrorResponse
+import ir.saltech.sokhanyar.model.api.PaymentResult
 import ir.saltech.sokhanyar.model.api.ResponseObject
 import ir.saltech.sokhanyar.model.data.general.AuthInfo
 import ir.saltech.sokhanyar.model.data.general.OtpRequestStatus
@@ -61,6 +67,7 @@ import kotlinx.datetime.todayIn
 import java.io.File
 import java.util.Date
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 class MainViewModel : ViewModel() {
 	//    private val openai = OpenAI(
@@ -577,6 +584,36 @@ class MainViewModel : ViewModel() {
 					t?.printStackTrace()
 				}
 			})
+	}
+
+	fun doStartPayment(phoneNumber: Long, price: Long, onCompleted: (Long?) -> Unit) {
+		viewModelScope.launch(Dispatchers.IO) {
+			ApiClient.saltechPay.startDonationPayment(DonationPayment(price, "0${phoneNumber}", orderId = "SKN-${Random.nextInt(100000, 1000000)}"))
+				.call(callback = object : ApiCallback<PaymentResult> {
+					override fun onSuccessful(responseObject: PaymentResult?) {
+						Log.i("TAG", "Payment result: $responseObject")
+						if (responseObject?.status == "success") {
+							onCompleted(responseObject.trackId)
+						} else {
+							onCompleted(null)
+							Toast.makeText(context, "خطایی در هنگام شروع عملیات پرداخت رخ داد!\n${responseObject?.message}", Toast.LENGTH_SHORT).show()
+							Log.i("TAG", "Verification result error ${responseObject?.message}")
+						}
+					}
+
+					override fun onFailure(
+						response: ErrorResponse?, t: Throwable?
+					) {
+						onCompleted(null)
+						Toast.makeText(context, "خطایی در هنگام شروع عملیات پرداخت رخ داد!", Toast.LENGTH_SHORT).show()
+						t?.printStackTrace()
+					}
+				})
+		}
+	}
+
+	fun doPayment(phoneNumber: Long, price: Long) {
+
 	}
 
 	fun resetOtpRequestStatus() {

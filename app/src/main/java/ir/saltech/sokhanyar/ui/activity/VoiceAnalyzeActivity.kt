@@ -66,21 +66,18 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.daksh.mdparserkit.core.parseMarkdown
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.R
-import ir.saltech.sokhanyar.ui.state.VoiceAnalyzeUiState
 import ir.saltech.sokhanyar.ui.theme.AppTheme
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.VoiceAnalyzeViewModel
 import ir.saltech.sokhanyar.util.toDurationMinuteSecond
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Thread.sleep
@@ -120,6 +117,16 @@ class VoiceAnalyzeActivity : ComponentActivity() {
 		voiceAnalyzeViewModel.handleAudioFileIntent(this, intent)
 		startProgram()
 	}
+
+	override fun onPause() {
+		super.onPause()
+		voiceAnalyzeViewModel.pauseAudioPlayer()
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		voiceAnalyzeViewModel.destroyAudioPlayer()
+	}
 }
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -133,9 +140,7 @@ private fun Launcher(
 	val uiState by voiceAnalyzeViewModel.uiState.collectAsState()
 	val scope = rememberCoroutineScope()
 	val clipboardManager = LocalClipboardManager.current
-	var mediaPlayer: MediaPlayer? by remember {
-		mutableStateOf(null)
-	}
+
 	var isDebugInfoWanted by remember {
 		mutableStateOf(false)
 	}
@@ -271,12 +276,8 @@ private fun Launcher(
 				AnimatedVisibility(isOptionsShowed) {
 					Row(modifier = Modifier.scale(0.9f)) {
 						IconButton(onClick = {
-							if (mediaPlayer != null) {
-								if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
-									mediaPlayer!!.pause()
-								}
-							}
 							isDebugInfoWanted = false
+							voiceAnalyzeViewModel.pauseAudioPlayer()
 							isFeedbackOfFeedbackShowed = !isFeedbackOfFeedbackShowed
 						}) {
 							Icon(
@@ -290,11 +291,7 @@ private fun Launcher(
 							isOptionsShowed = false
 							isDebugInfoWanted = false
 							isFeedbackOfFeedbackShowed = false
-							if (mediaPlayer != null) {
-								if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
-									mediaPlayer!!.pause()
-								}
-							}
+							voiceAnalyzeViewModel.pauseAudioPlayer()
 							scope.launch {
 								snackBar.showSnackbar("این عالیست! موفق باشید!")
 							}
@@ -306,11 +303,7 @@ private fun Launcher(
 							)
 						}
 						IconButton(onClick = {
-							if (mediaPlayer != null) {
-								if (mediaPlayer!!.isPlaying && isDebugInfoWanted) {
-									mediaPlayer!!.pause()
-								}
-							}
+							voiceAnalyzeViewModel.pauseAudioPlayer()
 							isFeedbackOfFeedbackShowed = false
 							isDebugInfoWanted = !isDebugInfoWanted
 						}) {
@@ -394,21 +387,9 @@ private fun Launcher(
 				AnimatedVisibility(isDebugInfoWanted) {
 					Column {
 						LaunchedEffect(LocalLifecycleOwner.current) {
-							try {
-								mediaPlayer =
-									MediaPlayer.create(
-										voiceAnalyzeViewModel.context,
-										uiState.voice.selectedFile?.toUri()
-									)
-								mediaPlayer?.prepare()
-								mediaPlayer?.isLooping = false
-							} catch (e: Exception) {
-								e.printStackTrace()
-							}
+							voiceAnalyzeViewModel.initAudioPlayer()
 						}
-						if (mediaPlayer != null) {
-							CardMediaPlayer(mediaPlayer!!, uiState)
-						}
+						CardMediaPlayer(uiState.mediaPlayer ?: return@AnimatedVisibility)
 						Spacer(modifier = Modifier.height(8.dp))
 						if (uiState.voice.response?.transcription != null) {
 							Text(
@@ -474,7 +455,6 @@ private fun Launcher(
 @Composable
 fun CardMediaPlayer(
 	mediaPlayer: MediaPlayer,
-	uiState: VoiceAnalyzeUiState,
 	modifier: Modifier = Modifier
 ) {
 	var seekValue by remember {

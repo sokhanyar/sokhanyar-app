@@ -10,11 +10,13 @@ class BaseApplication : Application() {
 		@Deprecated("Use `SOKHANYAR_BASE_URL` instead.")
 		const val SALTECH_AI_BASE_URL = "https://ai.saltech.ir/api/"
 		const val SOKHANYAR_BASE_URL = "https://api.sokhanyaar.ir/"
+		const val SALTECH_PAY_URL = "https://pay.saltech.ir/api/d85fe720caa225dcaa1ee2b6d53366bcc05d4439/"
 		const val MAX_OF_NAME_CHARS = 25
 		const val MAX_OF_DAILY_REPORT_PAGES = 4
 		const val MAX_OF_WEEKLY_REPORT_PAGES = 3
 		const val MAX_OF_DISPLAYED_CHAR_COLLAPSE = 100
 		const val OTP_EXPIRATION_DURATION_SECONDS: Long = 120
+		const val RESPONSIVE_MIN_HEIGHT = 600
 		val JalaliMonths = arrayOf(
 			"فروردین",
 			"اردیبهشت",
