@@ -379,3 +379,14 @@ fun Long?.showingPrice(): String {
     return NumberFormat.getNumberInstance(Locale.US).format(this)
 }
 
+fun String?.toPrice(): Long? {
+    return this.let {
+        if (it.isNullOrEmpty()) return null
+        if (it.contains(",")) {
+            it.replace(",", "")
+        } else {
+            it
+        }
+    }.toLongOrNull()
+}
+

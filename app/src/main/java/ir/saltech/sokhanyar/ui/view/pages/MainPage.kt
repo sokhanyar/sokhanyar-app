@@ -45,6 +45,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,12 +74,15 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.saltech.sokhanyar.BaseApplication
+import ir.saltech.sokhanyar.BaseApplication.Constants.MAX_DONATION_PRICE_IRR
+import ir.saltech.sokhanyar.BaseApplication.Constants.MIN_DONATION_PRICE_IRR
 import ir.saltech.sokhanyar.R
 import ir.saltech.sokhanyar.model.ui.MenuPageItem
 import ir.saltech.sokhanyar.ui.view.components.LockedDirection
 import ir.saltech.sokhanyar.ui.view.model.MainViewModel
 import ir.saltech.sokhanyar.util.checkScreenIsMinimal
 import ir.saltech.sokhanyar.util.showingPrice
+import ir.saltech.sokhanyar.util.toPrice
 import ir.saltech.sokhanyar.util.wrapToScreen
 
 @Composable
@@ -89,23 +93,25 @@ fun MainPage(
 	mainViewModel: MainViewModel = viewModel(),
 	onPageWanted: (BaseApplication.Page) -> Unit
 ) {
+	val uiState by mainViewModel.uiState.collectAsState()
 	var showMenuPageItem: Boolean by remember {
 		mutableStateOf(false)
 	}
 	var showDonationDialog: Boolean by remember {
 		mutableStateOf(false)
 	}
-	var wantedDonationPrice: Long? by remember {
-		mutableStateOf(null)
-	}
-	var wantedDonationPhoneNumber: Long? by remember {
-		mutableStateOf(null)
-	}
-	var paymentLoading by remember {
-		mutableStateOf(false)
-	}
 	AnimatedVisibility(showDonationDialog) {
 		LockedDirection (LayoutDirection.Rtl) {
+			val loadedUserPhoneNumber = uiState.user.authInfo?.phoneNumber
+			var wantedDonationPrice: Long? by remember {
+				mutableStateOf(null)
+			}
+			var wantedDonationPhoneNumber: Long? by remember {
+				mutableStateOf(loadedUserPhoneNumber)
+			}
+			var paymentLoading by remember {
+				mutableStateOf(false)
+			}
 			AlertDialog(
 				onDismissRequest = {
 					wantedDonationPrice = null
@@ -114,13 +120,10 @@ fun MainPage(
 				}, confirmButton = {
 					Button(onClick = {
 						if (wantedDonationPhoneNumber != null && wantedDonationPrice != null) {
-							if (wantedDonationPrice!! >= 5000) {
+							val submittedDonationPrice = wantedDonationPrice!! * 10_000
+							if (submittedDonationPrice in MIN_DONATION_PRICE_IRR..MAX_DONATION_PRICE_IRR) {
 								paymentLoading = true
-								mainViewModel.doPayment(
-									wantedDonationPhoneNumber!!,
-									wantedDonationPrice!! * 10
-								)
-								mainViewModel.doStartPayment(wantedDonationPhoneNumber!!, wantedDonationPrice!!) { trackId ->
+								mainViewModel.doStartPayment(wantedDonationPhoneNumber!!, submittedDonationPrice) { trackId ->
 									if (trackId!= null) {
 										val useBrowserToDoPayment = Intent(Intent.ACTION_VIEW, Uri.parse(BaseApplication.Constants.SALTECH_PAY_URL + "payment?trackId=${trackId}"))
 										useBrowserToDoPayment.putExtra(Browser.EXTRA_APPLICATION_ID, mainViewModel.context.packageName)
@@ -128,56 +131,47 @@ fun MainPage(
 										mainViewModel.context.startActivity(useBrowserToDoPayment)
 										Toast.makeText(
 											mainViewModel.context,
-											"در ادامه، به درگاه پرداخت وصل میشوید ...\nپیشاپیش، از حمایتتان متشکریم! 💝",
+											"در ادامه، به درگاه پرداخت متصل میشوید.\nپیشاپیش، از حمایتتان متشکریم! 💝",
 											Toast.LENGTH_SHORT
 										).show()
-										wantedDonationPrice = null
-										wantedDonationPhoneNumber = null
 										showDonationDialog = false
 									}
 									paymentLoading = false
 								}
 							} else {
-								Toast.makeText(mainViewModel.context, "مبلغ حداقل ۵ هزار تومان باید باشد.", Toast.LENGTH_SHORT)
+								Toast.makeText(mainViewModel.context, "مبلغ، باید حداقل ۵ هزار و حداکثر ۱۰ میلیون تومان باشد.", Toast.LENGTH_SHORT)
 									.show()
 							}
 						} else {
 							Toast.makeText(mainViewModel.context, "لطفاً شماره موبایل و مبلغ هدیه خود را وارد کنید.", Toast.LENGTH_SHORT).show()
 						}
 					}, enabled = !paymentLoading) {
-						Text(if (paymentLoading) "در حال انجام" else "پرداخت")
+						Text(if (paymentLoading) "درحال انجام" else "پرداخت")
 					}
 				}, dismissButton = {
 					OutlinedButton(modifier = Modifier.padding(horizontal = 8.dp), enabled = !paymentLoading, onClick = {
-						wantedDonationPrice = null
-						wantedDonationPhoneNumber = null
 						showDonationDialog = false
 					}) {
 						Text("منصرف شدم")
 					}
 				}, title = {
-					Text("ازمون حمایت می کنین؟ 🥹")
+					Text("حمایت از ما 🎁")
 				}, text = {
 					Column {
-						Text("اگه از سخن یار خوشتون اومده و تونسته مشکلی ازتون حل کنه و اگه امکانش واسه تون هست، یه حمایتی هم از ما بکنین، ممنون میشیم! 🙏🏻💐")
-						Spacer(modifier = Modifier.height(16.dp))
+						Text("اگه از سخن یار خوشتون اومده و تونسته مشکلی رو ازتون حل کنه و اگه امکانش واسه تون هست، واسه پیشرفت سخن یار، ممنون میشیم حمایتمون کنین! 🙏🏻💐")
+						Spacer(modifier = Modifier.height(24.dp))
 						OutlinedTextField(value = wantedDonationPrice.showingPrice(), onValueChange = {
-							if (it.length <= 10) {
-								wantedDonationPrice = it.let {
-									if (it.contains(",")) {
-										it.replace(",", "")
-									} else {
-										it
-									}
-								}.toLongOrNull()
+							if (it.length < 7) {
+								wantedDonationPrice = it.toPrice()
 							}
-						}, enabled = !paymentLoading, label = { Text("مبلغ هدیه") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, suffix = { Text("تومان", style = MaterialTheme.typography.labelMedium) }, supportingText = { Text("مبلغ حداکثر ۶۰۰ تومان، مالیات به این مبلغ تعلق میگیرد.", style = MaterialTheme.typography.labelSmall)})
-						Spacer(modifier = Modifier.height(8.dp))
+						}, enabled = !paymentLoading, label = { Text("مبلغ هدیه") }, placeholder = { Text("مثلاً 10 = 10,000 تومان", style = MaterialTheme.typography.labelMedium)}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, suffix = { Text("هزار تومان", style = MaterialTheme.typography.labelMedium) }, supportingText = { Text(text = "مبلغ، بر پایه واحد هزار تومانه.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary) })
+						Spacer(modifier = Modifier.height(16.dp))
 						OutlinedTextField(value = (wantedDonationPhoneNumber ?: "").toString(), onValueChange = {
-							if (it.length <= 10) {
+							if (it.length < 11) {
 								wantedDonationPhoneNumber = it.toLongOrNull()
 							}
-						}, enabled = !paymentLoading, label = { Text("شماره موبایل") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), singleLine = true)
+						}, enabled = !paymentLoading && loadedUserPhoneNumber == null, label = { Text("شماره موبایل") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), singleLine = true, supportingText = { Text(text = "واسه پیگیریهای بعدی، لطفاً شماره موبایل خودتون رو وارد کنین.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary) })
+						Spacer(modifier = Modifier.height(8.dp))
 					}
 				})
 		}

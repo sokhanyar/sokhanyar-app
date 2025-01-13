@@ -2,11 +2,8 @@ package ir.saltech.sokhanyar.ui.view.model
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Environment
-import android.provider.Browser
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
@@ -588,6 +585,9 @@ class MainViewModel : ViewModel() {
 
 	fun doStartPayment(phoneNumber: Long, price: Long, onCompleted: (Long?) -> Unit) {
 		viewModelScope.launch(Dispatchers.IO) {
+			user = _uiState.value.user.let {
+				it.copy(authInfo = (it.authInfo ?: AuthInfo()).copy(phoneNumber = phoneNumber))
+			}
 			ApiClient.saltechPay.startDonationPayment(DonationPayment(price, "0${phoneNumber}", orderId = "SKN-${Random.nextInt(100000, 1000000)}"))
 				.call(callback = object : ApiCallback<PaymentResult> {
 					override fun onSuccessful(responseObject: PaymentResult?) {
@@ -609,11 +609,8 @@ class MainViewModel : ViewModel() {
 						t?.printStackTrace()
 					}
 				})
+			saveUser()
 		}
-	}
-
-	fun doPayment(phoneNumber: Long, price: Long) {
-
 	}
 
 	fun resetOtpRequestStatus() {
