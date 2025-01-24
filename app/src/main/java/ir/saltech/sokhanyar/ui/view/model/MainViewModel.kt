@@ -192,7 +192,11 @@ class MainViewModel : ViewModel() {
 					viewModelScope.launch(Dispatchers.IO) {
 						chatHistory =
 							MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-								it[it.size - 1] = ChatMessage(0, "assistant", "❌ ناتوانی در دریافت پیام از هوش مصنوعی!"); it
+								it[it.size - 1] = ChatMessage(
+									0,
+									"assistant",
+									"❌ ناتوانی در دریافت پیام از هوش مصنوعی!"
+								); it
 							}))
 						delay(3000)
 						chatHistory =
@@ -266,15 +270,15 @@ class MainViewModel : ViewModel() {
 					modelName = BaseApplication.Ai.Gemini.Models.Flash,
 					BaseApplication.Ai.Gemini.apiKeys.random(),
 					generationConfig = generationConfig {
-						temperature = 1.5f
+						temperature = 1.7f
 						topK = 40
-						topP = 0.95f
+						topP = 0.90f
 						maxOutputTokens = 100
 						responseMimeType = "text/plain"
-						frequencyPenalty = 1.5f
+						frequencyPenalty = 0.6f
 					})
 				val generatedContent = model.generateContent(
-					" ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی به من بگو.\n" + "فقط جمله انگیزشی ات رو نشون بده. جلمه انگیزشی باید فقط 1 خط باشه و به همراه ایموجی جذاب باشه.\n"
+					" ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی جذاب و متفاوت به من بگو.\n" + "فقط جمله انگیزشی ات رو نشون بده. جمله انگیزشی باید حداکثر 1 خط، به همراه ایموجی جذاب و بعضی مواقع در موضوع درمان لکنت باشه.\n"
 				)
 				sentence = generatedContent.text?.trim() ?: sentence
 			} catch (e: Exception) {
@@ -372,7 +376,7 @@ class MainViewModel : ViewModel() {
 
 	// --- Load and Save Section ---
 
-	fun loadDailyReports() {
+	private fun loadDailyReports() {
 		dailyReports = fromJson<ir.saltech.sokhanyar.model.data.reports.DailyReports>(
 			context.dataStore[BaseApplication.Key.DailyReports] ?: ""
 		) ?: ir.saltech.sokhanyar.model.data.reports.DailyReports()
@@ -410,7 +414,8 @@ class MainViewModel : ViewModel() {
             ☑️کنفرانس بر حسب دقیقه: ${_uiState.value.dailyReport.voicesProperties.sumOfConferencesDuration ?: "-"}
             ☑️رضایت از خودم (1 تا 10): ${_uiState.value.dailyReport.selfSatisfaction ?: "-"}
             توضیحات: ${_uiState.value.dailyReport.description ?: "-"}
-        """.trimIndent())
+        """.trimIndent()
+		)
 		val res = _uiState.value.dailyReports?.list?.add(_uiState.value.dailyReport)
 		saveDailyReports()
 		if ((_uiState.value.dailyReports?.list?.size ?: 0) > 1) {
@@ -427,7 +432,7 @@ class MainViewModel : ViewModel() {
 			toJson(_uiState.value.dailyReports) ?: ""
 	}
 
-	fun loadWeeklyReports() {
+	private fun loadWeeklyReports() {
 		weeklyReports =
 			fromJson<WeeklyReports>(context.dataStore[BaseApplication.Key.WeeklyReports] ?: "")
 				?: WeeklyReports()
@@ -482,7 +487,7 @@ class MainViewModel : ViewModel() {
 			toJson(_uiState.value.chatHistory.value) ?: ""
 	}
 
-	fun loadChatHistory() {
+	private fun loadChatHistory() {
 		chatHistory = MutableStateFlow(
 			fromJson<ChatHistory>(context.dataStore[BaseApplication.Key.ChatHistory] ?: "")
 				?: ChatHistory(0)
@@ -502,7 +507,7 @@ class MainViewModel : ViewModel() {
 		context.dataStore[BaseApplication.Key.User] = toJson(_uiState.value.user) ?: ""
 	}
 
-	fun loadUser() {
+	private fun loadUser() {
 		user = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "") ?: User()
 //		if (_uiState.value.user.authInfo == null) {
 //			Log.i("TAG", "User not registered in account!")
@@ -535,7 +540,10 @@ class MainViewModel : ViewModel() {
 					if (responseObject != null) {
 						_errorMessage.value = ""
 						user = _uiState.value.user.copy(
-							authInfo = AuthInfo(phoneNumber = phoneNumber, otpRequestStatus = OtpRequestStatus.REQUESTED)
+							authInfo = AuthInfo(
+								phoneNumber = phoneNumber,
+								otpRequestStatus = OtpRequestStatus.REQUESTED
+							)
 						)
 					} else {
 						_errorMessage.value = context.getString(R.string.unknown_error_occurred)
@@ -550,7 +558,8 @@ class MainViewModel : ViewModel() {
 				) {
 					user =
 						_uiState.value.user.copy(authInfo = AuthInfo(otpRequestStatus = OtpRequestStatus.ERROR))
-					_errorMessage.value = (response?.detail?.message ?: t?.message ?: "").analyzeError()
+					_errorMessage.value =
+						(response?.detail?.message ?: t?.message ?: "").analyzeError()
 					t?.printStackTrace()
 				}
 
@@ -564,7 +573,8 @@ class MainViewModel : ViewModel() {
 					Log.i("TAG", "Verification result: $responseObject")
 					if (responseObject != null) {
 						_errorMessage.value = ""
-						user = _uiState.value.user.copy(authInfo = responseObject.copy(phoneNumber = phoneNumber))
+						user =
+							_uiState.value.user.copy(authInfo = responseObject.copy(phoneNumber = phoneNumber))
 						saveUser()
 						Log.i("TAG", "Verification result: $responseObject")
 						onCompleted()
@@ -577,7 +587,8 @@ class MainViewModel : ViewModel() {
 				override fun onFailure(
 					response: ErrorResponse?, t: Throwable?
 				) {
-					_errorMessage.value = (response?.detail?.message ?: t?.message ?: "").analyzeError()
+					_errorMessage.value =
+						(response?.detail?.message ?: t?.message ?: "").analyzeError()
 					t?.printStackTrace()
 				}
 			})
@@ -588,7 +599,13 @@ class MainViewModel : ViewModel() {
 			user = _uiState.value.user.let {
 				it.copy(authInfo = (it.authInfo ?: AuthInfo()).copy(phoneNumber = phoneNumber))
 			}
-			ApiClient.saltechPay.startDonationPayment(DonationPayment(price, "0${phoneNumber}", orderId = "SKN-${Random.nextInt(100000, 1000000)}"))
+			ApiClient.saltechPay.startDonationPayment(
+				DonationPayment(
+					price,
+					"0${phoneNumber}",
+					orderId = "SKN-${Random.nextInt(100000, 1000000)}"
+				)
+			)
 				.call(callback = object : ApiCallback<PaymentResult> {
 					override fun onSuccessful(responseObject: PaymentResult?) {
 						Log.i("TAG", "Payment result: $responseObject")
@@ -596,7 +613,11 @@ class MainViewModel : ViewModel() {
 							onCompleted(responseObject.trackId)
 						} else {
 							onCompleted(null)
-							Toast.makeText(context, "خطایی در هنگام شروع عملیات پرداخت رخ داد!\n${responseObject?.message}", Toast.LENGTH_SHORT).show()
+							Toast.makeText(
+								context,
+								"خطایی در هنگام شروع عملیات پرداخت رخ داد!\n${responseObject?.message}",
+								Toast.LENGTH_SHORT
+							).show()
 							Log.i("TAG", "Verification result error ${responseObject?.message}")
 						}
 					}
@@ -605,7 +626,11 @@ class MainViewModel : ViewModel() {
 						response: ErrorResponse?, t: Throwable?
 					) {
 						onCompleted(null)
-						Toast.makeText(context, "خطایی در هنگام شروع عملیات پرداخت رخ داد!", Toast.LENGTH_SHORT).show()
+						Toast.makeText(
+							context,
+							"خطایی در هنگام شروع عملیات پرداخت رخ داد!",
+							Toast.LENGTH_SHORT
+						).show()
 						t?.printStackTrace()
 					}
 				})

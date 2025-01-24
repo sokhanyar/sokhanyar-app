@@ -19,7 +19,7 @@ class BaseApplication : Application() {
 		const val OTP_EXPIRATION_DURATION_SECONDS: Long = 120
 		const val RESPONSIVE_MIN_HEIGHT = 600
 		const val MIN_DONATION_PRICE_IRR: Long = 50_000
-		const val MAX_DONATION_PRICE_IRR: Long = 10_000_000
+		const val MAX_DONATION_PRICE_IRR: Long = 1_000_000_000
 		val JalaliMonths = arrayOf(
 			"فروردین",
 			"اردیبهشت",
@@ -405,11 +405,11 @@ o   You must ask the name of user at the start of chat, if not said.
 	object Greeting {
 		val greetingIcon = if (Random.nextBoolean()) "chat_greeting.json" else "greeting.lottie"
 		const val greetingText =
-			"سلام!! خوش اومدی!\nعه! ببینم از درمان و لکنت خسته شدی؟  بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
+			"سلام!! خوش اومدی!\nاگه از درمان و لکنت خسته شدی، بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
 	}
 
 	enum class Page {
-		Home, Welcome, Login, Menu, Search, ChatRoom, Practice, AnalyzePractice, SendDailyReport, SendWeeklyReport
+		Home, Welcome, Login, Menu, Search, GroupChatRoom, AiChatRoom, Practice, AnalyzePractice, SendDailyReport, SendWeeklyReport
 	}
 
 

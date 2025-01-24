@@ -27,8 +27,8 @@ android {
         applicationId = "ir.saltech.sokhanyar"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.5.37"
+        versionCode = 8
+        versionName = "1.5.41"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         signingConfig = signingConfigs.getByName("debug")
@@ -92,6 +92,7 @@ dependencies {
     implementation(libs.androidx.emoji2.views.helper)
     implementation(libs.androidx.documentfile)
     implementation(libs.commons.io)
+    implementation(libs.compose.shimmer)
     runtimeOnly(libs.ktor.client.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -121,60 +121,61 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun ChatPage(
-    innerPadding: PaddingValues = PaddingValues(0.dp),
-    uiState: MainUiState,
-    snackBar: SnackbarHostState,
-    mainViewModel: MainViewModel = viewModel()
+	innerPadding: PaddingValues = PaddingValues(0.dp),
+	uiState: MainUiState,
+	snackBar: SnackbarHostState,
+	mainViewModel: MainViewModel = viewModel()
 ) {
-    val density = LocalDensity.current
-    val chatHistory by uiState.chatHistory.collectAsState()
-    val chatMessagesState = rememberLazyListState()
-    val connection by connectivityState()
-    val currentIsNetworkConnected = connection === ConnectionState.Available
-    val firstItemVisible by remember {
-        derivedStateOf {
-            chatMessagesState.firstVisibleItemScrollOffset == 0
-        }
-    }
-    var startOverWanted by rememberSaveable { mutableStateOf(false) }
-    var message by rememberSaveable { mutableStateOf("") }
-    var lastIsNetworkConnected by rememberSaveable { mutableStateOf(true) }
-    var connectedLevel by remember { mutableIntStateOf(0) }
-    //Log.i("New", "New contents ${uiState.chatHistory}")
-    if (startOverWanted) {
-        LockedDirection(LayoutDirection.Rtl) {
-            AlertDialog(
-                onDismissRequest = { startOverWanted = false },
-                confirmButton = {
-                    Button(onClick = {
-                        mainViewModel.startOverChat(); startOverWanted = false
-                    }) { Text("مطمئنم") }
-                },
-                dismissButton = {
-                    OutlinedButton(modifier = Modifier.padding(end = 8.dp),
-                        onClick = { startOverWanted = false }) { Text("ولش کن") }
-                },
-                title = { Text("شروع مجدد گفتگو") },
-                text = { Text("با این کار، همه تاریخچه گفتگوها حذف میشن و گفتگو از اول آغاز میشه.\nمطمئنی؟") },
-                properties = DialogProperties(
-                    dismissOnClickOutside = false,
-                    dismissOnBackPress = false
-                )
-            )
-        }
-    }
-    if (lastIsNetworkConnected != currentIsNetworkConnected) {
-        Log.i("TAG", "network changed! ${connectedLevel}")
-        lastIsNetworkConnected = currentIsNetworkConnected
-        connectedLevel++
-    }
-    if (connectedLevel == 2) {
-        Handler(Looper.getMainLooper()).postDelayed({
-            connectedLevel = 0
-        }, 2000)
-    }
-    Column(
-        modifier = Modifier
+	val density = LocalDensity.current
+	val chatHistory by uiState.chatHistory.collectAsState()
+	val chatMessagesState = rememberLazyListState()
+	val connection by connectivityState()
+	val currentIsNetworkConnected = connection === ConnectionState.Available
+	val firstItemVisible by remember {
+		derivedStateOf {
+			chatMessagesState.firstVisibleItemScrollOffset == 0
+		}
+	}
+	var startOverWanted by rememberSaveable { mutableStateOf(false) }
+	var message by rememberSaveable { mutableStateOf("") }
+	var lastIsNetworkConnected by rememberSaveable { mutableStateOf(true) }
+	var connectedLevel by remember { mutableIntStateOf(0) }
+	//Log.i("New", "New contents ${uiState.chatHistory}")
+	if (startOverWanted) {
+		LockedDirection(LayoutDirection.Rtl) {
+			AlertDialog(
+				onDismissRequest = { startOverWanted = false },
+				confirmButton = {
+					Button(onClick = {
+						mainViewModel.startOverChat(); startOverWanted = false
+					}) { Text("مطمئنم") }
+				},
+				dismissButton = {
+					OutlinedButton(
+						modifier = Modifier.padding(end = 8.dp),
+						onClick = { startOverWanted = false }) { Text("ولش کن") }
+				},
+				title = { Text("شروع مجدد گفتگو") },
+				text = { Text("با این کار، همه تاریخچه گفتگوها حذف میشن و گفتگو از اول آغاز میشه.\nمطمئنی؟") },
+				properties = DialogProperties(
+					dismissOnClickOutside = false,
+					dismissOnBackPress = false
+				)
+			)
+		}
+	}
+	if (lastIsNetworkConnected != currentIsNetworkConnected) {
+		Log.i("TAG", "network changed! ${connectedLevel}")
+		lastIsNetworkConnected = currentIsNetworkConnected
+		connectedLevel++
+	}
+	if (connectedLevel == 2) {
+		Handler(Looper.getMainLooper()).postDelayed({
+			connectedLevel = 0
+		}, 2000)
+	}
+	Column(
+		modifier = Modifier
             .fillMaxSize()
             .background(
                 ShaderBrush(
@@ -185,9 +186,9 @@ fun ChatPage(
                     )
                 )
             )
-    ) {
-        Column(
-            modifier = Modifier
+	) {
+		Column(
+			modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = with(density) {
                     WindowInsets.ime.getBottom(
@@ -195,46 +196,46 @@ fun ChatPage(
                     ).toDp()
                 })
                 .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.54f))
-        ) {
+		) {
 //            val topFade = Brush.verticalGradient(0.7f to Color.Red, 1f to Color.Transparent)
-            Box(
-                modifier = Modifier
+			Box(
+				modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                androidx.compose.animation.AnimatedVisibility(chatHistory.contents.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier
+				contentAlignment = Alignment.BottomCenter
+			) {
+				androidx.compose.animation.AnimatedVisibility(chatHistory.contents.isNotEmpty()) {
+					LazyColumn(
+						modifier = Modifier
                             .fillMaxSize()
                             .padding(
                                 top = innerPadding.calculateTopPadding(),
                                 end = innerPadding.calculateEndPadding(LayoutDirection.Rtl),
                                 start = innerPadding.calculateStartPadding(LayoutDirection.Rtl)
                             ),
-                        state = chatMessagesState,
-                        reverseLayout = true
-                    ) {
-                        itemsIndexed(uiState.chatHistory.value.contents.filter { it.id >= 0 }
-                            .reversed()) { index, message ->
-                            ChatMessageBox(
-                                message,
-                                chatHistory.contents.filter { it.id >= 0 }.reversed(),
-                                index
-                            )
-                        }
-                    }
-                }
-                androidx.compose.animation.AnimatedVisibility(chatHistory.contents.isEmpty()) {
-                    ConstraintLayout(
-                        modifier = Modifier
+						state = chatMessagesState,
+						reverseLayout = true
+					) {
+						itemsIndexed(uiState.chatHistory.value.contents.filter { it.id >= 0 }
+							.reversed()) { index, message ->
+							ChatMessageBox(
+								message,
+								chatHistory.contents.filter { it.id >= 0 }.reversed(),
+								index
+							)
+						}
+					}
+				}
+				androidx.compose.animation.AnimatedVisibility(chatHistory.contents.isEmpty()) {
+					ConstraintLayout(
+						modifier = Modifier
                             .fillMaxHeight()
                             .width(250.dp)
                             .align(Alignment.Center)
-                    ) {
-                        val (greeting, blur) = createRefs()
-                        Card(
-                            modifier = Modifier
+					) {
+						val (greeting, blur) = createRefs()
+						Card(
+							modifier = Modifier
                                 .constrainAs(blur) {
                                     top.linkTo(greeting.top)
                                     bottom.linkTo(greeting.bottom)
@@ -242,84 +243,84 @@ fun ChatPage(
                                     end.linkTo(greeting.end)
                                 }
                                 .blur(13.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceBright.copy(
-                                    alpha = 0.33f
-                                )
-                            ),
-                            shape = MaterialTheme.shapes.large.copy(CornerSize(25.dp))
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                DotLottieAnimation(
-                                    source = DotLottieSource.Asset(greetingIcon),
-                                    modifier = Modifier
+							colors = CardDefaults.cardColors(
+								containerColor = MaterialTheme.colorScheme.surfaceBright.copy(
+									alpha = 0.33f
+								)
+							),
+							shape = MaterialTheme.shapes.large.copy(CornerSize(25.dp))
+						) {
+							Column(horizontalAlignment = Alignment.CenterHorizontally) {
+								DotLottieAnimation(
+									source = DotLottieSource.Asset(greetingIcon),
+									modifier = Modifier
                                         .size(175.dp)
                                         .padding(top = 8.dp, end = 8.dp, start = 8.dp),
-                                    playMode = Mode.BOUNCE,
-                                    loop = true,
-                                    autoplay = true
-                                )
-                                Text(
-                                    greetingText,
-                                    modifier = Modifier
+									playMode = Mode.BOUNCE,
+									loop = true,
+									autoplay = true
+								)
+								Text(
+									greetingText,
+									modifier = Modifier
                                         .padding(16.dp)
                                         .alpha(0f),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        }
-                        Card(
-                            modifier = Modifier.constrainAs(greeting) {
-                                top.linkTo(parent.top)
-                                bottom.linkTo(parent.bottom)
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
-                            },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceBright.copy(
-                                    alpha = 0.58f
-                                )
-                            ),
-                            shape = MaterialTheme.shapes.large.copy(CornerSize(25.dp))
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                DotLottieAnimation(
-                                    source = DotLottieSource.Asset(greetingIcon),
-                                    modifier = Modifier
+									textAlign = TextAlign.Center,
+									style = MaterialTheme.typography.bodyLarge
+								)
+							}
+						}
+						Card(
+							modifier = Modifier.constrainAs(greeting) {
+								top.linkTo(parent.top)
+								bottom.linkTo(parent.bottom)
+								start.linkTo(parent.start)
+								end.linkTo(parent.end)
+							},
+							colors = CardDefaults.cardColors(
+								containerColor = MaterialTheme.colorScheme.surfaceBright.copy(
+									alpha = 0.58f
+								)
+							),
+							shape = MaterialTheme.shapes.large.copy(CornerSize(25.dp))
+						) {
+							Column(horizontalAlignment = Alignment.CenterHorizontally) {
+								DotLottieAnimation(
+									source = DotLottieSource.Asset(greetingIcon),
+									modifier = Modifier
                                         .size(175.dp)
                                         .padding(top = 8.dp, end = 8.dp, start = 8.dp),
-                                    playMode = Mode.BOUNCE,
-                                    loop = true,
-                                    autoplay = true
-                                )
-                                Text(
-                                    greetingText,
-                                    modifier = Modifier.padding(16.dp),
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl)
-                                )
-                            }
-                        }
-                    }
-                }
-                Column(
-                    modifier = Modifier
+									playMode = Mode.BOUNCE,
+									loop = true,
+									autoplay = true
+								)
+								Text(
+									greetingText,
+									modifier = Modifier.padding(16.dp),
+									textAlign = TextAlign.Center,
+									style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrRtl)
+								)
+							}
+						}
+					}
+				}
+				Column(
+					modifier = Modifier
                         .fillMaxSize()
                         .align(Alignment.TopCenter)
-                ) {
-                    AnimatedVisibility(
-                        connectedLevel in 1..2,
-                        enter = fadeIn() + slideInVertically { -it },
-                        exit = fadeOut() + slideOutVertically { -it }) {
-                        Column(
-                            modifier = Modifier
+				) {
+					AnimatedVisibility(
+						connectedLevel in 1..2,
+						enter = fadeIn() + slideInVertically { -it },
+						exit = fadeOut() + slideOutVertically { -it }) {
+						Column(
+							modifier = Modifier
                                 .fillMaxWidth()
                                 .background(if (connectedLevel == 1) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row(
-                                modifier = Modifier
+							horizontalAlignment = Alignment.CenterHorizontally
+						) {
+							Row(
+								modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(
                                         top = innerPadding.calculateTopPadding() + 16.dp,
@@ -327,52 +328,52 @@ fun ChatPage(
                                         start = innerPadding.calculateStartPadding(LayoutDirection.Rtl),
                                         bottom = 16.dp
                                     ), horizontalArrangement = Arrangement.Center
-                            ) {
-                                if (connectedLevel == 1) {
-                                    Text(
-                                        text = "اینترنت در دسترس نیست!",
-                                        style = MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            textDirection = TextDirection.ContentOrRtl
-                                        ),
-                                        color = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Icon(
-                                        painterResource(R.drawable.network_unavailable),
-                                        "Network Unavailable",
-                                        tint = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                } else {
-                                    Text(
-                                        text = "دوباره متصل شدید!",
-                                        style = MaterialTheme.typography.labelLarge.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            textDirection = TextDirection.ContentOrRtl
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Icon(
-                                        painterResource(R.drawable.network_available),
-                                        "Network Available",
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (chatHistory.contents.isNotEmpty()) {
-                        LockedDirection(LayoutDirection.Rtl) {
-                            ExtendedFloatingActionButton(
-                                text = { Text("شروع مجدد") },
-                                icon = {
-                                    Icon(
-                                        painterResource(R.drawable.round_restart_alt_24),
-                                        "Start over chat"
-                                    )
-                                },
-                                modifier = Modifier
+							) {
+								if (connectedLevel == 1) {
+									Text(
+										text = "اینترنت در دسترس نیست!",
+										style = MaterialTheme.typography.labelLarge.copy(
+											fontWeight = FontWeight.Bold,
+											textDirection = TextDirection.ContentOrRtl
+										),
+										color = MaterialTheme.colorScheme.onErrorContainer
+									)
+									Spacer(modifier = Modifier.width(16.dp))
+									Icon(
+										painterResource(R.drawable.network_unavailable),
+										"Network Unavailable",
+										tint = MaterialTheme.colorScheme.onErrorContainer
+									)
+								} else {
+									Text(
+										text = "دوباره متصل شدید!",
+										style = MaterialTheme.typography.labelLarge.copy(
+											fontWeight = FontWeight.Bold,
+											textDirection = TextDirection.ContentOrRtl
+										),
+										color = MaterialTheme.colorScheme.onSecondaryContainer
+									)
+									Spacer(modifier = Modifier.width(16.dp))
+									Icon(
+										painterResource(R.drawable.network_available),
+										"Network Available",
+										tint = MaterialTheme.colorScheme.onSecondaryContainer
+									)
+								}
+							}
+						}
+					}
+					if (chatHistory.contents.isNotEmpty()) {
+						LockedDirection(LayoutDirection.Rtl) {
+							ExtendedFloatingActionButton(
+								text = { Text("شروع مجدد") },
+								icon = {
+									Icon(
+										painterResource(R.drawable.round_restart_alt_24),
+										"Start over chat"
+									)
+								},
+								modifier = Modifier
                                     .padding(
                                         top = (if (connectedLevel in 1..2) 0.dp else innerPadding.calculateTopPadding()) + 16.dp,
                                         start = 16.dp,
@@ -380,146 +381,142 @@ fun ChatPage(
                                         bottom = 16.dp
                                     )
                                     .align(Alignment.Start),
-                                onClick = {
-                                    startOverWanted = true
-                                },
-                                expanded = firstItemVisible
-                            )
-                        }
-                    }
-                }
+								onClick = {
+									startOverWanted = true
+								},
+								expanded = firstItemVisible
+							)
+						}
+					}
+				}
 
 //                Row (modifier = Modifier.fillMaxWidth().fadingEdge(topFade).background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.85f)).align(Alignment.TopCenter), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
 //                    IconButton(onClick = {}) {
 //                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back To Menu")
 //                    }
 //                }
-            }
-            ChatInput(
-                message,
-                onMessageChanged = { message = it },
-                snackBar,
-                currentIsNetworkConnected,
-                innerPadding,
-                object : ChatActionWantedListener {
-                    override fun onSendWanted() {
-                        mainViewModel.viewModelScope.launch { chatMessagesState.scrollToItem(0) }
-                        mainViewModel.generateNewMessage(message)
-                        message = ""
-                    }
+			}
+			ChatInput(
+				message,
+				onMessageChanged = { message = it },
+				snackBar,
+				currentIsNetworkConnected,
+				innerPadding,
+				object : ChatActionWantedListener {
+					override fun onSendWanted() {
+						mainViewModel.viewModelScope.launch { chatMessagesState.scrollToItem(0) }
+						mainViewModel.generateNewMessage(message)
+						message = ""
+					}
 
-                    override fun onStartOverWanted() {
-                        mainViewModel.startOverChat()
-                    }
+					override fun onStartOverWanted() {
+						mainViewModel.startOverChat()
+					}
 
-                    override fun onScheduledSendWanted() {
-                        TODO("Not yet implemented")
-                    }
+					override fun onScheduledSendWanted() {
+						TODO("Not yet implemented")
+					}
 
-                }
-            )
-        }
-    }
+				}
+			)
+		}
+	}
 }
 
 @Composable
 fun ChatMessageBox(content: ChatMessage, list: List<ChatMessage> = emptyList(), index: Int = 0) {
-    Column {
-        if (list.isNotEmpty()) {
-            if (index + 1 == list.size) {
-                DayIndicator(content.createdAt.epochToMonthDay())
-            } else if ((list[index].createdAt / 86400000) != (list[index + 1].createdAt / 86400000)) {
-                DayIndicator(content.createdAt.epochToMonthDay())
-            }
-        }
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Card(
-                modifier = Modifier
+	Column {
+		if (list.isNotEmpty()) {
+			if (index + 1 == list.size) {
+				DayIndicator(content.createdAt.epochToMonthDay())
+			} else if ((list[index].createdAt / 86400000) != (list[index + 1].createdAt / 86400000)) {
+				DayIndicator(content.createdAt.epochToMonthDay())
+			}
+		}
+		Box(modifier = Modifier.fillMaxWidth()) {
+			Card(
+				modifier = Modifier
                     .padding(16.dp)
                     .align(if (content.role == "user") Alignment.BottomEnd else Alignment.BottomStart)
                     .width(IntrinsicSize.Max),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (content.role == "user") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = if (content.role == "user") MaterialTheme.colorScheme.onTertiary else CardDefaults.cardColors().contentColor
-                ),
-                shape = if (content.role == "user") MaterialTheme.shapes.large.copy(
-                    bottomEnd = CornerSize(
-                        0
-                    )
-                ) else MaterialTheme.shapes.large.copy(bottomStart = CornerSize(0))
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (content.content == "...") {
-                        DotLottieAnimation(
-                            source = DotLottieSource.Asset("loading2.lottie"),
-                            modifier = Modifier
+				colors = CardDefaults.cardColors(
+					containerColor = if (content.role == "user") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceContainer,
+					contentColor = if (content.role == "user") MaterialTheme.colorScheme.onTertiary else CardDefaults.cardColors().contentColor
+				),
+				shape = if (content.role == "user") MaterialTheme.shapes.large.copy(
+					bottomEnd = CornerSize(
+						0
+					)
+				) else MaterialTheme.shapes.large.copy(bottomStart = CornerSize(0))
+			) {
+				Column(horizontalAlignment = Alignment.CenterHorizontally) {
+					if (content.content == "...") {
+						DotLottieAnimation(
+							source = DotLottieSource.Asset("loading2.lottie"),
+							modifier = Modifier
                                 .width(150.dp)
                                 .height(50.dp)
                                 .scale(1.2f)
                                 .padding(8.dp),
-                            playMode = Mode.FORWARD,
-                            loop = true,
-                            autoplay = true
-                        )
-                    } else {
-                        if (content.role == "user") {
-                            ResponseText(content.content)
-                        } else {
-                            SelectionContainer {
-                                ResponseText(content.content)
-                            }
-                        }
-                        Text(
-                            modifier = Modifier
+							playMode = Mode.FORWARD,
+							loop = true,
+							autoplay = true
+						)
+					} else {
+						SelectionContainer {
+							ResponseText(content.content)
+						}
+						Text(
+							modifier = Modifier
                                 .padding(top = 5.dp, start = 16.dp, end = 16.dp, bottom = 10.dp)
                                 .align(if (content.role == "user") Alignment.Start else Alignment.End),
-                            text = content.createdAt.epochToHoursMinutes(),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (content.role == "user") MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                }
-            }
-        }
-    }
+							text = content.createdAt.epochToHoursMinutes(),
+							textAlign = TextAlign.Center,
+							style = MaterialTheme.typography.bodySmall,
+							color = if (content.role == "user") MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.secondary
+						)
+					}
+				}
+			}
+		}
+	}
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ChatInput(
-    message: String,
-    onMessageChanged: (String) -> Unit,
-    snackBar: SnackbarHostState,
-    enabled: Boolean = true,
-    innerPadding: PaddingValues = PaddingValues(0.dp),
-    actionWantedListener: ChatActionWantedListener
+	message: String,
+	onMessageChanged: (String) -> Unit,
+	snackBar: SnackbarHostState,
+	enabled: Boolean = true,
+	innerPadding: PaddingValues = PaddingValues(0.dp),
+	actionWantedListener: ChatActionWantedListener
 ) {
-    val focusRequester = remember { FocusRequester() }
-    val density = LocalDensity.current
-    val keyboardHeight = with(density) {
-        WindowInsets.ime.getBottom(
-            density
-        ).toDp()
-    }
-    val scope = rememberCoroutineScope()
-    val focus = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    var emojiWanted by remember { mutableStateOf(false) }
-    var previousHeight by remember { mutableStateOf(0.dp) }
-    Card(
-        modifier = Modifier.padding(0.dp),
-        shape = MaterialTheme.shapes.large.copy(CornerSize(0)),
-    ) {
-        Column(
-            modifier = Modifier
+	val focusRequester = remember { FocusRequester() }
+	val density = LocalDensity.current
+	val keyboardHeight = with(density) {
+		WindowInsets.ime.getBottom(
+			density
+		).toDp()
+	}
+	val scope = rememberCoroutineScope()
+	val focus = LocalFocusManager.current
+	val keyboardController = LocalSoftwareKeyboardController.current
+	var emojiWanted by remember { mutableStateOf(false) }
+	var previousHeight by remember { mutableStateOf(0.dp) }
+	Card(
+		modifier = Modifier.padding(0.dp),
+		shape = MaterialTheme.shapes.large.copy(CornerSize(0)),
+	) {
+		Column(
+			modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = if (WindowInsets.isImeVisible) 0.dp else innerPadding.calculateBottomPadding()),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+		) {
+			Row(
+				modifier = Modifier.fillMaxWidth(),
+				verticalAlignment = Alignment.CenterVertically
+			) {
 //                IconButton(
 //                    modifier = Modifier
 //                        .align(Alignment.Bottom)
@@ -531,45 +528,45 @@ fun ChatInput(
 //                ) {
 //                    Icon(painterResource(R.drawable.round_restart_alt_24), "Start over chat")
 //                }
-                IconButton(
-                    modifier = Modifier
+				IconButton(
+					modifier = Modifier
                         .align(Alignment.Bottom)
                         .padding(bottom = 3.dp),
-                    enabled = enabled,
-                    onClick = {
-                        emojiWanted = !emojiWanted
-                        if (emojiWanted) {
-                            previousHeight = keyboardHeight
-                            keyboardController?.hide()
-                            focus.clearFocus()
-                        } else {
-                            keyboardController?.show()
-                            focusRequester.requestFocus()
-                        }
-                    }
-                ) {
-                    Icon(
-                        painterResource(if (emojiWanted) R.drawable.outline_keyboard_24 else R.drawable.outline_emoji_emotions_24),
-                        "Switch Emoji or Keyboard"
-                    )
-                }
-                LockedDirection(LayoutDirection.Rtl) {
-                    TextField(
-                        message,
-                        onValueChange = {
-                            if (it.length <= 1500) {
-                                onMessageChanged(it)
-                            } else {
-                                focus.clearFocus()
-                                scope.launch {
-                                    snackBar.showSnackbar(
-                                        "حداکثر تعداد حروف، 600 تا در هر پیام می باشد!",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            }
-                        },
-                        modifier = Modifier
+					enabled = enabled,
+					onClick = {
+						emojiWanted = !emojiWanted
+						if (emojiWanted) {
+							previousHeight = keyboardHeight
+							keyboardController?.hide()
+							focus.clearFocus()
+						} else {
+							keyboardController?.show()
+							focusRequester.requestFocus()
+						}
+					}
+				) {
+					Icon(
+						painterResource(if (emojiWanted) R.drawable.outline_keyboard_24 else R.drawable.outline_emoji_emotions_24),
+						"Switch Emoji or Keyboard"
+					)
+				}
+				LockedDirection(LayoutDirection.Rtl) {
+					TextField(
+						message,
+						onValueChange = {
+							if (it.length <= 1500) {
+								onMessageChanged(it)
+							} else {
+								focus.clearFocus()
+								scope.launch {
+									snackBar.showSnackbar(
+										"حداکثر تعداد حروف، 600 تا در هر پیام می باشد!",
+										duration = SnackbarDuration.Short
+									)
+								}
+							}
+						},
+						modifier = Modifier
                             .weight(1f)
                             .focusRequester(focusRequester)
                             .onFocusChanged { focusState ->
@@ -578,42 +575,42 @@ fun ChatInput(
                                     emojiWanted = false
                                 }
                             },
-                        enabled = enabled,
-                        shape = MaterialTheme.shapes.large,
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
-                        ),
-                        placeholder = {
-                            Text(
-                                "هرچی دل تنگت میخواد، بگو!",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),
-                        maxLines = 5,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                    )
-                }
-                IconButton(
-                    modifier = Modifier
+						enabled = enabled,
+						shape = MaterialTheme.shapes.large,
+						colors = TextFieldDefaults.colors(
+							focusedIndicatorColor = Color.Transparent,
+							unfocusedIndicatorColor = Color.Transparent,
+							disabledIndicatorColor = Color.Transparent
+						),
+						placeholder = {
+							Text(
+								"هرچی دل تنگت میخواد، بگو!",
+								style = MaterialTheme.typography.bodyMedium
+							)
+						},
+						textStyle = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),
+						maxLines = 5,
+						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+					)
+				}
+				IconButton(
+					modifier = Modifier
                         .align(Alignment.Bottom)
                         .padding(bottom = 3.dp),
-                    onClick = {
-                        actionWantedListener.onSendWanted()
-                    },
-                    enabled = message.isNotEmpty()
-                ) {
-                    Icon(Icons.AutoMirrored.Rounded.Send, "Send Message")
-                }
-            }
-            BackHandler(enabled = emojiWanted) {
-                emojiWanted = false
-            }
-            if (emojiWanted) {
-                AndroidView(
-                    modifier = Modifier
+					onClick = {
+						actionWantedListener.onSendWanted()
+					},
+					enabled = message.isNotEmpty()
+				) {
+					Icon(Icons.AutoMirrored.Rounded.Send, "Send Message")
+				}
+			}
+			BackHandler(enabled = emojiWanted) {
+				emojiWanted = false
+			}
+			if (emojiWanted) {
+				AndroidView(
+					modifier = Modifier
                         .fillMaxWidth()
                         .let {
                             if (previousHeight > 0.dp) {
@@ -622,73 +619,77 @@ fun ChatInput(
                                 it.fillMaxHeight(0.4f)
                             }
                         },
-                    factory = { context -> EmojiPickerView(context) },
-                    update = {
-                        it.setOnEmojiPickedListener { emoji ->
-                            val cursorPosition = message.length
-                            onMessageChanged(
-                                message.substring(
-                                    0,
-                                    cursorPosition
-                                ) + emoji.emoji + message.substring(cursorPosition)
-                            )
-                        }
-                    }
-                )
-            }
-        }
-    }
+					factory = { context -> EmojiPickerView(context) },
+					update = {
+						it.setOnEmojiPickedListener { emoji ->
+							val cursorPosition = message.length
+							onMessageChanged(
+								message.substring(
+									0,
+									cursorPosition
+								) + emoji.emoji + message.substring(cursorPosition)
+							)
+						}
+					}
+				)
+			}
+		}
+	}
 }
 
 @Composable
 fun DayIndicator(createdAt: String) {
-    Box(
-        modifier = Modifier
+	Box(
+		modifier = Modifier
             .fillMaxWidth()
             .scale(0.93f)
             .padding(8.dp), contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier.background(
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.215f),
-                shape = MaterialTheme.shapes.small.copy(CornerSize(13.dp))
-            )
-        ) {
-            Text(
-                modifier = Modifier.padding(8.dp),
-                text = createdAt,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),
-                color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
-            )
-        }
-    }
+	) {
+		Box(
+			modifier = Modifier.background(
+				MaterialTheme.colorScheme.primary.copy(alpha = 0.215f),
+				shape = MaterialTheme.shapes.small.copy(CornerSize(13.dp))
+			)
+		) {
+			Text(
+				modifier = Modifier.padding(8.dp),
+				text = createdAt,
+				textAlign = TextAlign.Center,
+				style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl),
+				color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
+			)
+		}
+	}
 }
 
 @Composable
 fun ResponseText(text: String, modifier: Modifier = Modifier) {
-    Text(
-        modifier = modifier
+	Text(
+		modifier = modifier
             .widthIn(150.dp, 300.dp)
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp),
-        text = parseMarkdown(text.trim()),
-        textAlign = TextAlign.Start,
-        lineHeight = 26.sp,
-        style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl)
-    )
+		text = parseMarkdown(text.trim()),
+		textAlign = TextAlign.Start,
+		lineHeight = 26.sp,
+		style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.ContentOrRtl)
+	)
 }
 
 @Preview
 @Composable
 fun TestChatPage(mainViewModel: MainViewModel = viewModel()) {
-    val mainUiState by mainViewModel.uiState.collectAsState()
-    val snackBarHostState = remember { SnackbarHostState() }
-    AppTheme {
-        Scaffold (snackbarHost = {
-            SnackbarHost(snackBarHostState)
-        }) { innerPadding ->
-            ChatPage(innerPadding = innerPadding, uiState = mainUiState, snackBar = snackBarHostState)
-        }
-    }
+	val mainUiState by mainViewModel.uiState.collectAsState()
+	val snackBarHostState = remember { SnackbarHostState() }
+	AppTheme {
+		Scaffold(snackbarHost = {
+			SnackbarHost(snackBarHostState)
+		}) { innerPadding ->
+			ChatPage(
+				innerPadding = innerPadding,
+				uiState = mainUiState,
+				snackBar = snackBarHostState
+			)
+		}
+	}
 }
