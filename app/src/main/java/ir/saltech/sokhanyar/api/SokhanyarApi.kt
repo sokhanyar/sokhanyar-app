@@ -14,4 +14,10 @@ interface SokhanyarApi {
 
 	@POST("api/v1/auth/verify-otp")
 	fun verifyOtp(@Body authInfo: AuthInfo): Call<AuthInfo>
+
+//	@POST("api/v1/ai/generate/text")
+//	fun generateText(
+//		@Header(AUTHORIZATION_HEADER) authToken: String,
+//        @Body promptInfo: PromptInfo)
+//	): Call<>
 }

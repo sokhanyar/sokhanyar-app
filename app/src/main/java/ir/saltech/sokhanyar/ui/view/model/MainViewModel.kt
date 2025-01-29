@@ -12,9 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ir.saltech.ai.client.generativeai.GenerativeModel
-import ir.saltech.ai.client.generativeai.type.content
-import ir.saltech.ai.client.generativeai.type.generationConfig
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.BaseApplication.Constants.OTP_EXPIRATION_DURATION_SECONDS
 import ir.saltech.sokhanyar.R
@@ -36,16 +33,11 @@ import ir.saltech.sokhanyar.model.data.reports.WeeklyReport
 import ir.saltech.sokhanyar.model.data.reports.WeeklyReports
 import ir.saltech.sokhanyar.ui.state.MainUiState
 import ir.saltech.sokhanyar.util.analyzeError
-import ir.saltech.sokhanyar.util.asAiContent
-import ir.saltech.sokhanyar.util.asAiContents
-import ir.saltech.sokhanyar.util.asChatMessage
 import ir.saltech.sokhanyar.util.dataStore
-import ir.saltech.sokhanyar.util.epochToFullDateTime
 import ir.saltech.sokhanyar.util.fromJson
 import ir.saltech.sokhanyar.util.get
 import ir.saltech.sokhanyar.util.getGreetingBasedOnTime
 import ir.saltech.sokhanyar.util.getLastDailyReports
-import ir.saltech.sokhanyar.util.getUserSummary
 import ir.saltech.sokhanyar.util.set
 import ir.saltech.sokhanyar.util.toJalali
 import ir.saltech.sokhanyar.util.toJson
@@ -134,58 +126,58 @@ class MainViewModel : ViewModel() {
 	fun generateNewMessage(message: String) {
 		viewModelScope.launch {
 			try {
-				val model = GenerativeModel(
-					modelName = BaseApplication.Ai.Gemini.Models.Flash,
-					BaseApplication.Ai.Gemini.apiKeys.random(),
-					systemInstruction = content {
-						text(
-							"${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${
-								Clock.System.now().toEpochMilliseconds().epochToFullDateTime()
-							}"
-						)
-					},
-					generationConfig = generationConfig {
-						temperature = 1.3f
-						topK = 40
-						topP = 0.95f
-						maxOutputTokens = 1024
-						responseMimeType = "text/plain"
-						frequencyPenalty = 0.7f
-						presencePenalty = 1.2f
-					})
-				val requestContent = ChatMessage(
-					(_uiState.value.chatHistory.value.contents.lastOrNull()?.id ?: -1) + 1,
-					"user",
-					message
-				)
-				chatHistory =
-					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-						val userNameChatMessage = ChatMessage(
-							id = -1, role = "user", content = _uiState.value.user.getUserSummary()
-						)
-						if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(
-							0, userNameChatMessage
-						)
-						it.add(requestContent)
-						it
-					}))
-				saveChatHistory()
-				val backupChatHistory = _uiState.value.chatHistory.value.contents.asAiContents()
-				chatHistory =
-					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-						it.add(ChatMessage(0, "assistant", "...")); it
-					}))
-				val response =
-					model.startChat(backupChatHistory).sendMessage(requestContent.asAiContent())
-				Log.i("TAG", "Response got: $response")
-				// TODO: You can set function calling here
-				chatHistory =
-					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
-						it[_uiState.value.chatHistory.value.contents.lastIndex] =
-							(response.candidates[0].content.asChatMessage(_uiState.value.chatHistory.value.contents.lastOrNull())
-								?: return@launch); it
-					}))
-				saveChatHistory()
+//				val model = GenerativeModel(
+//					modelName = BaseApplication.Ai.Gemini.Models.Flash,
+//					BaseApplication.Ai.Gemini.apiKeys.random(),
+//					systemInstruction = content {
+//						text(
+//							"${BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1}\nCurrent Time is ${
+//								Clock.System.now().toEpochMilliseconds().epochToFullDateTime()
+//							}"
+//						)
+//					},
+//					generationConfig = generationConfig {
+//						temperature = 1.3f
+//						topK = 40
+//						topP = 0.95f
+//						maxOutputTokens = 1024
+//						responseMimeType = "text/plain"
+//						frequencyPenalty = 0.7f
+//						presencePenalty = 1.2f
+//					})
+//				val requestContent = ChatMessage(
+//					(_uiState.value.chatHistory.value.contents.lastOrNull()?.id ?: -1) + 1,
+//					"user",
+//					message
+//				)
+//				chatHistory =
+//					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+//						val userNameChatMessage = ChatMessage(
+//							id = -1, role = "user", content = _uiState.value.user.getUserSummary()
+//						)
+//						if (_uiState.value.user.name != null && !it.contains(userNameChatMessage)) it.add(
+//							0, userNameChatMessage
+//						)
+//						it.add(requestContent)
+//						it
+//					}))
+//				saveChatHistory()
+//				val backupChatHistory = _uiState.value.chatHistory.value.contents.asAiContents()
+//				chatHistory =
+//					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+//						it.add(ChatMessage(0, "assistant", "...")); it
+//					}))
+//				val response =
+//					model.startChat(backupChatHistory).sendMessage(requestContent.asAiContent())
+//				Log.i("TAG", "Response got: $response")
+//				// TODO: You can set function calling here
+//				chatHistory =
+//					MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+//						it[_uiState.value.chatHistory.value.contents.lastIndex] =
+//							(response.candidates[0].content.asChatMessage(_uiState.value.chatHistory.value.contents.lastOrNull())
+//								?: return@launch); it
+//					}))
+//				saveChatHistory()
 			} catch (e: Exception) {
 				e.printStackTrace()
 				if (_uiState.value.chatHistory.value.contents.lastOrNull()?.content == "...") {
@@ -222,37 +214,37 @@ class MainViewModel : ViewModel() {
 		if (reports != null && reports.size >= 2) {
 			viewModelScope.launch {
 				try {
-					val model = GenerativeModel(
-						modelName = BaseApplication.Ai.Gemini.Models.Flash,
-						BaseApplication.Ai.Gemini.apiKeys.random(),
-						systemInstruction = content {
-							text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + _uiState.value.user.getUserSummary())
-						},
-						generationConfig = generationConfig {
-							temperature = 0.8f
-							topK = 40
-							topP = 0.95f
-							maxOutputTokens = 1024
-							responseMimeType = "text/plain"
-						})
-					val chat = model.startChat()
-					val generatedResponse = chat.sendMessage(content {
-						text(
-							"""سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
-                    گزارش این هفته / امروز:
-                    ${
-								reports.last().result
-							}
-                    گزارش های قبلی:
-                    ${
-								reports.subList(0, reports.lastIndex)
-							}
-                    """
-						)
-					})
-					Log.i("TAG", "Advice generated: ${generatedResponse.text}")
-					advice.value = generatedResponse.text?.trim()
-					_uiState.value.advice.value = generatedResponse.text?.trim()
+//					val model = GenerativeModel(
+//						modelName = BaseApplication.Ai.Gemini.Models.Flash,
+//						BaseApplication.Ai.Gemini.apiKeys.random(),
+//						systemInstruction = content {
+//							text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + _uiState.value.user.getUserSummary())
+//						},
+//						generationConfig = generationConfig {
+//							temperature = 0.8f
+//							topK = 40
+//							topP = 0.95f
+//							maxOutputTokens = 1024
+//							responseMimeType = "text/plain"
+//						})
+//					val chat = model.startChat()
+//					val generatedResponse = chat.sendMessage(content {
+//						text(
+//							"""سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
+//                    گزارش این هفته / امروز:
+//                    ${
+//								reports.last().result
+//							}
+//                    گزارش های قبلی:
+//                    ${
+//								reports.subList(0, reports.lastIndex)
+//							}
+//                    """
+//						)
+//					})
+//					Log.i("TAG", "Advice generated: ${generatedResponse.text}")
+//					advice.value = generatedResponse.text?.trim()
+//					_uiState.value.advice.value = generatedResponse.text?.trim()
 				} catch (e: Exception) {
 					e.printStackTrace()
 					// TODO: بعداً یادت باشه این رو حذف کنی! چون باید advice رو ذخیره کنی و نباید خطا ها ذخیره بشن .. اینو طور دیگه هندل کن
@@ -266,21 +258,21 @@ class MainViewModel : ViewModel() {
 	fun generateNewMotivationText() {
 		viewModelScope.launch {
 			try {
-				val model = GenerativeModel(
-					modelName = BaseApplication.Ai.Gemini.Models.Flash,
-					BaseApplication.Ai.Gemini.apiKeys.random(),
-					generationConfig = generationConfig {
-						temperature = 1.7f
-						topK = 40
-						topP = 0.90f
-						maxOutputTokens = 100
-						responseMimeType = "text/plain"
-						frequencyPenalty = 0.6f
-					})
-				val generatedContent = model.generateContent(
-					" ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی جذاب و متفاوت به من بگو.\n" + "فقط جمله انگیزشی ات رو نشون بده. جمله انگیزشی باید حداکثر 1 خط، به همراه ایموجی جذاب و بعضی مواقع در موضوع درمان لکنت باشه.\n"
-				)
-				sentence = generatedContent.text?.trim() ?: sentence
+//				val model = GenerativeModel(
+//					modelName = BaseApplication.Ai.Gemini.Models.Flash,
+//					BaseApplication.Ai.Gemini.apiKeys.random(),
+//					generationConfig = generationConfig {
+//						temperature = 1.7f
+//						topK = 40
+//						topP = 0.90f
+//						maxOutputTokens = 100
+//						responseMimeType = "text/plain"
+//						frequencyPenalty = 0.6f
+//					})
+//				val generatedContent = model.generateContent(
+//					" ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی جذاب و متفاوت به من بگو.\n" + "فقط جمله انگیزشی ات رو نشون بده. جمله انگیزشی باید حداکثر 1 خط، به همراه ایموجی جذاب و بعضی مواقع در موضوع درمان لکنت باشه.\n"
+//				)
+//				sentence = generatedContent.text?.trim() ?: sentence
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}

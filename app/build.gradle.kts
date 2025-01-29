@@ -48,6 +48,11 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    packaging {
+        resources {
+            excludes += listOf("META-INF/INDEX.LIST")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -72,6 +77,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.ui.text.fonts)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.constraintlayout.compose)
     implementation(platform(libs.openai.client.bom))
     implementation(libs.openai.client)
     implementation(libs.lifecycle.viewmodel.compose)
@@ -80,11 +86,9 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.gson)
     implementation(libs.kotlinx.datetime)
-    implementation(libs.generativeai)
     implementation(libs.datastore.preferences)
     implementation(libs.ratingbar.compose)
     implementation(libs.picasso)
-    implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.compose.webview)
     implementation(libs.mdparserkitcore)
     implementation(libs.dotlottie.android)
@@ -93,8 +97,19 @@ dependencies {
     implementation(libs.androidx.documentfile)
     implementation(libs.commons.io)
     implementation(libs.compose.shimmer)
+    implementation(platform(libs.ktor.bom))
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.slf4j.api)
+    implementation(libs.logback.classic)
     runtimeOnly(libs.ktor.client.okhttp)
+    testImplementation(libs.json)
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.assertions.core.jvm)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

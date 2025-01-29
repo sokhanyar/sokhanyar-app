@@ -20,11 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.aallam.openai.api.chat.ChatChunk
 import com.google.gson.Gson
 import gregorian_to_jalali
-import ir.saltech.ai.client.generativeai.type.Content
-import ir.saltech.ai.client.generativeai.type.asTextOrNull
-import ir.saltech.ai.client.generativeai.type.content
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.model.api.ChatMessage
 import ir.saltech.sokhanyar.model.data.general.User
 import ir.saltech.sokhanyar.model.data.reports.DailyReport
 import ir.saltech.sokhanyar.model.data.reports.DailyReports
@@ -164,34 +160,34 @@ fun Modifier.wrapToScreen(reverse: Boolean = false): Modifier {
         }
     }
 }
-
-fun MutableList<ChatMessage>.asAiContents(): List<Content> {
-    // TODO: ChatMessage currently supports only texts.
-    return this.map {
-        content(it.role) {
-            text(it.content)
-        }
-    }
-}
-
-fun ChatMessage.asAiContent(): Content {
-    // TODO: ChatMessage currently supports only texts.
-    return content(this@asAiContent.role) {
-        text(this@asAiContent.content)
-    }
-}
-
-fun Content.asChatMessage(previousMessage: ChatMessage?): ChatMessage? {
-    return if (this.role != null && this.parts.isNotEmpty()) {
-        ChatMessage(
-            id = (previousMessage?.id ?: 0) + 1,
-            role = this.role!!,
-            content = this.parts[0].asTextOrNull() ?: return null
-        )
-    } else {
-        null
-    }
-}
+//
+//fun MutableList<ChatMessage>.asAiContents(): List<Content> {
+//    // TODO: ChatMessage currently supports only texts.
+//    return this.map {
+//        content(it.role) {
+//            text(it.content)
+//        }
+//    }
+//}
+//
+//fun ChatMessage.asAiContent(): Content {
+//    // TODO: ChatMessage currently supports only texts.
+//    return content(this@asAiContent.role) {
+//        text(this@asAiContent.content)
+//    }
+//}
+//
+//fun Content.asChatMessage(previousMessage: ChatMessage?): ChatMessage? {
+//    return if (this.role != null && this.parts.isNotEmpty()) {
+//        ChatMessage(
+//            id = (previousMessage?.id ?: 0) + 1,
+//            role = this.role!!,
+//            content = this.parts[0].asTextOrNull() ?: return null
+//        )
+//    } else {
+//        null
+//    }
+//}
 
 fun Long.epochToMinutesSeconds(): String {
     val minutes = TimeUnit.SECONDS.toMinutes(this) % 60
