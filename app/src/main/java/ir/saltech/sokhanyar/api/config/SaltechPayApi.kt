@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.api
+package ir.saltech.sokhanyar.api.config
 
 import ir.saltech.sokhanyar.model.api.DonationPayment
 import ir.saltech.sokhanyar.model.api.PaymentResult

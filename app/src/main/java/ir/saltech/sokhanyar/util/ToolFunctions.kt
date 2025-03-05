@@ -17,18 +17,17 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import com.aallam.openai.api.chat.ChatChunk
-import com.google.gson.Gson
 import gregorian_to_jalali
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.model.data.general.User
-import ir.saltech.sokhanyar.model.data.reports.DailyReport
-import ir.saltech.sokhanyar.model.data.reports.DailyReports
-import ir.saltech.sokhanyar.model.data.reports.WeeklyReport
+import ir.saltech.sokhanyar.model.data.general.Patient
+import ir.saltech.sokhanyar.model.data.treatment.report.DailyReport
+import ir.saltech.sokhanyar.model.data.treatment.report.DailyReports
+import ir.saltech.sokhanyar.model.data.treatment.report.WeeklyReport
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.NumberFormat
 import java.util.Calendar
@@ -37,16 +36,17 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 
-@Override
-fun MutableList<ChatChunk>.response(): String =
-    this.joinToString("") { it.delta?.content ?: "" }.trim()
+//@Override
+//fun MutableList<ChatChunk>.response(): String =
+//    this.joinToString("") { it.delta?.content ?: "" }.trim()
+// TODO: Use the ktor client to gather sse response for streaming messages
 
 inline fun <reified T> fromJson(json: String?): T? {
-    return Gson().fromJson(json ?: return null, T::class.java)
+    return Json.decodeFromString<T>(json ?: return null)
 }
 
 inline fun <reified T> toJson(t: T?): String? {
-    return Gson().toJson(t ?: return null)
+    return Json.encodeToString(t ?: return null)
 }
 
 fun String.asToken(): String {
@@ -298,20 +298,19 @@ fun File.getMimeType(): String? {
     return type
 }
 
-fun User.getUserSummary(): String {
+fun Patient.getSummary(): String {
     return """
         اطلاعات من در مورد خودم، لکنت و گفتارم که باید بدانی:
-        ${if (this.name != null) "اسم من ${this.name} است." else ""}
+        ${if (this.displayName != null) "اسم من ${this.displayName} است." else ""}
         ${if (this.age != null) "من ${this.age} سال سن دارم." else ""}
         ${if (this.yearOfStartStuttering != null) "من از ${this.yearOfStartStuttering} سالگی دچار لکنت شدم." else ""}
         ${if (this.timesOfTherapy != null) "من ${this.timesOfTherapy} بار در طول این سالها برای درمانم تلاش کردم." else ""}
         ${if (!this.stutteringType.isNullOrBlank()) "نوع لکنت من ${this.stutteringType} است." else ""}
-        ${if (!this.tirednessLevel.isNullOrBlank()) "از لکنت کردن ${this.tirednessLevel} هستم." else ""}
         ${if (this.previousStutteringSeverity != null) "درجه شدت لکنت من قبل از درمان ${this.previousStutteringSeverity} بود." else ""}
         ${if (this.currentStutteringSeverity != null) "درجه شدت لکنت من در حین درمان ${this.currentStutteringSeverity} شده." else ""}
         ${if (!this.dailyTherapyTime.isNullOrBlank()) "من روزانه ${this.dailyTherapyTime} برای درمان وقت می‌گذارم." else ""}
         ${if (this.currentTherapyDuration != null) "دوره درمان فعلی من ${this.currentTherapyDuration} ماه طول کشیده است." else ""}
-        ${if (!this.therapyStatus.isNullOrBlank()) "وضعیت فعلی درمان من: ${this.therapyStatus}." else ""}
+        ${if (!this.treatmentStatus.isNullOrBlank()) "وضعیت فعلی درمان من: ${this.treatmentStatus}." else ""}
         ${if (!this.therapyMethod.isNullOrBlank()) "شیوه درمانی فعلی من ${this.therapyMethod} است." else ""}
         ${if (!this.stutteringSituations.isNullOrBlank()) "من در موقعیت‌های ${this.stutteringSituations} بیشتر لکنت می‌کنم." else ""}
         ${if (!this.emotionalImpact.isNullOrBlank()) "لکنت بر احساسات من این تأثیر را دارد: ${this.emotionalImpact}." else ""}
@@ -325,27 +324,27 @@ fun User.getUserSummary(): String {
     """.trimIndent()
 }
 
-fun validateUserInputs(user: User): Boolean {
+// TODO: Remove the validation and all of the patient fields; all of these questions must be interactive and summarized
+fun validateUserInputs(patient: Patient): Boolean {
     // First, check if any required field (except name and age) is blank.
     val requiredFields = listOf(
-        user.yearOfStartStuttering,
-        user.timesOfTherapy,
-        user.stutteringType,
-        user.tirednessLevel,
-        user.currentStutteringSeverity,
-        user.previousStutteringSeverity,
-        user.dailyTherapyTime,
-        user.currentTherapyDuration,
-        user.therapyStatus,
-        user.therapyMethod,
-        user.stutteringSituations,
-        user.emotionalImpact,
-        user.therapyGoals,
-        user.previousTherapies,
-        user.familyHistory,
-        user.supportSystems,
-        user.escapingFromSpeechSituationsLevel,
-        user.escapingFromStutteredWordLevel
+        patient.yearOfStartStuttering,
+        patient.timesOfTherapy,
+        patient.stutteringType,
+        patient.currentStutteringSeverity,
+        patient.previousStutteringSeverity,
+        patient.dailyTherapyTime,
+        patient.currentTherapyDuration,
+        patient.treatmentStatus,
+        patient.therapyMethod,
+        patient.stutteringSituations,
+        patient.emotionalImpact,
+        patient.therapyGoals,
+        patient.previousTherapies,
+        patient.familyHistory,
+        patient.supportSystems,
+        patient.escapingFromSpeechSituationsLevel,
+        patient.escapingFromStutteredWordLevel
     )
 
     // Check if any required field is blank (other than name and age)
@@ -356,7 +355,7 @@ fun validateUserInputs(user: User): Boolean {
     }
 
     // If all fields are filled, return true
-    return !user.name.isNullOrEmpty() && user.age != null
+    return !patient.name.isNullOrEmpty() && patient.age != null
 }
 
 fun String.analyzeError(): String {

@@ -1,42 +1,41 @@
-package ir.saltech.sokhanyar.api
+package ir.saltech.sokhanyar.api.config
 
 import android.util.Log
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.model.api.ErrorResponse
+import ir.saltech.sokhanyar.api.response.ErrorResponse
 import ir.saltech.sokhanyar.util.fromJson
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 object RetrofitClient {
-    @Deprecated("Use `sokhanyar` retrofit client instead")
-    val saltechAi: Retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl(BaseApplication.Constants.SALTECH_AI_BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
     val saltechPay: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BaseApplication.Constants.SALTECH_PAY_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(
+                Json.asConverterFactory(
+                    "application/json; charset=UTF8".toMediaType()
+                )
+            )
             .build()
     }
     val sokhanyar: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BaseApplication.Constants.SOKHANYAR_BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(
+                Json.asConverterFactory(
+                    "application/json; charset=UTF8".toMediaType()
+                )
+            )
             .build()
     }
 }
 
 object ApiClient {
-    @Deprecated("Use `sokhanyar` api client instead")
-    val saltechAi: SaltechAiApi by lazy {
-        RetrofitClient.saltechAi.create(SaltechAiApi::class.java)
-    }
     val saltechPay: SaltechPayApi by lazy {
         RetrofitClient.saltechPay.create(SaltechPayApi::class.java)
     }

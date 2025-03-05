@@ -7,11 +7,9 @@ import kotlin.random.Random
 
 class BaseApplication : Application() {
 	object Constants {
-		@Deprecated("Use `SOKHANYAR_BASE_URL` instead.")
-		const val SALTECH_AI_BASE_URL = "https://ai.saltech.ir/api/"
-
-		const val SOKHANYAR_BASE_URL = "https://api.sokhanyaar.ir/"
+		const val SOKHANYAR_BASE_URL = "http://localhost:8000/"
 		const val SALTECH_PAY_URL = "https://pay.saltech.ir/api/d85fe720caa225dcaa1ee2b6d53366bcc05d4439/"
+		
 		const val MAX_OF_NAME_CHARS = 25
 		const val MAX_OF_DAILY_REPORT_PAGES = 4
 		const val MAX_OF_WEEKLY_REPORT_PAGES = 3
@@ -60,17 +58,16 @@ class BaseApplication : Application() {
 	}
 
 	object DirectoryType {
-		val Eitaa = "Eitaa Audio"
 		val Downloads = Environment.DIRECTORY_DOWNLOADS
 		val Music = Environment.DIRECTORY_MUSIC
-		val Recordings = "Recordings"
+		const val Recordings = "Recordings"
 	}
 
 	object Ai {
 		object Gemini {
 			object Models {
-				const val Flash = "gemini-1.5-flash-002"
-				const val Pro = "gemini-1.5-pro-002"
+				const val Flash = "gemini-2.0-flash-latest"
+				const val Pro = "gemini-2.0-pro-latest"
 			}
 
 			val apiKeys = listOf(
