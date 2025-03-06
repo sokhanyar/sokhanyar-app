@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Device(
 	@SerialName("device_id")
-	val id: String? = null,
+	val id: String,
 	@SerialName("refresh_token") val refreshToken: String? = null,
 	@SerialName("access_token") val accessToken: String? = null,
 	@SerialName("token_type") val tokenType: String? = null,

@@ -5,7 +5,7 @@ import ir.saltech.sokhanyar.api.request.AnalyzeReportRequest
 import ir.saltech.sokhanyar.api.request.AnalyzeVoiceRequest
 import ir.saltech.sokhanyar.api.request.GenerateMotivationTextRequest
 import ir.saltech.sokhanyar.api.request.GetVoiceMediaIdRequest
-import ir.saltech.sokhanyar.api.request.OtpRequest
+import ir.saltech.sokhanyar.api.request.OtpCodeRequest
 import ir.saltech.sokhanyar.api.request.RegisterDeviceRequest
 import ir.saltech.sokhanyar.api.request.RenewAccessTokenRequest
 import ir.saltech.sokhanyar.api.response.AccessTokenResponse
@@ -41,7 +41,7 @@ interface SokhanyarApi {
 	fun registerDevice(@Body request: RegisterDeviceRequest): Call<RegisterDeviceResponse>
 
 	@POST("$API_VERSION/auth/otp/request")
-	fun requestOtpCodeAuth(@Body request: OtpRequest): Call<MessageResponse>
+	fun requestOtpCodeAuth(@Body request: OtpCodeRequest): Call<MessageResponse>
 
 	@POST("$API_VERSION/auth/access/request")
 	fun requestAccessTokenAuth(@Body request: AccessTokenRequest): Call<AccessTokenResponse>

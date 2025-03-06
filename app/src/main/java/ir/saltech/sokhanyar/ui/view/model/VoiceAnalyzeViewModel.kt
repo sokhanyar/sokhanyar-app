@@ -12,13 +12,15 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.api.ApiCallback
-import ir.saltech.sokhanyar.api.ApiClient
-import ir.saltech.sokhanyar.api.call
-import ir.saltech.sokhanyar.model.api.ErrorResponse
+import ir.saltech.sokhanyar.api.config.ApiCallback
+import ir.saltech.sokhanyar.api.config.ApiClient
+import ir.saltech.sokhanyar.api.config.call
+import ir.saltech.sokhanyar.api.response.AnalyzeVoiceResponse
+import ir.saltech.sokhanyar.api.response.ErrorResponse
 import ir.saltech.sokhanyar.model.data.general.User
-import ir.saltech.sokhanyar.model.data.general.Voice
+import ir.saltech.sokhanyar.model.data.treatment.Voice
 import ir.saltech.sokhanyar.ui.state.VoiceAnalyzeUiState
+import ir.saltech.sokhanyar.util.ProgressRequestBody
 import ir.saltech.sokhanyar.util.getMimeType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,11 +36,11 @@ class VoiceAnalyzeViewModel : ViewModel() {
 
 	@SuppressLint("StaticFieldLeak")
 	lateinit var context: Context
-	var user: User = User()
+	var user: User? = null
 		set(value) {
 			_uiState.update { _uiState.value.copy(user = value) }
 		}
-	var voice: Voice = Voice()
+	var voice: Voice? = null
 		set(value) {
 			_uiState.update { _uiState.value.copy(voice = value) }
 		}
@@ -54,7 +56,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
 	}
 
 	private fun resetVoiceAnalysis() {
-		voice = _uiState.value.voice.copy(serverFile = null, error = null, response = null)
+		voice = _uiState.value.voice!!.copy(error = null, response = null)
 	}
 
 	fun resetOperation(fromZero: Boolean = true) {
@@ -63,24 +65,24 @@ class VoiceAnalyzeViewModel : ViewModel() {
 			refreshApiKey()
 			startVoiceAnalyzing()
 		} else {
-			voice = _uiState.value.voice.copy(error = null)
+			voice = _uiState.value.voice!!.copy(error = null)
 			viewModelScope.launch {
-				generateFeedback()
+				uploadVoiceAndAnalyze()
 			}
 		}
 	}
 
 	fun startVoiceAnalyzing() {
-		if (_uiState.value.voice.selectedFile != null) {
+		if (_uiState.value.voice?.selectedFile != null) {
 			viewModelScope.launch {
-				uploadVoiceToCloud()
-				Log.i("TAG", "mime type is ${_uiState.value.voice.selectedFile?.getMimeType()}")
+				uploadVoiceAndAnalyze()
+				Log.i("TAG", "mime type is ${_uiState.value.voice!!.selectedFile?.getMimeType()}")
 			}
 		}
 	}
 
-	suspend fun generateFeedback() {
-		try {
+//	suspend fun generateFeedback() {
+//		try {
 //			val payload = listOf(
 //				content {
 //					text("practical voice: ")
@@ -250,80 +252,78 @@ class VoiceAnalyzeViewModel : ViewModel() {
 //			//generateFeedback()
 //			e.printStackTrace()
 //			return
-		} catch (e: Exception) {
-			e.printStackTrace()
-			voice = _uiState.value.voice.copy(error = e.message)
-		}
-	}
+//		} catch (e: Exception) {
+//			e.printStackTrace()
+//			voice = _uiState.value.voice.copy(error = e.message)
+//		}
+//	}
 
+	@Deprecated("enhancement of response is passed in the server side; this section will be removed")
 	private fun getEnhancedResponse(forHistory: Boolean = false) =
-		when (uiState.value.voice.response?.feedbackOfFeedback) {
-			BaseApplication.FeedbackOfFeedback.IncorrectOrIncomplete -> if (forHistory)
-				"This feedback was so wrong or incomplete.\n"
-			else
-				"The previous feedback was wrong or incomplete, So Give my voice a brief feedback with highest accuracy."
+		when (uiState.value.voice!!.response?.feedbackOfFeedback) {
+			BaseApplication.FeedbackOfFeedback.IncorrectOrIncomplete -> if (forHistory) "This feedback was so wrong or incomplete.\n"
+			else "The previous feedback was wrong or incomplete, So Give my voice a brief feedback with highest accuracy."
 
-			BaseApplication.FeedbackOfFeedback.TooLargeResponse -> if (forHistory)
-				"This feedback was too long and wasn't human readable.\n"
-			else
-				"The previous feedback was too long, So Summarize my audio feedback further."
+			BaseApplication.FeedbackOfFeedback.TooLargeResponse -> if (forHistory) "This feedback was too long and wasn't human readable.\n"
+			else "The previous feedback was too long, So Summarize my audio feedback further."
 
 			else -> "Analyze my voice. Transcribe that. Give my voice a brief feedback with desired emojis and highest accuracy."
 		}
 
-	private fun uploadVoiceToCloud() {
-		ApiClient.saltechAi.uploadVoice(
-			apiKey = wantedApiKey,
+	private fun uploadVoiceAndAnalyze() {
+		viewModelScope.launch {
+			ApiClient.sokhanyar.analyzeTreatmentVoiceMediaFile(accessToken = user!!.device?.accessToken
+				?: return@launch,
+				file =
+				_uiState.value.voice!!.selectedFile!!.let {
+					val progressiveRequestBody =
+						ProgressRequestBody(
+							it,
+							"audio",
+							object : ProgressRequestBody.UploadCallbacks {
+								override fun onProgressUpdate(percentage: Float) {
+									voice = _uiState.value.voice!!.copy(progress = percentage)
+								}
 
-			_uiState.value.voice.selectedFile!!.let {
-				val progressiveRequestBody =
-					ir.saltech.sokhanyar.util.ProgressRequestBody(
-						it,
-						"audio",
-						object : ir.saltech.sokhanyar.util.ProgressRequestBody.UploadCallbacks {
-							override fun onProgressUpdate(percentage: Float) {
-								voice = _uiState.value.voice.copy(progress = percentage)
-							}
+								override fun onError() {
+									voice = _uiState.value.voice!!.copy(progress = null)
+								}
 
-							override fun onError() {
-								voice = _uiState.value.voice.copy(progress = null)
-							}
+								override fun onFinish() {
+									voice = _uiState.value.voice!!.copy(progress = 100f)
+								}
 
-							override fun onFinish() {
-								voice = _uiState.value.voice.copy(progress = 100f)
-							}
-
-						})
-				MultipartBody.Part.createFormData(
-					"file",
-					_uiState.value.voice.selectedFile!!.name,
-					progressiveRequestBody
-				)
-			}).call(object :
-			ApiCallback<Voice> {
-			override fun onSuccessful(responseObject: Voice?) {
-				if (responseObject?.serverFile == null) {
-					voice = _uiState.value.voice.copy(error = "File not uploaded because of null!")
-					return
+							})
+					MultipartBody.Part.createFormData(
+						"file", _uiState.value.voice!!.selectedFile!!.name, progressiveRequestBody
+					)
+				}).call(object : ApiCallback<AnalyzeVoiceResponse> {
+				override fun onSuccessful(responseObject: AnalyzeVoiceResponse?) {
+					if (responseObject?.advice == null) {
+						voice =
+							_uiState.value.voice!!.copy(error = "File not uploaded for analyze because of null!")
+						return
+					}
+					voice = _uiState.value.voice!!.copy(
+						advice = responseObject.advice,
+						transcription = responseObject.transcription
+					)
+					Log.i("TAG", "FILE UPLOADED & ANALYZED SUCCESSFULLY: $responseObject")
 				}
-				voice = _uiState.value.voice.copy(serverFile = responseObject.serverFile)
-				Log.i("TAG", "FILE UPLOADED SUCCESSFULLY: $responseObject")
-				viewModelScope.launch {
-					generateFeedback()
+
+				override fun onFailure(response: ErrorResponse?, t: Throwable?) {
+					t?.printStackTrace()
+					Log.e("TAG", "ERROR OCCURRED: ${t?.message} | RESPONSE ERROR $response")
+					voice =
+						_uiState.value.voice!!.copy(error = response?.detail?.message ?: t?.message)
 				}
-			}
 
-			override fun onFailure(response: ErrorResponse?, t: Throwable?) {
-				t?.printStackTrace()
-				Log.e("TAG", "ERROR OCCURRED: ${t?.message} | RESPONSE ERROR $response")
-				voice = _uiState.value.voice.copy(error = response?.detail?.message ?: t?.message)
-			}
-
-		})
+			})
+		}
 	}
 
 	private fun handleIncomingAudio(audioTempFile: File) {
-		voice = _uiState.value.voice.copy(selectedFile = audioTempFile)
+		voice = _uiState.value.voice?.copy(selectedFile = audioTempFile)
 	}
 
 	fun handleAudioFileIntent(context: Context, intent: Intent) {
@@ -331,8 +331,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
 			val audioUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 				intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
 			} else {
-				@Suppress("DEPRECATION")
-				intent.getParcelableExtra(Intent.EXTRA_STREAM)
+				@Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
 			}
 			audioUri?.let {
 				val tempFile = File.createTempFile("audio", ".tmp", context.cacheDir)
@@ -356,11 +355,9 @@ class VoiceAnalyzeViewModel : ViewModel() {
 
 	fun initAudioPlayer() {
 		try {
-			mediaPlayer =
-				MediaPlayer.create(
-					context,
-					_uiState.value.voice.selectedFile?.toUri()
-				)
+			mediaPlayer = MediaPlayer.create(
+				context, _uiState.value.voice!!.selectedFile?.toUri()
+			)
 			mediaPlayer?.prepare()
 			mediaPlayer?.isLooping = false
 		} catch (e: Exception) {
@@ -370,7 +367,7 @@ class VoiceAnalyzeViewModel : ViewModel() {
 	}
 
 	fun destroyAudioPlayer() {
-		_uiState.value.voice.selectedFile?.delete()
+		_uiState.value.voice!!.selectedFile?.delete()
 		mediaPlayer?.stop()
 		mediaPlayer = null
 	}

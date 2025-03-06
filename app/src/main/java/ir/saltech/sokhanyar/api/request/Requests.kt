@@ -15,7 +15,7 @@ data class RegisterDeviceRequest(
 )
 
 @Serializable
-data class OtpRequest(
+data class OtpCodeRequest(
 	@SerialName("device_id")
 	val deviceId: String
 )

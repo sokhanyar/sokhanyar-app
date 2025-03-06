@@ -1,7 +1,6 @@
 package ir.saltech.sokhanyar.model.data.treatment
 
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.model.data.general.Patient
 import ir.saltech.sokhanyar.model.data.general.User
 import ir.saltech.sokhanyar.model.data.messenger.MessageMedia
 import kotlinx.serialization.Contextual
@@ -12,7 +11,9 @@ import java.io.File
 @Serializable
 data class Voice(
     val patient: User? = null, // The user must be a type of role patient
-    @Deprecated("Use `media` instead; This property will be removed soon.") @SerialName("selected_file") @Contextual // TODO: This flag is temporarily.
+    @Deprecated("Use `media` instead; This property will be removed soon.")
+    @SerialName("selected_file")
+    @Contextual // TODO: This flag is temporarily.
     val selectedFile: File? = null,
     val media: MessageMedia? = null,
     val checksum: String? = null,
