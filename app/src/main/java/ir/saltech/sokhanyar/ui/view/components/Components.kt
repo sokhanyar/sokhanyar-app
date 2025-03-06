@@ -101,7 +101,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun LockedDirection(
-	direction: LayoutDirection = LayoutDirection.Ltr, content: @Composable () -> Unit
+	direction: LayoutDirection = LayoutDirection.Ltr, content: @Composable () -> Unit,
 ) {
 	CompositionLocalProvider(LocalLayoutDirection provides direction) {
 		content()
@@ -110,7 +110,7 @@ fun LockedDirection(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun MethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit) {
+fun TreatMethodUsageObject(title: String, value: Int?, onValueChanged: (Int?) -> Unit) {
 	Text(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -205,7 +205,7 @@ fun DropDownTextField(
 	onChoiceSelected: (String) -> Unit,
 	modifier: Modifier = Modifier,
 	selectedChoice: String? = null,
-	supportText: @Composable (() -> Unit)? = null
+	supportText: @Composable (() -> Unit)? = null,
 ) {
 	val focus = LocalFocusManager.current
 	var expand by remember {
@@ -271,7 +271,7 @@ fun TextFieldLayout(
 	last: Boolean = false,
 	enabled: Boolean = true,
 	suffix: (@Composable () -> Unit)? = null,
-	supportText: (@Composable () -> Unit)? = null
+	supportText: (@Composable () -> Unit)? = null,
 ) {
 	val focus = LocalFocusManager.current
 	OutlinedTextField(
@@ -444,9 +444,9 @@ internal fun MinimalHelpText(text: String, modifier: Modifier = Modifier) {
 fun AiAdvice(
 	reportType: BaseApplication.ReportType,
 	uiState: MainUiState,
-	modifier: Modifier = Modifier
+	modifier: Modifier = Modifier,
 ) {
-	val advice by remember { uiState.advice }
+	val advice by remember { uiState.realAdvice }
 	val hasAdvice = when (reportType) {
 		BaseApplication.ReportType.Daily ->
 			(uiState.dailyReports?.list?.size ?: 0) >= 2
@@ -463,17 +463,29 @@ fun AiAdvice(
 					.padding(16.dp)
 					.let {
 						if (advice.isNullOrEmpty()) {
-							it.shimmer(rememberShimmer(shimmerBounds = ShimmerBounds.View, theme = LocalShimmerTheme.current.copy(rotation = 180f)))
+							it.shimmer(
+								rememberShimmer(
+									shimmerBounds = ShimmerBounds.View,
+									theme = LocalShimmerTheme.current.copy(rotation = 180f)
+								)
+							)
 						} else {
 							it
 						}
 					}
-					.background(Brush.horizontalGradient(listOf(Color(0x295758BB), Color(0x29A759C5))), shape = MaterialTheme.shapes.large.copy(
-						CornerSize(25.dp)
-					))
-					.border(1.5.dp, Brush.horizontalGradient(listOf(Color(0xFF5758BB), Color(0xFFA759C5))), shape = MaterialTheme.shapes.large.copy(
-						CornerSize(25.dp)
-					))
+					.background(
+						Brush.horizontalGradient(listOf(Color(0x295758BB), Color(0x29A759C5))),
+						shape = MaterialTheme.shapes.large.copy(
+							CornerSize(25.dp)
+						)
+					)
+					.border(
+						1.5.dp,
+						Brush.horizontalGradient(listOf(Color(0xFF5758BB), Color(0xFFA759C5))),
+						shape = MaterialTheme.shapes.large.copy(
+							CornerSize(25.dp)
+						)
+					)
 			) {
 				Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
 					AnimatedContent(advice) { adviceText ->
@@ -552,7 +564,17 @@ fun AiAdvice(
 								}
 							) {
 								Icon(
-									modifier = Modifier.size(18.dp).paint(BrushPainter(Brush.horizontalGradient(listOf(Color(0xFF5758BB), Color(0xFFA759C5))))),
+									modifier = Modifier
+										.size(18.dp)
+										.paint(
+											BrushPainter(
+												Brush.horizontalGradient(
+													listOf(
+														Color(0xFF5758BB), Color(0xFFA759C5)
+													)
+												)
+											)
+										),
 									painter = if (expanded) painterResource(R.drawable.rounded_collapse_24) else painterResource(
 										R.drawable.rounded_expand_24
 									),
@@ -660,7 +682,7 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
 					Spacer(modifier = Modifier.height(5.dp))
 				}
 			}
-			if (!enabled && !menuPageItem.disabledReason.isNullOrEmpty()) {
+			if (!enabled && !menuPageItem.disabledReason.isEmpty()) {
 				Box(
 					modifier = Modifier
 						.fillMaxSize()
@@ -726,13 +748,17 @@ fun MenuItemButton(menuPageItem: MenuPageItem) {
 			}
 			if (menuPageItem.comingSoon) {
 				Box(
-					modifier = Modifier.background(
-						MaterialTheme.colorScheme.surfaceContainerLowest.copy(
-							alpha = 0.28f
-						), shape = MaterialTheme.shapes.small.copy(all = CornerSize(25.dp))
-					).border(width = 0.35.dp, color = MaterialTheme.colorScheme.surface.copy(
-						alpha = 0.1f
-					), shape = MaterialTheme.shapes.small.copy(all = CornerSize(25.dp)))
+					modifier = Modifier
+						.background(
+							MaterialTheme.colorScheme.surfaceContainerLowest.copy(
+								alpha = 0.28f
+							), shape = MaterialTheme.shapes.small.copy(all = CornerSize(25.dp))
+						)
+						.border(
+							width = 0.35.dp, color = MaterialTheme.colorScheme.surface.copy(
+								alpha = 0.1f
+							), shape = MaterialTheme.shapes.small.copy(all = CornerSize(25.dp))
+						)
 				) {
 					Text(
 						modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
