@@ -62,9 +62,9 @@ data class AnalyzeReportRequest(
 )
 
 @Serializable
-data class GenerateTextAiRequest(
+data class GenerateMotivationTextRequest(
 	@SerialName("model_name")
 	val modelName: String? = null,
-	val prompt: String,
+	val prompt: String? = null,
 	val stream: Boolean = false
 )

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import gregorian_to_jalali
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.model.data.general.Patient
+import ir.saltech.sokhanyar.model.data.general.User
 import ir.saltech.sokhanyar.model.data.treatment.report.DailyReport
 import ir.saltech.sokhanyar.model.data.treatment.report.DailyReports
 import ir.saltech.sokhanyar.model.data.treatment.report.WeeklyReport
@@ -298,7 +299,8 @@ fun File.getMimeType(): String? {
     return type
 }
 
-fun Patient.getSummary(): String {
+fun User.getSummary(): String {
+    val props = this.roleAttrib
     return """
         اطلاعات من در مورد خودم، لکنت و گفتارم که باید بدانی:
         ${if (this.displayName != null) "اسم من ${this.displayName} است." else ""}

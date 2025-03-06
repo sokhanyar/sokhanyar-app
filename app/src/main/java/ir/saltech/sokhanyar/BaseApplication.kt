@@ -395,7 +395,7 @@ o   You must ask the name of user at the start of chat, if not said.
 	object Key {
 		val DailyReports = stringPreferencesKey("daily_reports")
 		val WeeklyReports = stringPreferencesKey("weekly_reports")
-		val ChatHistory = stringPreferencesKey("chat_history")
+		val Chats = stringPreferencesKey("chats")
 		val User = stringPreferencesKey("user")
 	}
 

@@ -3,7 +3,7 @@ package ir.saltech.sokhanyar.api.config
 import ir.saltech.sokhanyar.api.request.AccessTokenRequest
 import ir.saltech.sokhanyar.api.request.AnalyzeReportRequest
 import ir.saltech.sokhanyar.api.request.AnalyzeVoiceRequest
-import ir.saltech.sokhanyar.api.request.GenerateTextAiRequest
+import ir.saltech.sokhanyar.api.request.GenerateMotivationTextRequest
 import ir.saltech.sokhanyar.api.request.GetVoiceMediaIdRequest
 import ir.saltech.sokhanyar.api.request.OtpRequest
 import ir.saltech.sokhanyar.api.request.RegisterDeviceRequest
@@ -12,7 +12,7 @@ import ir.saltech.sokhanyar.api.response.AccessTokenResponse
 import ir.saltech.sokhanyar.api.response.AnalyzeReportResponse
 import ir.saltech.sokhanyar.api.response.AnalyzeVoiceResponse
 import ir.saltech.sokhanyar.api.response.ClinicsInfoResponse
-import ir.saltech.sokhanyar.api.response.GenerateTextAiResponse
+import ir.saltech.sokhanyar.api.response.GenerateMotivationTextResponse
 import ir.saltech.sokhanyar.api.response.GetAiModelsResponse
 import ir.saltech.sokhanyar.api.response.MessageResponse
 import ir.saltech.sokhanyar.api.response.RegisterDeviceResponse
@@ -38,7 +38,7 @@ interface SokhanyarApi {
 	fun getClinicsInfo(): Call<ClinicsInfoResponse>
 
 	@POST("$API_VERSION/auth/device/register")
-	fun registerDeviceAuth(@Body request: RegisterDeviceRequest): Call<RegisterDeviceResponse>
+	fun registerDevice(@Body request: RegisterDeviceRequest): Call<RegisterDeviceResponse>
 
 	@POST("$API_VERSION/auth/otp/request")
 	fun requestOtpCodeAuth(@Body request: OtpRequest): Call<MessageResponse>
@@ -83,11 +83,11 @@ interface SokhanyarApi {
 		@Body request: AnalyzeReportRequest,
 	): Call<AnalyzeReportResponse>
 
-	@POST("$API_VERSION/ai/generate/text")
-	fun generateTextAi(
+	@POST("$API_VERSION/treatment/motivation/generate")
+	fun generateMotivationText(
 		@Header(AUTHORIZATION_HEADER) accessToken: String,
-		@Body request: GenerateTextAiRequest,
-	): Call<GenerateTextAiResponse>
+		@Body request: GenerateMotivationTextRequest,
+	): Call<GenerateMotivationTextResponse>
 
 	@GET("$API_VERSION/ai/models/get")
 	fun getModelsAi(@Header(AUTHORIZATION_HEADER) accessToken: String): Call<GetAiModelsResponse>

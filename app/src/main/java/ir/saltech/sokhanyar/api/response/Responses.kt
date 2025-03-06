@@ -1,8 +1,6 @@
 package ir.saltech.sokhanyar.api.response
 
 import ir.saltech.sokhanyar.model.data.ai.AvailableModels
-import ir.saltech.sokhanyar.model.data.ai.Candidate
-import ir.saltech.sokhanyar.model.data.ai.UsageMetadata
 import ir.saltech.sokhanyar.model.data.general.Clinic
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
@@ -59,12 +57,18 @@ data class AnalyzeReportResponse(
 )
 
 @Serializable
-data class GenerateTextAiResponse(
-//    val automaticFunctionCallingHistory: List<Any>,
-	val candidates: List<Candidate>,
-	val modelVersion: String,
-	val usageMetadata: UsageMetadata,
+data class GenerateMotivationTextResponse(
+	@SerialName("text")
+	val motivationText: String
 )
+
+//@Serializable
+//data class GenerateTextAiResponse(
+////    val automaticFunctionCallingHistory: List<Any>,
+//	val candidates: List<Candidate>,
+//	val modelVersion: String,
+//	val usageMetadata: UsageMetadata,
+//)
 
 
 //////////////// Basic Responses ////////////////
