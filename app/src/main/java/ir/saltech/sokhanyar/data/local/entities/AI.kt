@@ -1,8 +1,9 @@
-package ir.saltech.sokhanyar.model.data.ai
+package ir.saltech.sokhanyar.data.local.entities
 
+import androidx.room.Entity
 import kotlinx.serialization.Serializable
 
-
+@Entity
 @Serializable
 data class AiModel(
 	val name: String,
@@ -16,5 +17,5 @@ data class AiModel(
 
 @Serializable
 data class AvailableModels(
-	val models: Map<String, List<AiModel>>
+	val models: Map<String, List<AiModel>>,
 )

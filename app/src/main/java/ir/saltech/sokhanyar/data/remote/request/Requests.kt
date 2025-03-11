@@ -1,6 +1,7 @@
-package ir.saltech.sokhanyar.api.request
+package ir.saltech.sokhanyar.data.remote.request
 
-import ir.saltech.sokhanyar.model.data.treatment.report.Report
+import ir.saltech.sokhanyar.BaseApplication.UserRole
+import ir.saltech.sokhanyar.data.local.entities.treatment.Report
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -11,13 +12,13 @@ data class RegisterDeviceRequest(
 	@SerialName("phone_number")
 	val phoneNumber: String,
 	@SerialName("user_role")
-	val userRole: String
+	val userRole: UserRole,
 )
 
 @Serializable
 data class OtpCodeRequest(
 	@SerialName("device_id")
-	val deviceId: String
+	val deviceId: String,
 )
 
 @Serializable
@@ -25,7 +26,7 @@ data class AccessTokenRequest(
 	@SerialName("device_id")
 	val deviceId: String,
 	@SerialName("otp_code")
-	val otpCode: Int
+	val otpCode: Int,
 )
 
 @Serializable
@@ -38,7 +39,7 @@ data class RenewAccessTokenRequest(
 
 @Serializable
 data class GetVoiceMediaIdRequest(
-	val checksum: String
+	val checksum: String,
 )
 
 @Serializable
@@ -46,7 +47,6 @@ data class AnalyzeVoiceRequest(
 	@SerialName("model_name")
 	val modelName: String? = null,
 	val prompt: String? = null,
-	val stream: Boolean = false
 )
 
 @Serializable
@@ -58,7 +58,6 @@ data class AnalyzeReportRequest(
 	@SerialName("model_name")
 	val modelName: String? = null,
 	val prompt: String? = null,
-	val stream: Boolean = false,
 )
 
 @Serializable
@@ -66,5 +65,4 @@ data class GenerateMotivationTextRequest(
 	@SerialName("model_name")
 	val modelName: String? = null,
 	val prompt: String? = null,
-	val stream: Boolean = false
 )

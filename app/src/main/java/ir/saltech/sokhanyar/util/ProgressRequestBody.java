@@ -7,10 +7,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import kotlin.Deprecated;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
 
+@Deprecated(message = "Maybe not needed.. Use a ktor compatible ProgressRequestHandler")
 public class ProgressRequestBody extends RequestBody {
     private static final int DEFAULT_BUFFER_SIZE = 2048;
     private final File mFile;

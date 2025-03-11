@@ -1,7 +1,7 @@
-package ir.saltech.sokhanyar.api.response
+package ir.saltech.sokhanyar.data.remote.response
 
-import ir.saltech.sokhanyar.model.data.ai.AvailableModels
-import ir.saltech.sokhanyar.model.data.general.Clinic
+import ir.saltech.sokhanyar.data.local.entities.AvailableModels
+import ir.saltech.sokhanyar.data.local.entities.Clinic
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,15 +9,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ClinicsInfoResponse(
-	val clinics: List<Clinic>
+	val clinics: List<Clinic>,
 )
 
+@Serializable
 data class RegisterDeviceResponse(
 	@SerialName("device_id")
 	val deviceId: String,
 	@SerialName("user_id")
 	val userId: String,
-	val timestamp: Long
+	val timestamp: Long,
 )
 
 @Serializable
@@ -41,25 +42,24 @@ data class UploadMediaResponse(
 @Serializable
 data class GetAiModelsResponse(
 	@SerialName("available_models")
-	val availableModels: AvailableModels,
-	val status: String
+	val availableModels: AvailableModels
 )
 
 @Serializable
 data class AnalyzeVoiceResponse(
 	val advice: String,
-	val transcription: String
+	val transcription: String,
 )
 
 @Serializable
 data class AnalyzeReportResponse(
-	val advice: String
+	val advice: String,
 )
 
 @Serializable
 data class GenerateMotivationTextResponse(
 	@SerialName("text")
-	val motivationText: String
+	val motivationText: String,
 )
 
 //@Serializable
@@ -73,13 +73,13 @@ data class GenerateMotivationTextResponse(
 
 //////////////// Basic Responses ////////////////
 
-data class MessageResponse(
-	val status: String,
+@Serializable
+data class DefaultResponse(
 	val message: String,
-	val timestamp: Long = Clock.System.now().epochSeconds
+	val timestamp: Long = Clock.System.now().epochSeconds,
 )
 
-data class ErrorResponse(
-	val detail: MessageResponse,
+@Serializable
+data class ErrorResponse (
+	val detail: DefaultResponse
 )
-

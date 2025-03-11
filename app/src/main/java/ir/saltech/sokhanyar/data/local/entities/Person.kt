@@ -1,27 +1,23 @@
-package ir.saltech.sokhanyar.model.data.general
+package ir.saltech.sokhanyar.data.local.entities
 
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
+import ir.saltech.sokhanyar.BaseApplication.Gender
+import ir.saltech.sokhanyar.BaseApplication.UserRole
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Serializable
-enum class Gender {
-	@SerialName("male") Male, @SerialName("female") Female, @SerialName("other") Other
-}
-
-@Serializable
-enum class UserRole {
-	@SerialName("doctor") Doctor, @SerialName("consultant") Consultant, @SerialName("companion") Companion, @SerialName("patient") Patient, @SerialName("viewer") Viewer
-}
-
+@Entity
 @Serializable
 data class User(
+	@PrimaryKey
 	@SerialName("user_id")
-	val id: String? = null,
-	@Deprecated("use `displayName` instead") val name: String? = null,
+	val uid: String? = null,
 	val age: Int? = null,
 	@SerialName("phone_number") val phoneNumber: String? = null,
 	val device: Device? = null,
-	@SerialName("display_name") var displayName: String? = name,
+	@SerialName("display_name") var displayName: String? = null,
 	@SerialName("national_code") val nationalCode: String? = null,
 	val username: String? = null,
 	val email: String? = null,
@@ -30,16 +26,23 @@ data class User(
 	val bio: String? = null,
 	val role: UserRole = UserRole.Patient,
 	@SerialName("role_properties")
-	val roleProperties: UserRoleProperties? = null   // all of the properties which related to the user's role in that class; (T = UserRoleClass)
+	val roleProperties: UserRoleProperties? = null,   // all of the properties which related to the user's role in that class; (T = UserRoleClass)
 )
 
 
 @Serializable
 sealed class UserRoleProperties {
 
+	@Entity(
+		foreignKeys = [ForeignKey(
+			User::class, ["uid"], ["uid"], onDelete = ForeignKey.CASCADE,
+			onUpdate = ForeignKey.CASCADE
+		)]
+	)
 	@Serializable
 	@SerialName("patient")
 	data class Patient(
+		val uid: Int,
 		@SerialName("year_of_start_stuttering") val yearOfStartStuttering: Int? = null,
 		@SerialName("times_of_therapy") val timesOfTherapy: Int? = null,
 		@SerialName("stuttering_type") val stutteringType: String? = null,
@@ -57,7 +60,7 @@ sealed class UserRoleProperties {
 		@SerialName("co_occurring_conditions") val coOccurringConditions: String? = null,
 		@SerialName("support_systems") val supportSystems: String? = null,
 		@SerialName("escaping_from_speech_situations_level") val escapingFromSpeechSituationsLevel: String? = null,
-		@SerialName("escaping_from_stuttered_word_level") val escapingFromStutteredWordLevel: String? = null
+		@SerialName("escaping_from_stuttered_word_level") val escapingFromStutteredWordLevel: String? = null,
 	) : UserRoleProperties()
 
 	// ...
