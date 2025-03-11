@@ -1,10 +1,11 @@
 package ir.saltech.sokhanyar.data.remote.api
 
-import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.compression.ContentEncoding
+import io.ktor.client.plugins.compression.compress
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
@@ -33,21 +34,26 @@ import kotlinx.serialization.json.Json
 
 sealed class ApiClient(
 	open val baseUrl: String,
-	engine: HttpClientEngine
+	engine: HttpClientEngine,
 ) {
 	val apiClient: HttpClient = HttpClient(engine) {
 		install(HttpTimeout) { requestTimeoutMillis = 300_000 }
+		install(ContentEncoding) {
+			deflate(1.0f)
+			gzip(0.7f)
+		}
 		install(ContentNegotiation) { json() }
 		install(Logging) { level = LogLevel.ALL }
 	}
 
-	class OneShot(override val baseUrl: String, engine: HttpClientEngine) : ApiClient(baseUrl, engine) {
+	class OneShot(override val baseUrl: String, engine: HttpClientEngine) :
+		ApiClient(baseUrl, engine) {
 		suspend inline fun <reified T> get(
 			endpoint: String,
 			authToken: String? = null,
 			tokenType: String = "bearer",
 
-		): T {
+			): T {
 			print("")
 			val response = apiClient.get("$baseUrl/$endpoint") {
 				headers {
@@ -59,11 +65,11 @@ sealed class ApiClient(
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as T
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
@@ -88,11 +94,11 @@ sealed class ApiClient(
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as T
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
@@ -115,11 +121,11 @@ sealed class ApiClient(
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as T
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
@@ -144,11 +150,11 @@ sealed class ApiClient(
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as T
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
@@ -173,11 +179,11 @@ sealed class ApiClient(
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as T
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
@@ -188,7 +194,7 @@ sealed class ApiClient(
 			authToken: String? = null,
 			tokenType: String = "bearer",
 		): T {
-			val response = apiClient.patch("$baseUrl/$endpoint")  {
+			val response = apiClient.patch("$baseUrl/$endpoint") {
 				headers {
 					if (authToken != null) {
 						append(HttpHeaders.Authorization, "${tokenType.lowercase()} $authToken")
@@ -202,11 +208,11 @@ sealed class ApiClient(
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as T
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
@@ -216,6 +222,7 @@ sealed class ApiClient(
 			authToken: String,
 			fileByteArray: ByteArray,
 			fileName: String,
+			fileContentType: String,
 			tokenType: String = "bearer",
 			crossinline progressListener: (Long, Long?) -> Unit,
 		): Result<T> = runCatching {
@@ -226,34 +233,36 @@ sealed class ApiClient(
 					append(HttpHeaders.Accept, "application/json")
 				}
 				contentType(ContentType.MultiPart.FormData)
+				compress("gzip")
 				setBody(
 					MultiPartFormDataContent(
 						formData {
-							append(key = "file", value = fileByteArray, headers = Headers.build {
-								append(HttpHeaders.ContentType, "multipart")
-								append(HttpHeaders.ContentDisposition, "filename=$fileName")
+							append("description", "Practical Voice File")
+							append("file", value = fileByteArray, headers = Headers.build {
+								append(HttpHeaders.ContentType, fileContentType)
+								append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
 							})
-						}, boundary = "AndroidAppBoundary"
+						}, boundary = "WebAppBoundary"
 					)
 				)
 				onUpload { bytesSentTotal, contentLength ->
 					progressListener(bytesSentTotal, contentLength)
-					Log.d("FILE_UPLOADER", "File is being uploaded...")
 				}
 			}
 			when (response.status.value) {
 				in 200..299 -> {
-					return response.body() as Result<T>
+					return response.body()
 				}
 
 				else -> {
-					throw ResponseError((response.body() as ErrorResponse).detail.message)
+					throw ApiError((response.body() as ErrorResponse).detail.message)
 				}
 			}
 		}
 	}
 
-	class ServerSideEvents(override val baseUrl: String, engine: HttpClientEngine) : ApiClient(baseUrl, engine) {
+	class ServerSideEvents(override val baseUrl: String, engine: HttpClientEngine) :
+		ApiClient(baseUrl, engine) {
 		object Identifier {
 			const val DATA = "data: "
 			const val ERROR = "error: "
@@ -281,7 +290,7 @@ sealed class ApiClient(
 					if (line.startsWith(Identifier.ERROR)) {
 						// Parse Error
 						try {
-							throw ResponseError(
+							throw ApiError(
 								Json.decodeFromString<ErrorResponse>(
 									line.removePrefix(
 										Identifier.ERROR
@@ -289,7 +298,7 @@ sealed class ApiClient(
 								).detail.message
 							)
 						} catch (_: SerializationException) {
-							throw ResponseError(
+							throw ApiError(
 								line.removePrefix(
 									Identifier.ERROR
 								).trim()
@@ -327,7 +336,7 @@ sealed class ApiClient(
 					if (line.startsWith(Identifier.ERROR)) {
 						// Parse Error
 						try {
-							throw ResponseError(
+							throw ApiError(
 								Json.decodeFromString<ErrorResponse>(
 									line.removePrefix(
 										Identifier.ERROR
@@ -335,7 +344,7 @@ sealed class ApiClient(
 								).detail.message
 							)
 						} catch (_: SerializationException) {
-							throw ResponseError(
+							throw ApiError(
 								line.removePrefix(
 									Identifier.ERROR
 								).trim()
@@ -373,7 +382,7 @@ sealed class ApiClient(
 					if (line.startsWith(Identifier.ERROR)) {
 						// Parse Error
 						try {
-							throw ResponseError(
+							throw ApiError(
 								Json.decodeFromString<ErrorResponse>(
 									line.removePrefix(
 										Identifier.ERROR
@@ -381,7 +390,7 @@ sealed class ApiClient(
 								).detail.message
 							)
 						} catch (_: SerializationException) {
-							throw ResponseError(
+							throw ApiError(
 								line.removePrefix(
 									Identifier.ERROR
 								).trim()
@@ -407,6 +416,7 @@ sealed class ApiClient(
 					append(HttpHeaders.Accept, "application/json")
 				}
 				contentType(ContentType.MultiPart.FormData)
+				compress("gzip")
 				setBody(
 					MultiPartFormDataContent(
 						formData {
@@ -419,7 +429,6 @@ sealed class ApiClient(
 				)
 				onUpload { bytesSentTotal, contentLength ->
 					progressListener(bytesSentTotal, contentLength)
-					Log.d("FILE_UPLOADER", "File is being uploaded...")
 				}
 			}.bodyAsChannel().apply {
 				while (!isClosedForRead) {
@@ -431,7 +440,7 @@ sealed class ApiClient(
 					if (line.startsWith(Identifier.ERROR)) {
 						// Parse Error
 						try {
-							throw ResponseError(
+							throw ApiError(
 								Json.decodeFromString<ErrorResponse>(
 									line.removePrefix(
 										Identifier.ERROR
@@ -439,7 +448,7 @@ sealed class ApiClient(
 								).detail.message
 							)
 						} catch (_: SerializationException) {
-							throw ResponseError(
+							throw ApiError(
 								line.removePrefix(
 									Identifier.ERROR
 								).trim()
@@ -451,5 +460,5 @@ sealed class ApiClient(
 		}
 	}
 
-	class ResponseError(message: String? = null, cause: Throwable? = null) : Error(message, cause)
+	class ApiError(message: String? = null, cause: Throwable? = null) : Error(message, cause)
 }

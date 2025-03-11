@@ -66,9 +66,10 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 ########### KTOR CLIENT ##########
 ktor-bom = { group = "io.ktor", name = "ktor-bom", version.ref = "ktorBom" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core" }
+ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock" }
 ktor-client-android = { group = "io.ktor" , name = "ktor-client-android" }
 ktor-client-logging = { group = "io.ktor" , name = "ktor-client-logging" }
-ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock" }
+ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json" }
 

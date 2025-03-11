@@ -1,6 +1,6 @@
 package ir.saltech.sokhanyar.data.remote.response
 
-import ir.saltech.sokhanyar.data.local.entities.AvailableModels
+import ir.saltech.sokhanyar.data.local.entities.AiModel
 import ir.saltech.sokhanyar.data.local.entities.Clinic
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
@@ -42,7 +42,7 @@ data class UploadMediaResponse(
 @Serializable
 data class GetAiModelsResponse(
 	@SerialName("available_models")
-	val availableModels: AvailableModels
+	val models: Map<String, List<AiModel>>
 )
 
 @Serializable

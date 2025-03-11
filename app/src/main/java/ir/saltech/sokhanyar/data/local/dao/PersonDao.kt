@@ -26,5 +26,3 @@ interface UserDao {
 	@Delete
 	fun delete(user: User)
 }
-
-

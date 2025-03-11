@@ -40,18 +40,20 @@ class SokhanYarApi(engine: HttpClientEngine = Android.create()) {
 		oneShotClient.post(endpoint = "auth/access/request", body = request)
 
 	suspend fun renewAccessTokenAuth(request: RenewAccessTokenRequest): AccessTokenResponse =
-		oneShotClient.patch(endpoint = "auth/access/renew", body = request)
+		oneShotClient.put(endpoint = "auth/access/renew", body = request)
 
 	suspend fun uploadTreatmentVoice(
 		accessToken: String,
 		fileByteArray: ByteArray,
 		fileName: String,
+		fileContentType: String,
 		progressListener: (Long, Long?) -> Unit,
 	): UploadMediaResponse = oneShotClient.uploadFile<UploadMediaResponse>(
 		endpoint = "treatment/voice/upload",
 		authToken = accessToken,
 		fileByteArray = fileByteArray,
 		fileName = fileName,
+		fileContentType = fileContentType,
 		progressListener = progressListener
 	).getOrThrow()
 
@@ -71,7 +73,9 @@ class SokhanYarApi(engine: HttpClientEngine = Android.create()) {
 		mediaId: String,
 		request: AnalyzeVoiceRequest,
 	): AnalyzeVoiceResponse = oneShotClient.post(
-		endpoint = "treatment/voice/$mediaId/analyze", body = request, authToken = accessToken
+		endpoint = "treatment/voice/$mediaId/analyze/generate",
+		body = request,
+		authToken = accessToken
 	)
 
 	fun analyzeTreatmentVoiceMediaIdStream(
@@ -79,19 +83,23 @@ class SokhanYarApi(engine: HttpClientEngine = Android.create()) {
 		mediaId: String,
 		request: AnalyzeVoiceRequest,
 	): Flow<AnalyzeVoiceResponse> = sseClient.post(
-		endpoint = "treatment/voice/$mediaId/analyze", body = request, authToken = accessToken
+		endpoint = "treatment/voice/$mediaId/analyze/generateStream",
+		body = request,
+		authToken = accessToken
 	)
 
 	suspend fun analyzeTreatmentVoiceMediaFile(
 		accessToken: String,
 		fileByteArray: ByteArray,
 		fileName: String,
+		fileContentType: String,
 		progressListener: (Long, Long?) -> Unit,
 	): AnalyzeVoiceResponse = oneShotClient.uploadFile<AnalyzeVoiceResponse>(
-		endpoint = "treatment/voice/analyze",
+		endpoint = "treatment/voice/analyze/generate",
 		authToken = accessToken,
 		fileByteArray = fileByteArray,
 		fileName = fileName,
+		fileContentType = fileContentType,
 		progressListener = progressListener
 	).getOrThrow()
 
@@ -101,7 +109,7 @@ class SokhanYarApi(engine: HttpClientEngine = Android.create()) {
 		fileName: String,
 		progressListener: (Long, Long?) -> Unit,
 	): Flow<AnalyzeVoiceResponse> = sseClient.uploadFile<AnalyzeVoiceResponse>(
-		endpoint = "treatment/voice/analyze",
+		endpoint = "treatment/voice/analyze/generateStream",
 		authToken = accessToken,
 		fileByteArray = fileByteArray,
 		fileName = fileName,
@@ -113,7 +121,9 @@ class SokhanYarApi(engine: HttpClientEngine = Android.create()) {
 		reportType: String,
 		request: AnalyzeReportRequest,
 	): AnalyzeReportResponse = oneShotClient.post(
-		endpoint = "treatment/report/$reportType", body = request, authToken = accessToken
+		endpoint = "treatment/report/$reportType/analyze/generate",
+		body = request,
+		authToken = accessToken
 	)
 
 	fun analyzeTreatmentReportStream(
@@ -121,7 +131,9 @@ class SokhanYarApi(engine: HttpClientEngine = Android.create()) {
 		reportType: String,
 		request: AnalyzeReportRequest,
 	): Flow<AnalyzeReportResponse> = sseClient.post(
-		endpoint = "treatment/report/$reportType/generateStream", body = request, authToken = accessToken
+		endpoint = "treatment/report/$reportType/analyze/generateStream",
+		body = request,
+		authToken = accessToken
 	)
 
 	suspend fun generateMotivationText(

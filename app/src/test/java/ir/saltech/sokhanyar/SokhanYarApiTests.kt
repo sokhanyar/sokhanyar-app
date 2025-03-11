@@ -1,6 +1,7 @@
 package ir.saltech.sokhanyar
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveMinLength
 import io.ktor.client.engine.mock.MockEngine
@@ -15,13 +16,15 @@ import ir.saltech.sokhanyar.data.remote.api.SokhanYarApi
 import ir.saltech.sokhanyar.data.remote.request.GenerateMotivationTextRequest
 import ir.saltech.sokhanyar.data.remote.request.OtpCodeRequest
 import ir.saltech.sokhanyar.data.remote.request.RegisterDeviceRequest
+import ir.saltech.sokhanyar.util.getMimeType
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import java.io.File
 
 class SokhanYarApiTests {
 
 	@Test
-	fun `(clinics info request) returns expected clinic id (mock)`() = runTest {
+	fun `(clinics info request) should returns expected clinic id (mock)`() = runTest {
 		val mockResponse = """
 			{
 				"clinics": [
@@ -81,7 +84,7 @@ class SokhanYarApiTests {
 	}
 
 	@Test
-	fun `(clinics info request) returns expected opening hours (mock)`() = runTest {
+	fun `(clinics info request) should returns expected opening hours (mock)`() = runTest {
 		val mockResponse = """
 			{
 				"clinics": [
@@ -155,21 +158,33 @@ class SokhanYarApiTests {
 	}
 
 	@Test
-	fun `(register device request) returns expected device id and user id`() = runTest {
-		val response = SokhanYarApi().registerDevice(RegisterDeviceRequest("5UJcr8WfWT-LSZzkyT0Qj", "09138549727", UserRole.Patient))
+	fun `(register device request) should returns expected device id and user id`() = runTest {
+		val response = SokhanYarApi().registerDevice(
+			RegisterDeviceRequest(
+				"5UJcr8WfWT-LSZzkyT0Qj",
+				"09138549727",
+				UserRole.Patient
+			)
+		)
 		response.userId shouldBe "163c4caf1ad223bbdd84ea5ae469ee2f482ed252"
 		response.deviceId shouldBe "91a53d4360b329d418671c461604fb584d34e0a7"
 	}
 
 	@Test
 	fun `(register device request) throws error when mismatch items value requested`() = runTest {
-		shouldThrow<ApiClient.ResponseError> {
-			SokhanYarApi().registerDevice(RegisterDeviceRequest("5UJcr8WfWT-LSZzkyT0Q6j", "09138549727", UserRole.Patient))
+		shouldThrow<ApiClient.ApiError> {
+			SokhanYarApi().registerDevice(
+				RegisterDeviceRequest(
+					"5UJcr8WfWT-LSZzkyT0Q6j",
+					"09138549727",
+					UserRole.Patient
+				)
+			)
 		}
 	}
 
 	@Test
-	fun `(otp request) returns expected result`() = runTest {
+	fun `(otp request) should returns expected result (mock)`() = runTest {
 		val mockResponse = """
 			{
 				"message": "otp sent",
@@ -181,37 +196,450 @@ class SokhanYarApiTests {
 
 	@Test
 	fun `(otp request) throws error when mismatch items value requested`() = runTest {
-		shouldThrow<ApiClient.ResponseError> {
+		shouldThrow<ApiClient.ApiError> {
 			SokhanYarApi().requestOtpCodeAuth(OtpCodeRequest("91a53d4360b329d418671c461604fb584d34e0a7u"))
 		}
 	}
 
 	@Test
-	fun `(generate motivation text) returns valid response`() = runTest {
-		val response = SokhanYarApi().generateMotivationText(accessToken = """
+	fun `(get ai models info) should returns valid general ai models info (mock)`() = runTest {
+		val mockResponse = """
+			{
+				"available_models": {
+					"released": [
+						{
+							"name": "models/gemini-1.5-flash-8b-latest",
+							"displayName": "Gemini 1.5 Flash-8B Latest",
+							"description": "Alias that points to the most recent production (non-experimental) release of Gemini 1.5 Flash-8B, our smallest and most cost effective Flash model, released in October of 2024.",
+							"version": "001",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1000000,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"createCachedContent",
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-1.5-flash-latest",
+							"displayName": "Gemini 1.5 Flash Latest",
+							"description": "Alias that points to the most recent production (non-experimental) release of Gemini 1.5 Flash, our fast and versatile multimodal model for scaling across diverse tasks.",
+							"version": "001",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1000000,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-1.5-pro-latest",
+							"displayName": "Gemini 1.5 Pro Latest",
+							"description": "Alias that points to the most recent production (non-experimental) release of Gemini 1.5 Pro, our mid-size multimodal model that supports up to 2 million tokens.",
+							"version": "001",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2000000,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						}
+					],
+					"preview": [
+						{
+							"name": "models/gemini-2.0-pro-exp",
+							"displayName": "Gemini 2.0 Pro Experimental",
+							"description": "Experimental release (February 5th, 2025) of Gemini 2.0 Pro",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2097152,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-pro-exp-02-05",
+							"displayName": "Gemini 2.0 Pro Experimental 02-05",
+							"description": "Experimental release (February 5th, 2025) of Gemini 2.0 Pro",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2097152,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-exp-1206",
+							"displayName": "Gemini Experimental 1206",
+							"description": "Experimental release (February 5th, 2025) of Gemini 2.0 Pro",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2097152,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-flash-thinking-exp-01-21",
+							"displayName": "Gemini 2.0 Flash Thinking Experimental 01-21",
+							"description": "Experimental release (January 21st, 2025) of Gemini 2.0 Flash Thinking",
+							"version": "2.0-exp-01-21",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1048576,
+							"outputTokenLimit": 65536,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-flash-exp",
+							"displayName": "Gemini 2.0 Flash Experimental",
+							"description": "Gemini 2.0 Flash Experimental",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1048576,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens",
+								"bidiGenerateContent"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-flash-thinking-exp-1219",
+							"displayName": "Gemini 2.0 Flash Thinking Experimental",
+							"description": "Gemini 2.0 Flash Thinking Experimental",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1048576,
+							"outputTokenLimit": 65536,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						}
+					]
+				}
+			}
+		""".trimIndent()
+		mockApi(mockResponse).getModelsAi(
+			accessToken = """
 			eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNzk4ODNhZS1lYjE5LTRmZGQtODhhYS04MjE5NDE3MjJkOWMiLCJpc3MiOiJzb2toYW55YWFyLmlyIiwic3ViIjoiMTYzYzRjYWYxYWQyMjNiYmRkODRlYTVhZTQ2OWVlMmY0ODJlZDI1MiIsImlhdCI6MTc0MTY2Mjk0MiwibmJmIjoxNzQxNjYyOTQyLCJleHAiOjE3NDE3NDkzNDIsInNjb3BlIjoiY2xpZW50In0.D4Gq02SHTIxL-ob56l_KEPG2-skMQjbkEUw2D3NxNqJ1xR270-wSkF2awtHfhv478laCxKIlwXhc0FnYeKTJZw
-		""".trimIndent(), request = GenerateMotivationTextRequest())
+		""".trimIndent()
+		).models shouldHaveSize 2
+	}
+
+	@Test
+	fun `(get ai models info) should returns valid ai models list for each category info (mock)`() =
+		runTest {
+			val mockResponse = """
+			{
+				"available_models": {
+					"released": [
+						{
+							"name": "models/gemini-1.5-flash-8b-latest",
+							"displayName": "Gemini 1.5 Flash-8B Latest",
+							"description": "Alias that points to the most recent production (non-experimental) release of Gemini 1.5 Flash-8B, our smallest and most cost effective Flash model, released in October of 2024.",
+							"version": "001",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1000000,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"createCachedContent",
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-1.5-flash-latest",
+							"displayName": "Gemini 1.5 Flash Latest",
+							"description": "Alias that points to the most recent production (non-experimental) release of Gemini 1.5 Flash, our fast and versatile multimodal model for scaling across diverse tasks.",
+							"version": "001",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1000000,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-1.5-pro-latest",
+							"displayName": "Gemini 1.5 Pro Latest",
+							"description": "Alias that points to the most recent production (non-experimental) release of Gemini 1.5 Pro, our mid-size multimodal model that supports up to 2 million tokens.",
+							"version": "001",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2000000,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						}
+					],
+					"preview": [
+						{
+							"name": "models/gemini-2.0-pro-exp",
+							"displayName": "Gemini 2.0 Pro Experimental",
+							"description": "Experimental release (February 5th, 2025) of Gemini 2.0 Pro",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2097152,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-pro-exp-02-05",
+							"displayName": "Gemini 2.0 Pro Experimental 02-05",
+							"description": "Experimental release (February 5th, 2025) of Gemini 2.0 Pro",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2097152,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-exp-1206",
+							"displayName": "Gemini Experimental 1206",
+							"description": "Experimental release (February 5th, 2025) of Gemini 2.0 Pro",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 2097152,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-flash-thinking-exp-01-21",
+							"displayName": "Gemini 2.0 Flash Thinking Experimental 01-21",
+							"description": "Experimental release (January 21st, 2025) of Gemini 2.0 Flash Thinking",
+							"version": "2.0-exp-01-21",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1048576,
+							"outputTokenLimit": 65536,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-flash-exp",
+							"displayName": "Gemini 2.0 Flash Experimental",
+							"description": "Gemini 2.0 Flash Experimental",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1048576,
+							"outputTokenLimit": 8192,
+							"supportedActions": [
+								"generateContent",
+								"countTokens",
+								"bidiGenerateContent"
+							]
+						},
+						{
+							"name": "models/gemini-2.0-flash-thinking-exp-1219",
+							"displayName": "Gemini 2.0 Flash Thinking Experimental",
+							"description": "Gemini 2.0 Flash Thinking Experimental",
+							"version": "2.0",
+							"endpoints": null,
+							"labels": null,
+							"tunedModelInfo": {
+								"baseModel": null,
+								"createTime": null,
+								"updateTime": null
+							},
+							"inputTokenLimit": 1048576,
+							"outputTokenLimit": 65536,
+							"supportedActions": [
+								"generateContent",
+								"countTokens"
+							]
+						}
+					]
+				}
+			}
+		""".trimIndent()
+			mockApi(mockResponse).getModelsAi(
+				accessToken = """
+			eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNzk4ODNhZS1lYjE5LTRmZGQtODhhYS04MjE5NDE3MjJkOWMiLCJpc3MiOiJzb2toYW55YWFyLmlyIiwic3ViIjoiMTYzYzRjYWYxYWQyMjNiYmRkODRlYTVhZTQ2OWVlMmY0ODJlZDI1MiIsImlhdCI6MTc0MTY2Mjk0MiwibmJmIjoxNzQxNjYyOTQyLCJleHAiOjE3NDE3NDkzNDIsInNjb3BlIjoiY2xpZW50In0.D4Gq02SHTIxL-ob56l_KEPG2-skMQjbkEUw2D3NxNqJ1xR270-wSkF2awtHfhv478laCxKIlwXhc0FnYeKTJZw
+		""".trimIndent()
+			).models["released"]?.size shouldBe 3
+		}
+}
+
+class SokhanYarAiGenerateApiTests {
+	@Test
+	fun `(generate motivation text) should returns valid response`() = runTest {
+		val response = SokhanYarApi().generateMotivationText(
+			accessToken = """
+			eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNzk4ODNhZS1lYjE5LTRmZGQtODhhYS04MjE5NDE3MjJkOWMiLCJpc3MiOiJzb2toYW55YWFyLmlyIiwic3ViIjoiMTYzYzRjYWYxYWQyMjNiYmRkODRlYTVhZTQ2OWVlMmY0ODJlZDI1MiIsImlhdCI6MTc0MTY2Mjk0MiwibmJmIjoxNzQxNjYyOTQyLCJleHAiOjE3NDE3NDkzNDIsInNjb3BlIjoiY2xpZW50In0.D4Gq02SHTIxL-ob56l_KEPG2-skMQjbkEUw2D3NxNqJ1xR270-wSkF2awtHfhv478laCxKIlwXhc0FnYeKTJZw
+		""".trimIndent(), request = GenerateMotivationTextRequest()
+		)
 		response.motivationText shouldHaveMinLength 5
 	}
 
 	@Test
-	fun `(generate motivation text) returns valid stream response`() = runTest {
-		val response = SokhanYarApi().generateMotivationTextStream(accessToken = """
+	fun `(generate motivation text stream) should returns valid stream response`() = runTest {
+		val response = SokhanYarApi().generateMotivationTextStream(
+			accessToken = """
 			eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNzk4ODNhZS1lYjE5LTRmZGQtODhhYS04MjE5NDE3MjJkOWMiLCJpc3MiOiJzb2toYW55YWFyLmlyIiwic3ViIjoiMTYzYzRjYWYxYWQyMjNiYmRkODRlYTVhZTQ2OWVlMmY0ODJlZDI1MiIsImlhdCI6MTc0MTY2Mjk0MiwibmJmIjoxNzQxNjYyOTQyLCJleHAiOjE3NDE3NDkzNDIsInNjb3BlIjoiY2xpZW50In0.D4Gq02SHTIxL-ob56l_KEPG2-skMQjbkEUw2D3NxNqJ1xR270-wSkF2awtHfhv478laCxKIlwXhc0FnYeKTJZw
-		""".trimIndent(), request = GenerateMotivationTextRequest())
+		""".trimIndent(), request = GenerateMotivationTextRequest()
+		)
 
 		response.collect { it shouldHaveMinLength 1 }
 	}
 
-	///////////////////////////////////
-
-	private fun mockApi(mockResponse: String): SokhanYarApi = SokhanYarApi(getMockEngine(mockResponse))
-
-	private fun getMockEngine(mockResponse: String): MockEngine = MockEngine { request ->
-		respond(
-			content = ByteReadChannel(mockResponse),
-			status = HttpStatusCode.OK,
-			headers = headersOf(HttpHeaders.ContentType, "application/json")
-		)
+	@Test
+	fun `(analyze voice file (direct)) should returns unsupported file type response`() = runTest {
+		val filePath = "C:\\Users\\saleh\\Downloads\\mohsaleh04.jpeg"
+		val testFile = File(filePath)
+		val testFileName = testFile.name
+		var testFileBA: ByteArray? = null
+		with(testFile) {
+			testFileBA = testFile.readBytes()
+		}
+		shouldThrow<ApiClient.ApiError> {
+			SokhanYarApi().analyzeTreatmentVoiceMediaFile(
+				accessToken = """
+			eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNzk4ODNhZS1lYjE5LTRmZGQtODhhYS04MjE5NDE3MjJkOWMiLCJpc3MiOiJzb2toYW55YWFyLmlyIiwic3ViIjoiMTYzYzRjYWYxYWQyMjNiYmRkODRlYTVhZTQ2OWVlMmY0ODJlZDI1MiIsImlhdCI6MTc0MTY2Mjk0MiwibmJmIjoxNzQxNjYyOTQyLCJleHAiOjE3NDE3NDkzNDIsInNjb3BlIjoiY2xpZW50In0.D4Gq02SHTIxL-ob56l_KEPG2-skMQjbkEUw2D3NxNqJ1xR270-wSkF2awtHfhv478laCxKIlwXhc0FnYeKTJZw
+		""".trimIndent(), fileByteArray = testFileBA!!, fileName = testFileName, fileContentType = testFile.getMimeType() ?: return@runTest
+			) { bytesSent: Long, contentLength: Long? -> {
+					println("Sending file ${testFile.name} --> sent: $bytesSent | whole: $contentLength | ${(bytesSent / (contentLength ?: 1)) * 100}")
+				}
+			}
+		}
 	}
+}
+
+
+///////////////////////////////////
+
+private fun mockApi(mockResponse: String): SokhanYarApi = SokhanYarApi(getMockEngine(mockResponse))
+
+private fun getMockEngine(mockResponse: String): MockEngine = MockEngine { request ->
+	respond(
+		content = ByteReadChannel(mockResponse),
+		status = HttpStatusCode.OK,
+		headers = headersOf(HttpHeaders.ContentType, "application/json")
+	)
 }

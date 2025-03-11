@@ -52,7 +52,7 @@ android {
     }
     packaging {
         resources {
-            excludes += listOf("META-INF/INDEX.LIST")
+            excludes += listOf("META-INF/INDEX.LIST", "META-INF/LICENSE.md", "META-INF/LICENSE-notice.md", "META-INF/README.md")
         }
     }
     compileOptions {
@@ -92,6 +92,7 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.encoding)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.vico.compose)

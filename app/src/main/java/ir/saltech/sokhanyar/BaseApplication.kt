@@ -1,17 +1,16 @@
 package ir.saltech.sokhanyar
 
 import android.app.Application
-import androidx.room.Database
 import androidx.room.RoomDatabase
 import ir.saltech.sokhanyar.data.local.dao.UserDao
-import ir.saltech.sokhanyar.data.local.entities.User
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
 class BaseApplication : Application() {
 
-	@Database(entities = [User::class], version = 1)
+	// TODO: Uncomment this
+//	@Database(entities = [User::class], version = 1)
 	abstract class AppDatabase : RoomDatabase() {
 		abstract fun userDao(): UserDao
 	}

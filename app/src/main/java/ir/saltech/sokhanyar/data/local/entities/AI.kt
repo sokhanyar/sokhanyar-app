@@ -10,12 +10,17 @@ data class AiModel(
 	val version: String,
 	val description: String,
 	val displayName: String,
+	val endpoints: List<String>?,
+	val labels: List<String>?,
 	val inputTokenLimit: Int,
 	val outputTokenLimit: Int,
 	val supportedActions: List<String>,
+	val tunedModelInfo: TunedModelInfo?
 )
 
 @Serializable
-data class AvailableModels(
-	val models: Map<String, List<AiModel>>,
+data class TunedModelInfo(
+	val baseModel: String?,
+	val createTime: String?,
+	val updateTime: String?
 )
