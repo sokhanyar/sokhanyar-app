@@ -6,4 +6,5 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.secrets.gradle) apply false
     alias(libs.plugins.google.ksp) apply false
+    alias(libs.plugins.room) apply false
 }

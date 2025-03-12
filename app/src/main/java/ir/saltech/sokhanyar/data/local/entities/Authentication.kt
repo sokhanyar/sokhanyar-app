@@ -1,12 +1,15 @@
 package ir.saltech.sokhanyar.data.local.entities
 
 import androidx.room.Entity
+import androidx.room.TypeConverters
 import ir.saltech.sokhanyar.BaseApplication
+import ir.saltech.sokhanyar.data.local.dbconfig.Converters
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Entity
 @Serializable
+@TypeConverters(Converters::class)
 data class Device(
 	@SerialName("device_id")
 	val id: String,

@@ -3,17 +3,20 @@ package ir.saltech.sokhanyar.data.local.entities
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import ir.saltech.sokhanyar.BaseApplication.Gender
 import ir.saltech.sokhanyar.BaseApplication.UserRole
+import ir.saltech.sokhanyar.data.local.dbconfig.Converters
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Entity
 @Serializable
+@TypeConverters(Converters::class)
 data class User(
 	@PrimaryKey
 	@SerialName("user_id")
-	val uid: String? = null,
+	val uid: String,
 	val age: Int? = null,
 	@SerialName("phone_number") val phoneNumber: String? = null,
 	val device: Device? = null,

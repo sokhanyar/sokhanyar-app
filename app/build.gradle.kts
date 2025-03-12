@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.secrets.gradle)
     alias(libs.plugins.google.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -65,6 +66,9 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
