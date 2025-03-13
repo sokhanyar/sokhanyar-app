@@ -10,13 +10,15 @@ import ir.saltech.sokhanyar.data.local.entities.User
 interface UserDao {
 	@Query("SELECT * FROM user")
 	fun getAll(): List<User>
-//
-//	@Query("SELECT * FROM user WHERE uid IN (:userIds)")
-//	fun loadAllByIds(userIds: IntArray): List<User>
-//
-//	@Query("SELECT * FROM user WHERE username LIKE :first AND " +
-//			" LIKE :last LIMIT 1")
-//	fun findByName(first: String, last: String): User
+
+	@Query("SELECT * FROM user WHERE displayName LIKE :displayName LIMIT 1")
+	fun findByDisplayName(displayName: String): User
+
+	@Query("SELECT * FROM user WHERE phoneNumber=:phoneNumber")
+	fun findByPhoneNumber(phoneNumber: String): User
+
+	@Insert
+	fun insert(user: User)
 
 	@Insert
 	fun insertAll(vararg users: User)

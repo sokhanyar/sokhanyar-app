@@ -14,7 +14,7 @@ import java.io.File
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class SokhanYarInstrumentedTest {
+class ApiInstrumentedTest {
 
 	@Test
 	fun shouldAnalyzeVoiceFileDirectReturnsValidAdviceResponse() = runTest {

@@ -1,7 +1,7 @@
 package ir.saltech.sokhanyar.data.local.entities
 
+import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import ir.saltech.sokhanyar.BaseApplication.Gender
@@ -18,6 +18,8 @@ data class User(
 	@SerialName("user_id")
 	val uid: String,
 	val age: Int? = null,
+	@SerialName("clinic_id")
+	val clinicId: String? = null, // the associated clinic to this user
 	@SerialName("phone_number") val phoneNumber: String? = null,
 	val device: Device? = null,
 	@SerialName("display_name") var displayName: String? = null,
@@ -28,24 +30,18 @@ data class User(
 	val gender: Gender? = null,
 	val bio: String? = null,
 	val role: UserRole = UserRole.Patient,
+	@Embedded
 	@SerialName("role_properties")
-	val roleProperties: UserRoleProperties? = null,   // all of the properties which related to the user's role in that class; (T = UserRoleClass)
+	val roleProperties: UserRoleProperties? = null
 )
 
 
 @Serializable
 sealed class UserRoleProperties {
 
-	@Entity(
-		foreignKeys = [ForeignKey(
-			User::class, ["uid"], ["uid"], onDelete = ForeignKey.CASCADE,
-			onUpdate = ForeignKey.CASCADE
-		)]
-	)
 	@Serializable
 	@SerialName("patient")
 	data class Patient(
-		val uid: Int,
 		@SerialName("year_of_start_stuttering") val yearOfStartStuttering: Int? = null,
 		@SerialName("times_of_therapy") val timesOfTherapy: Int? = null,
 		@SerialName("stuttering_type") val stutteringType: String? = null,
@@ -66,5 +62,5 @@ sealed class UserRoleProperties {
 		@SerialName("escaping_from_stuttered_word_level") val escapingFromStutteredWordLevel: String? = null,
 	) : UserRoleProperties()
 
-	// ...
+
 }
