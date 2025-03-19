@@ -19,11 +19,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import gregorian_to_jalali
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.data.local.entities.User
-import ir.saltech.sokhanyar.data.local.entities.UserRoleProperties
-import ir.saltech.sokhanyar.data.local.entities.treatment.DailyReport
-import ir.saltech.sokhanyar.data.local.entities.treatment.DailyReports
-import ir.saltech.sokhanyar.data.local.entities.treatment.WeeklyReport
+import ir.saltech.sokhanyar.data.local.entity.User
+import ir.saltech.sokhanyar.data.local.entity.UserRoleProperties
+import ir.saltech.sokhanyar.data.local.entity.treatment.DailyReport
+import ir.saltech.sokhanyar.data.local.entity.treatment.DailyReports
+import ir.saltech.sokhanyar.data.local.entity.treatment.WeeklyReport
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime

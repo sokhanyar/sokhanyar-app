@@ -1,4 +1,4 @@
-package ir.saltech.sokhanyar.data.local.entities
+package ir.saltech.sokhanyar.data.remote.entity
 
 import ir.saltech.sokhanyar.BaseApplication
 import kotlinx.serialization.Serializable

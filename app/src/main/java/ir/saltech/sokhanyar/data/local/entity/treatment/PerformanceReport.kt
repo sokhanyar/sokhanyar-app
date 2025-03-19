@@ -1,10 +1,10 @@
-package ir.saltech.sokhanyar.data.local.entities.treatment
+package ir.saltech.sokhanyar.data.local.entity.treatment
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import ir.saltech.sokhanyar.data.local.entities.User
+import ir.saltech.sokhanyar.data.local.entity.User
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -22,9 +22,9 @@ abstract class Report {
 @Entity(
 	foreignKeys = [ForeignKey(
 		User::class,
-		parentColumns = ["uid"],
+		parentColumns = ["id"],
 		childColumns = ["patientId"]
-	)], indices = [Index("id")]
+	)], indices = [Index("id"), Index("patientId")]
 )
 @Serializable
 data class DailyReport(
@@ -58,7 +58,7 @@ data class DailyReports(
 		User::class,
 		parentColumns = ["uid"],
 		childColumns = ["patientId"]
-	)], indices = [Index("id")]
+	)], indices = [Index("id"), Index("patientId")]
 )
 @Serializable
 data class WeeklyReport(

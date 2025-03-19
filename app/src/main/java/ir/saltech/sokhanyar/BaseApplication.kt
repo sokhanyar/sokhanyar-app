@@ -1,10 +1,6 @@
 package ir.saltech.sokhanyar
 
 import android.app.Application
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import ir.saltech.sokhanyar.data.local.dao.UserDao
-import ir.saltech.sokhanyar.data.local.entities.User
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
@@ -439,6 +435,50 @@ o   You must ask the name of user at the start of chat, if not said.
 		Post, @SerialName("message")
 		Message, @SerialName("comment")
 		Comment
+	}
+
+	@Serializable
+	enum class MediaStatus {
+		@SerialName("active") Active,
+		@SerialName("inactive") Inactive,
+		@SerialName("edited") Edited,
+		@SerialName("deleted") Deleted,
+	}
+
+	@Serializable
+	enum class ChatStatus {
+		@SerialName("active") Active,
+		@SerialName("inactive") Inactive,
+		@SerialName("deleted") Deleted,
+	}
+
+	@Serializable
+	enum class UserStatus {
+		@SerialName("active") Active,
+		@SerialName("online") Online,
+		@SerialName("inactive") Inactive,
+		@SerialName("deleted") Deleted,
+	}
+
+	enum class FriendshipStatus {
+		Pending,
+		Accepted,
+		Declined,
+		Blocked
+	}
+
+	enum class TreatmentStatus {
+		Started,
+		Stabilized,
+		Completed
+	}
+
+	enum class VisitType {
+		Personal, Group
+	}
+
+	enum class CallType {
+		Group, Peer
 	}
 
 }

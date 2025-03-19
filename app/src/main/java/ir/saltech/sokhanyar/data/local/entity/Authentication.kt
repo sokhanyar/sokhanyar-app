@@ -1,17 +1,20 @@
-package ir.saltech.sokhanyar.data.local.entities
+package ir.saltech.sokhanyar.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.TypeConverters
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import ir.saltech.sokhanyar.BaseApplication
-import ir.saltech.sokhanyar.data.local.dbconfig.Converters
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Entity()
+@Entity(foreignKeys = [ForeignKey(User::class, ["id"], ["userId"], onUpdate = CASCADE, onDelete = CASCADE)], indices = [Index("id"), Index("userId")])
 @Serializable
-@TypeConverters(Converters::class)
 data class Device(
+	@PrimaryKey
 	@SerialName("device_id") val id: String,
+	@SerialName("user_id") val userId: String,
 	@SerialName("refresh_token") val refreshToken: String? = null,
 	@SerialName("access_token") val accessToken: String? = null,
 	@SerialName("token_type") val tokenType: String? = null,

@@ -1,7 +1,7 @@
 package ir.saltech.sokhanyar.data.remote.request
 
 import ir.saltech.sokhanyar.BaseApplication.UserRole
-import ir.saltech.sokhanyar.data.local.entities.treatment.Report
+import ir.saltech.sokhanyar.data.local.entity.treatment.Report
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

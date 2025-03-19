@@ -1,7 +1,7 @@
 package ir.saltech.sokhanyar.data.remote.response
 
-import ir.saltech.sokhanyar.data.local.entities.AiModel
-import ir.saltech.sokhanyar.data.local.entities.Clinic
+import ir.saltech.sokhanyar.data.remote.entity.AiModel
+import ir.saltech.sokhanyar.data.local.entity.Clinic
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

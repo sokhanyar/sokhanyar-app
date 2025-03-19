@@ -4,19 +4,23 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import ir.saltech.sokhanyar.data.local.dao.ClinicDao
+import ir.saltech.sokhanyar.data.local.dao.DeviceDao
 import ir.saltech.sokhanyar.data.local.dao.UserDao
-import ir.saltech.sokhanyar.data.local.entities.Clinic
-import ir.saltech.sokhanyar.data.local.entities.Device
-import ir.saltech.sokhanyar.data.local.entities.User
-import ir.saltech.sokhanyar.data.local.entities.UserRoleProperties
+import ir.saltech.sokhanyar.data.local.entity.Clinic
+import ir.saltech.sokhanyar.data.local.entity.Device
+import ir.saltech.sokhanyar.data.local.entity.User
+import ir.saltech.sokhanyar.data.local.entity.UserRoleProperties
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-@Database(entities = [User::class], version = 1)
+@Database(entities = [User::class, Device::class, Clinic::class], version = 1)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 	abstract fun userDao(): UserDao
+	abstract fun deviceDao(): DeviceDao
+	abstract fun clinicDao(): ClinicDao
 }
 
 object Converters {
@@ -29,6 +33,18 @@ object Converters {
 
 	@TypeConverter
 	fun toStringList(list: List<String>?): String? {
+		if (list == null) return null
+		return Json.Default.encodeToString(ListSerializer(serializer()), list)
+	}
+
+	@TypeConverter
+	fun fromIntArrayList(value: String?): List<Array<Int>>? {
+		if (value == null) return null
+		return Json.Default.decodeFromString(ListSerializer(serializer()), value)
+	}
+
+	@TypeConverter
+	fun toIntArrayList(list: List<Array<Int>>?) : String? {
 		if (list == null) return null
 		return Json.Default.encodeToString(ListSerializer(serializer()), list)
 	}
