@@ -21,7 +21,7 @@ object FileSerializer : KSerializer<File> {
 }
 
 object DateSerializer : KSerializer<Date> {
-	override val descriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
+	override val descriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.LONG)
 
 	override fun serialize(encoder: Encoder, value: Date) {
 		encoder.encodeLong(value.time)

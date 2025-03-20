@@ -385,7 +385,7 @@ o   You must ask the name of user at the start of chat, if not said.
 		Forward, Backward, Unknown
 	}
 
-	enum class AiResponseFeedback {
+	enum class AiUserFeedback {
 		IncorrectOrIncomplete, TooLargeResponse, Good
 	}
 
@@ -398,79 +398,117 @@ o   You must ask the name of user at the start of chat, if not said.
 	@Serializable
 	enum class Gender {
 		@SerialName("male")
-		Male, @SerialName("female")
-		Female, @SerialName("other")
+		Male,
+
+		@SerialName("female")
+		Female,
+
+		@SerialName("other")
 		Other
 	}
 
 	@Serializable
 	enum class UserRole {
 		@SerialName("doctor")
-		Doctor, @SerialName("consultant")
-		Consultant, @SerialName("companion")
-		Companion, @SerialName("patient")
-		Patient, @SerialName("viewer")
+		Doctor,
+
+		@SerialName("consultant")
+		Consultant,
+
+		@SerialName("companion")
+		Companion,
+
+		@SerialName("patient")
+		Patient,
+
+		@SerialName("viewer")
 		Viewer
 	}
 
 	@Serializable
 	enum class MessageStatus {
 		@SerialName("sent")
-		Sent, @SerialName("edited")
-		Edited, @SerialName("read")
+		Sent,
+
+		@SerialName("edited")
+		Edited,
+
+		@SerialName("read")
 		Read
 	}
 
 	@Serializable
 	enum class ChatType {
 		@SerialName("group")
-		Group, @SerialName("channel")
-		Channel, @SerialName("private")
+		Group,
+
+		@SerialName("channel")
+		Channel,
+
+		@SerialName("private")
 		Private
 	}
 
 	@Serializable
 	enum class MessageType {
 		@SerialName("post")
-		Post, @SerialName("message")
-		Message, @SerialName("comment")
+		Post,
+
+		@SerialName("message")
+		Message,
+
+		@SerialName("comment")
 		Comment
 	}
 
 	@Serializable
 	enum class MediaStatus {
-		@SerialName("active") Active,
-		@SerialName("inactive") Inactive,
-		@SerialName("edited") Edited,
-		@SerialName("deleted") Deleted,
+		@SerialName("active")
+		Active,
+
+		@SerialName("inactive")
+		Inactive,
+
+		@SerialName("edited")
+		Edited,
+
+		@SerialName("deleted")
+		Deleted,
 	}
 
 	@Serializable
 	enum class ChatStatus {
-		@SerialName("active") Active,
-		@SerialName("inactive") Inactive,
-		@SerialName("deleted") Deleted,
+		@SerialName("active")
+		Active,
+
+		@SerialName("inactive")
+		Inactive,
+
+		@SerialName("deleted")
+		Deleted,
 	}
 
 	@Serializable
 	enum class UserStatus {
-		@SerialName("active") Active,
-		@SerialName("online") Online,
-		@SerialName("inactive") Inactive,
-		@SerialName("deleted") Deleted,
+		@SerialName("active")
+		Active,
+
+		@SerialName("online")
+		Online,
+
+		@SerialName("inactive")
+		Inactive,
+
+		@SerialName("deleted")
+		Deleted,
 	}
 
 	enum class FriendshipStatus {
-		Pending,
-		Accepted,
-		Declined,
-		Blocked
+		Pending, Accepted, Declined, Blocked
 	}
 
 	enum class TreatmentStatus {
-		Started,
-		Stabilized,
-		Completed
+		Started, Stabilized, Completed
 	}
 
 	enum class VisitType {

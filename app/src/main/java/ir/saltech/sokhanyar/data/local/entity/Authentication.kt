@@ -9,15 +9,15 @@ import ir.saltech.sokhanyar.BaseApplication
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Entity(foreignKeys = [ForeignKey(User::class, ["id"], ["userId"], onUpdate = CASCADE, onDelete = CASCADE)], indices = [Index("id"), Index("userId")])
+@Entity(foreignKeys = [ForeignKey(User::class, parentColumns = ["id"], childColumns = ["userId"], onUpdate = CASCADE, onDelete = CASCADE)], indices = [Index("userId")])
 @Serializable
 data class Device(
 	@PrimaryKey
 	@SerialName("device_id") val id: String,
 	@SerialName("user_id") val userId: String,
-	@SerialName("refresh_token") val refreshToken: String? = null,
-	@SerialName("access_token") val accessToken: String? = null,
-	@SerialName("token_type") val tokenType: String? = null,
-	@SerialName("otp_code") val otpCode: Int? = null,
-	val otpRequestStatus: BaseApplication.OtpRequestStatus = BaseApplication.OtpRequestStatus.NOT_REQUESTED,
+	@SerialName("refresh_token") var refreshToken: String? = null,
+	@SerialName("access_token") var accessToken: String? = null,
+	@SerialName("token_type") var tokenType: String? = null,
+	@SerialName("otp_code") var otpCode: Int? = null,
+	var otpRequestStatus: BaseApplication.OtpRequestStatus = BaseApplication.OtpRequestStatus.NOT_REQUESTED,
 )

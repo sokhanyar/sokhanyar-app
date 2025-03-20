@@ -12,17 +12,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 
-@Entity(tableName = "call")
+@Entity
 @Serializable
 @TypeConverters(Converters::class)
 data class Call(
-	@PrimaryKey val id: String,
+	@PrimaryKey @SerialName("call_id") val id: String,
 	val type: CallType,
 	val subject: String? = null,
-	val questions: List<String>? = null,
-	@SerialName("meet_url") val meetUrl: String? = null,
-	@SerialName("started_at") val startedAt: Long? = null,
-	@SerialName("ended_at") val endedAt: Long? = null,
+	var questions: List<String>? = null,
+	@SerialName("meet_url") var meetUrl: String? = null,
+	@SerialName("started_at") var startedAt: Long? = null,
+	@SerialName("ended_at") var endedAt: Long? = null,
 	@SerialName("created_at") val createdAt: Long,
 )
 
@@ -39,13 +39,12 @@ data class Call(
 		childColumns = ["patientId"],
 		onDelete = ForeignKey.CASCADE,
 		onUpdate = ForeignKey.CASCADE
-	)], primaryKeys = ["callId", "patientId"], indices = [Index("id"), Index("callId"), Index("patientId")]
+	)], primaryKeys = ["callId", "patientId"], indices = [Index("callId"), Index("patientId")]
 )
 @Serializable
-@TypeConverters(Converters::class)
 data class CallParticipant(
 	val callId: String,
-	val patientId: String,
+	@SerialName("patient_id") val patientId: String,
 	@SerialName("joined_at") val joinedAt: Long,
-	@SerialName("left_at") val leftAt: Long? = null,
+	@SerialName("left_at") var leftAt: Long? = null,
 )

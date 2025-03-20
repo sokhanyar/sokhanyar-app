@@ -1,13 +1,13 @@
 package ir.saltech.sokhanyar.data.local.entity
 
-import ir.saltech.sokhanyar.data.local.entity.treatment.Visit
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import ir.saltech.sokhanyar.data.local.entity.treatment.Visit
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// Association Tables
 @Entity(
 	tableName = "doctor_patient_visit_association",
 	foreignKeys = [
@@ -33,7 +33,7 @@ import kotlinx.serialization.Serializable
 			onUpdate = ForeignKey.CASCADE
 		)
 	],
-	primaryKeys = ["doctorId", "patientId", "visitId"],
+	primaryKeys = ["doctorId", "patientId"],
 	indices = [
 		Index("doctorId"),
 		Index("patientId"),
@@ -42,9 +42,9 @@ import kotlinx.serialization.Serializable
 )
 @Serializable
 data class DoctorPatientVisitCrossRef(
-	val doctorId: String,
-	val patientId: String,
-	val visitId: String,
+	@SerialName("doctor_id") val doctorId: String,
+	@SerialName("patient_id") val patientId: String,
+	@SerialName("visit_id") var visitId: String? = null,
 )
 
 @Entity(
@@ -73,8 +73,8 @@ data class DoctorPatientVisitCrossRef(
 )
 @Serializable
 data class ConsultantPatientCrossRef(
-	val consultantId: String,
-	val patientId: String,
+	@SerialName("consultant_id") val consultantId: String,
+	@SerialName("patient_id") val patientId: String,
 )
 
 @Entity(tableName = "companion_relationship_type")
@@ -118,9 +118,9 @@ data class CompanionRelationshipType(
 )
 @Serializable
 data class CompanionPatientCrossRef(
-	val companionId: String,
-	val patientId: String,
-	val relationshipTypeId: String,
+	@SerialName("companion_id") val companionId: String,
+	@SerialName("patient_id") val patientId: String,
+	@SerialName("relationship_type_id") val relationshipTypeId: String,
 )
 
 @Entity(
@@ -149,6 +149,6 @@ data class CompanionPatientCrossRef(
 )
 @Serializable
 data class UserClinicCrossRef(
-	val userId: String,
-	val clinicId: String,
+	@SerialName("user_id") val userId: String,
+	@SerialName("clinic_id") val clinicId: String,
 )

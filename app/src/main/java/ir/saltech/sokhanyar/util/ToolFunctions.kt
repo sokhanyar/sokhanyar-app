@@ -21,7 +21,6 @@ import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.data.local.entity.User
 import ir.saltech.sokhanyar.data.local.entity.UserRoleProperties
 import ir.saltech.sokhanyar.data.local.entity.treatment.DailyReport
-import ir.saltech.sokhanyar.data.local.entity.treatment.DailyReports
 import ir.saltech.sokhanyar.data.local.entity.treatment.WeeklyReport
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -80,8 +79,8 @@ fun IntArray.toReportDate(): String {
 
 private const val DAY_IN_MILLIS = 86400000
 
-fun DailyReports.getLastDailyReports(): List<DailyReport>? {
-	return this.list.filter {
+fun List<DailyReport>.getLastDailyReports(): List<DailyReport>? {
+	return this.filter {
 		(it.date ?: return null) > Clock.System.now().toEpochMilliseconds() - (DAY_IN_MILLIS * 7)
 	}.ifEmpty { null }
 }
@@ -311,7 +310,7 @@ fun User.getSummary(): String {
         ${if (props.currentStutteringSeverity != null) "درجه شدت لکنت من در حین درمان ${props.currentStutteringSeverity} شده." else ""}
         ${if (!props.dailyTherapyTime.isNullOrBlank()) "من روزانه ${props.dailyTherapyTime} برای درمان وقت می‌گذارم." else ""}
         ${if (props.currentTherapyDuration != null) "دوره درمان فعلی من ${props.currentTherapyDuration} ماه طول کشیده است." else ""}
-        ${if (!props.treatmentStatus.isNullOrBlank()) "وضعیت فعلی درمان من: ${props.treatmentStatus}." else ""}
+        ${if (props.treatmentStatus?.name?.isNotBlank() == true) "وضعیت فعلی درمان من: ${props.treatmentStatus}." else ""}
         ${if (!props.therapyMethod.isNullOrBlank()) "شیوه درمانی فعلی من ${props.therapyMethod} است." else ""}
         ${if (!props.stutteringSituations.isNullOrBlank()) "من در موقعیت‌های ${props.stutteringSituations} بیشتر لکنت می‌کنم." else ""}
         ${if (!props.emotionalImpact.isNullOrBlank()) "لکنت بر احساسات من این تأثیر را دارد: ${props.emotionalImpact}." else ""}

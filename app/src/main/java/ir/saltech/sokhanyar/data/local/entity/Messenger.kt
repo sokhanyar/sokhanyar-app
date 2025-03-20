@@ -6,9 +6,11 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.BaseApplication.MessageStatus
 import ir.saltech.sokhanyar.BaseApplication.MessageType
+import ir.saltech.sokhanyar.data.local.dbconfig.Converters
 import ir.saltech.sokhanyar.data.local.entity.serializer.FileSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -21,19 +23,26 @@ import java.io.File
 		childColumns = ["uploaderId"],
 		onUpdate = CASCADE,
 		onDelete = CASCADE
-	)], indices = [Index("id"), Index("uploaderId")]
+	)], indices = [Index("uploaderId")]
 )
 @Serializable
+@TypeConverters(Converters::class)
 data class Media(
 	@PrimaryKey @SerialName("media_id") val id: String,
 	@SerialName("uploader_id") val uploaderId: String,
 	@SerialName("mime_type") val mimeType: String,
 	val checksum: String,
+	@Embedded val uploadStatus: UploadStatus = UploadStatus(),  // this won't be sent to server
 	val size: Long,
-	@Serializable(FileSerializer::class) val file: File,
+	@SerialName("file") @Serializable(FileSerializer::class) val attachedFile: File,
 	val duration: Long? = null,
 )
 
+@Serializable
+data class UploadStatus(
+	var uploadError: String? = null,
+	var uploadProgress: Float? = null
+)
 
 @Entity(
 	foreignKeys = [ForeignKey(
@@ -42,20 +51,20 @@ data class Media(
 		childColumns = ["senderId"],
 		onUpdate = CASCADE,
 		onDelete = CASCADE
-	)], indices = [Index("id"), Index("senderId")]
+	)], indices = [Index("senderId")]
 )
 @Serializable
 data class Message(
-	@SerialName("message_id") val id: String,
-	val chat: Chat,
+	@PrimaryKey @SerialName("message_id") val id: String,
+	@SerialName("chat_id") val chatId: String,
 	@SerialName("sender_id") val senderId: String,
 	@SerialName("post_id") val postId: String? = null,
 	val type: MessageType = MessageType.Message,
-	val status: MessageStatus,
-	val text: String,
+	var status: MessageStatus,
+	var text: String,
 	@SerialName("replied_to_id") val repliedToId: String? = null,
 	@SerialName("forwarded_from_id") val forwardedFromId: String? = null,
-	@SerialName("is_pinned") val isPinned: Boolean = false,
+	@SerialName("is_pinned") var isPinned: Boolean = false,
 	@SerialName("sent_at") val sentAt: Long,
 )
 
@@ -65,15 +74,16 @@ data class Message(
 	foreignKeys = [ForeignKey(Media::class, ["id"], ["mediaId"]), ForeignKey(
 		Message::class, ["id"], ["messageId"], onUpdate = CASCADE, onDelete = CASCADE
 	)],
-	indices = [Index("id"), Index("messageId")]
+	primaryKeys = ["messageId", "mediaId"],
+	indices = [Index("messageId"), Index("mediaId")]
 )
 @Serializable
 data class MessageMedia(
 	@SerialName("message_id") val messageId: String,
 	@SerialName("media_id") val mediaId: String,
-	val status: BaseApplication.MediaStatus = BaseApplication.MediaStatus.Active,
-	@SerialName("edited_at") val editedAt: Long? = null,
-	@SerialName("deleted_at") val deletedAt: Long? = null,
+	var status: BaseApplication.MediaStatus = BaseApplication.MediaStatus.Active,
+	@SerialName("edited_at") var editedAt: Long? = null,
+	@SerialName("deleted_at") var deletedAt: Long? = null,
 	@SerialName("attached_at") val attachedAt: Long,
 )
 
@@ -83,14 +93,15 @@ data class MessageMedia(
 	foreignKeys = [ForeignKey(User::class, ["id"], ["reactorId"]), ForeignKey(
 		Message::class, ["id"], ["messageId"], onUpdate = CASCADE, onDelete = CASCADE
 	)],
-	indices = [Index("id"), Index("messageId")]
+	primaryKeys = ["messageId", "reactorId"],
+	indices = [Index("messageId"), Index("reactorId")]
 )
 @Serializable
 data class MessageReaction(
 	@SerialName("message_id") val messageId: String,
 	@SerialName("reactor_id") val reactorId: String,
-	val reaction: String,
-	@SerialName("reacted_at") val reactedAt: Long,
+	var reaction: String,
+	@SerialName("reacted_at") var reactedAt: Long,
 )
 
 
@@ -99,7 +110,8 @@ data class MessageReaction(
 	foreignKeys = [ForeignKey(User::class, ["id"], ["readerId"]), ForeignKey(
 		Message::class, ["id"], ["messageId"], onUpdate = CASCADE, onDelete = CASCADE
 	)],
-	indices = [Index("id"), Index("messageId")]
+	primaryKeys = ["messageId", "readerId"],
+	indices = [Index("messageId"), Index("readerId")]
 )
 @Serializable
 data class MessageRead(
@@ -114,7 +126,8 @@ data class MessageRead(
 	foreignKeys = [ForeignKey(User::class, ["id"], ["reporterId"]), ForeignKey(
 		Message::class, ["id"], ["messageId"], onUpdate = CASCADE, onDelete = CASCADE
 	)],
-	indices = [Index("id"), Index("messageId")]
+	primaryKeys = ["messageId", "reporterId"],
+	indices = [Index("messageId"), Index("reporterId")]
 )
 @Serializable
 data class MessageReport(
@@ -125,20 +138,23 @@ data class MessageReport(
 )
 
 
-@Entity
+@Entity(
+	foreignKeys = [ForeignKey(User::class, ["id"], ["createdById"])],
+	indices = [Index("createdById")]
+)
 @Serializable
 data class Chat(
-	@SerialName("chat_id") val id: Int,
+	@PrimaryKey @SerialName("chat_id") val id: Int,
 	val type: BaseApplication.ChatType,
-	val status: BaseApplication.ChatStatus,
+	var status: BaseApplication.ChatStatus,
 	@SerialName("created_by")
 	val createdById: String,
 	@SerialName("created_at")
 	val createdAt: Long,
 	@SerialName("status_changed_at")
-	val statusChangedAt: Long,
+	var statusChangedAt: Long,
 	@SerialName("last_message_at")
-	val lastMessageAt: Long,
+	var lastMessageAt: Long,
 	@Embedded @SerialName("type_properties") val typeProperties: ChatTypeProperties? = null,
 )
 
@@ -157,17 +173,17 @@ sealed class ChatTypeProperties {
 	@Serializable
 	@SerialName("group")
 	data class Group(
-		val name: String,
-		val avatarMediaId: String,
-		val description: String
+		var name: String,
+		@SerialName("avatar_media_id") var avatarMediaId: String,
+		var description: String
 	)
 
 	@Serializable
 	@SerialName("channel")
 	data class Channel(
-		val name: String,
-		val avatarMediaId: String,
-		val description: String
+		var name: String,
+		@SerialName("avatar_media_id") var avatarMediaId: String,
+		var description: String
 	)
 }
 

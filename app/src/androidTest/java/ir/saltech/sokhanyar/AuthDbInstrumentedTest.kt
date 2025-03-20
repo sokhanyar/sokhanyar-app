@@ -40,7 +40,7 @@ class AuthDbInstrumentedTest {
 	@Throws(Exception::class)
 	fun writeUserAndCheckSubmitted() {
 		val testName = "george"
-		val user: User = User(id = "P(G*udzf8jdzf8p9hjf-9hjdf98hjdf").apply {
+		val user: User = User(id = "P(G*udzf8jdzf8p9hjf-9hjdf98hjdf", signedUpAt = 1L).apply {
 			copy(displayName = testName)
 		}
 		db.userDao().add(user)
@@ -52,7 +52,7 @@ class AuthDbInstrumentedTest {
 		val userId = "aldkjd;lfkjas;dlkjasd;lkjasdf;lkjasdf"
 		val deviceId = "a.djasdfkjaksdfnj;lasdjflkjsadfkljasldkfjk;lasdf"
 		val device = Device(deviceId, userId)
-		val user = User(userId)
+		val user = User(userId, signedUpAt = 1L)
 		db.userDao().add(user)
 		db.deviceDao().add(device)
 		db.deviceDao().findByUserId(userId).id shouldBe deviceId
@@ -64,7 +64,7 @@ class AuthDbInstrumentedTest {
 		val userId = "aldkjd;lfkjas;dlkjasd;lkjasdf;lkjasdf"
 		val deviceId = "a.djasdfkjaksdfnj;lasdjflkjsadfkljasldkfjk;lasdf"
 		var device = Device(deviceId, userId)
-		var user = User(userId, phoneNumber = "09138549727")
+		var user = User(userId, phoneNumber = "09138549727", signedUpAt = 1L)
 		db.userDao().add(user)
 		db.deviceDao().add(device)
 		user = user.copy()
@@ -75,7 +75,7 @@ class AuthDbInstrumentedTest {
 		val userId = "as;dfkasdf;adsjlkajdl;kjadlksfjl;kdajf'lkajdf"
 		val clinicId = "as;ldkfjsdljasd;lfkasdf;lkjasdf"
 		val clinic = Clinic(id = clinicId, name = "URSIRR", address = "asldkjad;ljadsf", phoneNumbers = listOf("sd"), acceptConsultants = false, acceptViewers = false, createdAt = 1L)
-		val user = User(userId, clinicId = clinicId, role = UserRole.Patient)
+		val user = User(userId, clinicId = clinicId, role = UserRole.Patient, signedUpAt = 1L)
 		db.userDao().add(user)
 		db.clinicDao().add(clinic)
 		db.clinicDao().getAll().isEmpty() shouldNotBe true
@@ -86,7 +86,7 @@ class AuthDbInstrumentedTest {
 		val userId = "as;dfkasdf;adsjlkajdl;kjadlksfjl;kdajf'lkajdf"
 		val clinicId = "as;ldkfjsdljasd;lfkasdf;lkjasdf"
 		val clinic = Clinic(id = clinicId, name = "URSIRR", address = "asldkjad;ljadsf", phoneNumbers = listOf("sd"), acceptConsultants = false, acceptViewers = false, createdAt = 1L)
-		val user = User(userId, clinicId = clinicId, role = UserRole.Patient)
+		val user = User(userId, clinicId = clinicId, role = UserRole.Patient, signedUpAt = 1L)
 		println(UserRole.Patient)
 		db.userDao().add(user)
 		db.clinicDao().add(clinic)

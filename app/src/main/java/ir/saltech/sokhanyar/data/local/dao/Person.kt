@@ -26,16 +26,16 @@ interface UserDao {
 	@Query("select * from user where phoneNumber=:phoneNumber")
 	fun findByPhoneNumber(phoneNumber: String): User
 
-	@Query("select media.* from user_avatar as avatar join media on media.id == avatar.mediaId group by avatar.userId having avatar.userId == :mediaId and media.id == :mediaId")
+	@Query("select media.* from user_avatars as avatar join media on media.id == avatar.mediaId group by avatar.userId having avatar.userId == :mediaId and media.id == :mediaId")
 	fun getAvatarMediaByMediaId(mediaId: String): Media
 
-	@Query("select avatar.* from user join user_avatar as avatar on user.id == avatar.userId group by mediaId having avatar.userId == :userId and user.id == :userId")
+	@Query("select avatar.* from user join user_avatars as avatar on user.id == avatar.userId group by mediaId having avatar.userId == :userId and user.id == :userId")
 	fun getUserAvatarsByUserId(userId: String): List<UserAvatar>
 
-	@Query("SELECT * FROM user_friend WHERE userId = :userId AND status = :status")
+	@Query("SELECT * FROM user_friends WHERE userId = :userId AND status = :status")
 	fun getFriendsByStatus(userId: String, status: FriendshipStatus): List<UserFriend>
 
-	@Query("SELECT * FROM user WHERE id IN (SELECT friendId FROM user_friend WHERE userId = :userId AND status = 'Accepted')")
+	@Query("SELECT * FROM user WHERE id IN (SELECT friendId FROM user_friends WHERE userId = :userId AND status = 'Accepted')")
 	fun getAcceptedFriends(userId: String): List<User>
 
 	@Insert

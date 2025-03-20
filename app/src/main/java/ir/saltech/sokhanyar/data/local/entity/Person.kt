@@ -4,6 +4,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import ir.saltech.sokhanyar.BaseApplication.FriendshipStatus
@@ -13,6 +14,7 @@ import ir.saltech.sokhanyar.BaseApplication.UserRole
 import ir.saltech.sokhanyar.BaseApplication.UserStatus
 import ir.saltech.sokhanyar.data.local.dbconfig.Converters
 import ir.saltech.sokhanyar.data.local.entity.serializer.DateSerializer
+import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Date
@@ -25,21 +27,21 @@ data class User(
 	@SerialName("clinic_id") val clinicId: String? = null,
 	@SerialName("phone_number") val phoneNumber: String? = null,
 	@SerialName("display_name") var displayName: String? = null,
-	@SerialName("national_code") val nationalCode: String? = null,
-	val username: String? = null,
-	val email: String? = null,
+	@SerialName("national_code") var nationalCode: String? = null,
+	var username: String? = null,
+	var email: String? = null,
 	@SerialName("birth_date") @Serializable(DateSerializer::class) val birthDate: Date? = null,
-	val gender: Gender? = null,
+	val age: Int? = ((birthDate?.time)?.let { Clock.System.now().toEpochMilliseconds() - it })?.toInt(),    // It must be read-only and just changed based on the birth date
+	var gender: Gender? = null,
 	var bio: String? = null,
-	@SerialName("has_consented") val hasMlConsent: Boolean = false,
-	@SerialName("avatar_url") val avatarUrl: String? = null,
-	@SerialName("two_factor_password") val twoFactorPassword: String? = null,
-	@SerialName("two_factor_password_hint") val twoFactorPasswordHint: String? = null,
-	val status: UserStatus = UserStatus.Active,
+	@SerialName("has_consented") var hasMlConsent: Boolean = false,
+	@SerialName("two_factor_password") var twoFactorPassword: String? = null,
+	@SerialName("two_factor_password_hint") var twoFactorPasswordHint: String? = null,
+	var status: UserStatus = UserStatus.Active,
 	val role: UserRole = UserRole.Patient,
 	@Embedded @SerialName("role_properties") val roleProperties: UserRoleProperties? = null,
-	@SerialName("last_seen_at") val lastSeenAt: Long? = null,
-	// Removed friendsId and blockedUsersId lists - we'll use relationship tables instead
+	@SerialName("last_seen_at") var lastSeenAt: Long? = null,
+	@SerialName("created_at") val signedUpAt: Long
 )
 
 @Serializable
@@ -74,111 +76,126 @@ sealed class UserRoleProperties {
 	@Serializable
 	@SerialName("doctor")
 	data class Doctor(
-		@SerialName("expertise") val expertise: String? = null,
+		@SerialName("expertise") var expertise: String? = null,
 		@SerialName("medical_council_code") val medicalCouncilCode: String,
-		@SerialName("years_of_experience") val yearsOfExperience: Int? = null,
-		@SerialName("visit_personal_fee") val visitPersonalFee: Int? = null,
-		@SerialName("visit_group_fee") val visitGroupFee: Int? = null,
+		@SerialName("years_of_experience") var yearsOfExperience: Int? = null,
+		@SerialName("visit_personal_fee") var visitPersonalFee: Int? = null,
+		@SerialName("visit_group_fee") var visitGroupFee: Int? = null,
 	) : UserRoleProperties()
 
 	@Serializable
 	@SerialName("consultant")
 	data class Consultant(
-		@SerialName("expertise") val expertise: String? = null,
+		@SerialName("expertise") var expertise: String? = null,
 	) : UserRoleProperties()
-//
-//	@Serializable
-//	@SerialName("assistant")
-//	data class Assistant(val modelName: String) : UserRoleProperties()
-//
-//	@Serializable
-//	@SerialName("viewer")
-//	data class Viewer(
-//		// Can add specific fields for viewers in the future
-//	) : UserRoleProperties()
+
+	@Serializable
+	@SerialName("companion")
+	data class CompanionU(
+		@SerialName("can_view_tutorials") var canViewTutorials: Boolean = true,     // That means whether user can see the doctors' clips and videos about stuttering
+	) : UserRoleProperties()
+
+	@Serializable
+	@SerialName("assistant")
+	data class Assistant(@SerialName("model_name") var modelName: String? = null) : UserRoleProperties()
+
+	@Serializable
+	@SerialName("viewer")
+	data class Viewer(
+		@SerialName("can_view") var canView: Boolean = true,
+	) : UserRoleProperties()
 }
 
 @Entity(
-	tableName = "user_friend",
-	foreignKeys = [
-		ForeignKey(
-			entity = User::class,
-			parentColumns = ["id"],
-			childColumns = ["userId"],
-			onDelete = CASCADE,
-			onUpdate = CASCADE
-		),
-		ForeignKey(
-			entity = User::class,
-			parentColumns = ["id"],
-			childColumns = ["friendId"],
-			onDelete = CASCADE,
-			onUpdate = CASCADE
-		)
-	],
-	primaryKeys = ["userId", "friendId"]
+	tableName = "user_friends", foreignKeys = [ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["userId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	), ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["friendId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	)], primaryKeys = ["userId", "friendId"], indices = [Index("userId"), Index("friendId")]
 )
 @Serializable
 data class UserFriend(
 	@SerialName("user_id") val userId: String,
 	@SerialName("friend_id") val friendId: String,
-	@SerialName("status") val status: FriendshipStatus = FriendshipStatus.Pending,
+	@SerialName("status") var status: FriendshipStatus = FriendshipStatus.Pending,
 	@SerialName("added_at") val addedAt: Long,
-	@SerialName("status_changed_at") val statusChangedAt: Long? = null
+	@SerialName("status_changed_at") var statusChangedAt: Long? = null,
 )
 
 @Entity(
-	tableName = "user_block",
-	foreignKeys = [
-		ForeignKey(
-			entity = User::class,
-			parentColumns = ["id"],
-			childColumns = ["userId"],
-			onDelete = CASCADE,
-			onUpdate = CASCADE
-		),
-		ForeignKey(
-			entity = User::class,
-			parentColumns = ["id"],
-			childColumns = ["blockedId"],
-			onDelete = CASCADE,
-			onUpdate = CASCADE
-		)
-	],
-	primaryKeys = ["userId", "blockedId"]
+	tableName = "user_blocks", foreignKeys = [ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["userId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	), ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["blockedId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	)], primaryKeys = ["userId", "blockedId"], indices = [Index("userId"), Index("blockedId")]
 )
 @Serializable
 data class UserBlock(
 	@SerialName("user_id") val userId: String,
-	@SerialName("blocked_id") val blockedId: String,
+	@SerialName("blocked_id") val blockedId: String,    // Blocked User
 	@SerialName("reason") val reason: String? = null,
-	@SerialName("blocked_at") val blockedAt: Long
+	@SerialName("blocked_at") val blockedAt: Long,
+)
+
+
+@Entity(
+	tableName = "user_reports", foreignKeys = [ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["userId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	), ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["reportedId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	)], primaryKeys = ["userId", "reportedId"], indices = [Index("userId"), Index("reportedId")]
+)
+@Serializable
+data class UserReport(
+	@SerialName("user_id") val userId: String,
+	@SerialName("reported_id") val reportedId: String,    // Reported User
+	@SerialName("reason") val reason: String? = null,
+	@SerialName("reported_at") val reportedAt: Long,
 )
 
 // Avatar relationship improved
 @Entity(
-	tableName = "user_avatar",
-	foreignKeys = [
-		ForeignKey(
-			entity = Media::class,
-			parentColumns = ["id"],
-			childColumns = ["mediaId"],
-			onUpdate = CASCADE,
-			onDelete = CASCADE
-		),
-		ForeignKey(
-			entity = User::class,
-			parentColumns = ["id"],
-			childColumns = ["userId"],
-			onDelete = CASCADE,
-			onUpdate = CASCADE
-		)
-	],
-	primaryKeys = ["userId", "mediaId"]
+	tableName = "user_avatars", foreignKeys = [ForeignKey(
+		entity = Media::class,
+		parentColumns = ["id"],
+		childColumns = ["mediaId"],
+		onUpdate = CASCADE,
+		onDelete = CASCADE
+	), ForeignKey(
+		entity = User::class,
+		parentColumns = ["id"],
+		childColumns = ["userId"],
+		onDelete = CASCADE,
+		onUpdate = CASCADE
+	)], primaryKeys = ["userId", "mediaId"], indices = [Index("userId"), Index("mediaId")]
 )
 @Serializable
 data class UserAvatar(
 	@SerialName("media_id") val mediaId: String,
 	@SerialName("user_id") val userId: String,
-	@SerialName("attached_at") val attachedAt: Long
+	@SerialName("attached_at") val attachedAt: Long,
 )

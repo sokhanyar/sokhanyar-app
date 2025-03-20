@@ -12,23 +12,24 @@ import kotlinx.serialization.Serializable
 @TypeConverters(Converters::class)
 data class Clinic(
 	@PrimaryKey
+	@SerialName("clinic_id")
 	val id: String,
 	val name: String,
-	val email: String? = null,
-	val address: String,
-	val website: String? = null,
+	var email: String? = null,
+	var address: String,
+	var website: String? = null,
 	@SerialName("accepted_insurances")
-	val acceptedInsurances: List<String>? = null,
+	var acceptedInsurances: List<String>? = null,
 	@SerialName("opening_days")
-	val openingDays: List<String>? = null,
+	var openingDays: List<String>? = null,
 	@SerialName("opening_hours")
-	val openingHours: List<Array<Int>>? = null,
+	var openingHours: List<Array<Int>>? = null,
 	@SerialName("phone_numbers")
-	val phoneNumbers: List<String>,
+	var phoneNumbers: List<String>,
 	@SerialName("accept_viewers")
-	val acceptViewers: Boolean,
+	var acceptViewers: Boolean,
 	@SerialName("accept_consultants")
-	val acceptConsultants: Boolean,
+	var acceptConsultants: Boolean,
 	@SerialName("created_at")
 	val createdAt: Long
 )
