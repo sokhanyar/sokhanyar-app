@@ -1,6 +1,6 @@
 package ir.saltech.sokhanyar.data.local.entity
 
-import Visit
+import ir.saltech.sokhanyar.data.local.entity.treatment.Visit
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index

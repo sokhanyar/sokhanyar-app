@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import gregorian_to_jalali
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.data.local.entity.User
 import ir.saltech.sokhanyar.data.local.entity.UserRoleProperties
@@ -57,7 +56,7 @@ fun String.asToken(): String {
 fun Date.toJalali(): IntArray {
 	val calendar = Calendar.getInstance()
 	calendar.time = this
-	val jalali = gregorian_to_jalali(
+	val jalali = gregorianToJalali(
 		calendar[Calendar.YEAR],
 		calendar[Calendar.MONTH] + 1,
 		calendar[Calendar.DAY_OF_MONTH]
@@ -214,7 +213,7 @@ fun Long.epochToMonthDay(): String {
 	val month = calendar.get(Calendar.MONTH)
 	val day = calendar.get(Calendar.DAY_OF_MONTH)
 	val dayId = calendar.get(Calendar.DAY_OF_WEEK)
-	val jalali = gregorian_to_jalali(year, month + 1, day)
+	val jalali = gregorianToJalali(year, month + 1, day)
 
 	return if (Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year == year) {
 		String.format(
@@ -244,7 +243,7 @@ fun Long.epochToFullDateTime(): String {
 	val month = calendar.get(Calendar.MONTH)
 	val day = calendar.get(Calendar.DAY_OF_MONTH)
 	val dayId = calendar.get(Calendar.DAY_OF_WEEK)
-	val jalali = gregorian_to_jalali(year, month + 1, day)
+	val jalali = gregorianToJalali(year, month + 1, day)
 
 	return String.format(
 		"%s، %d/%s/%d، %d:%d",

@@ -5,7 +5,6 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import ir.saltech.sokhanyar.data.local.dbconfig.AppDatabase
-import ir.saltech.sokhanyar.data.local.entity.Media
 import ir.saltech.sokhanyar.data.local.entity.User
 import kotlinx.io.IOException
 import org.junit.After
@@ -34,7 +33,11 @@ class ChatDbInstrumentedTest {
 	@Test
 	@Throws(Exception::class)
 	fun writeMediaAndCheckSubmitted() {
-		val media = Media("kjlkxjidies")
+		val userId = "aslkdfjasdfjklasef;klj"
+		val mediaId = "kjlkxjidies"
+		val user = User(id=userId)
+//		val media = Media(id=mediaId, uploaderId = userId)
+		// Test another sections of chat later.
 	}
 
 	private object TestUtil {
