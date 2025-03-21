@@ -6,20 +6,6 @@ plugins {
 }
 
 android {
-    signingConfigs {
-        getByName("debug") {
-            storeFile = file("D:\\AndroidStudioProjects\\Sokhanyar\\AppKey.jks")
-            storePassword = "SalTech#1402"
-            keyAlias = "PuyaKhan"
-            keyPassword = "SalTech#1402"
-        }
-        create("release") {
-            storeFile = file("D:\\AndroidStudioProjects\\Sokhanyar\\AppKey.jks")
-            storePassword = "SalTech#1402"
-            keyAlias = "PuyaKhan"
-            keyPassword = "SalTech#1402"
-        }
-    }
     namespace = "ir.saltech.sokhanyar"
     compileSdk = 35
 
