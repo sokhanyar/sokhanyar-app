@@ -56,9 +56,7 @@ fun Date.toJalali(): IntArray {
 	val calendar = Calendar.getInstance()
 	calendar.time = this
 	val jalali = gregorianToJalali(
-		calendar[Calendar.YEAR],
-		calendar[Calendar.MONTH] + 1,
-		calendar[Calendar.DAY_OF_MONTH]
+		calendar[Calendar.YEAR], calendar[Calendar.MONTH] + 1, calendar[Calendar.DAY_OF_MONTH]
 	)
 	return intArrayOf(0, 0, 0, calendar[Calendar.DAY_OF_WEEK]).apply { jalali.copyInto(this) }
 }
@@ -255,12 +253,13 @@ fun Long.epochToFullDateTime(): String {
 	)
 }
 
-fun Modifier.fadingEdge(brush: Brush) = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
-        drawContent()
-        drawRect(brush = brush, blendMode = BlendMode.DstIn)
-    }
+fun Modifier.fadingEdge(brush: Brush) =
+	this
+		.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+		.drawWithContent {
+			drawContent()
+			drawRect(brush = brush, blendMode = BlendMode.DstIn)
+		}
 
 fun isNetworkAvailable(context: Context): Boolean {
 	val result: Boolean

@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import ir.saltech.sokhanyar.BaseApplication.FriendshipStatus
+import ir.saltech.sokhanyar.BaseApplication.UserRole
 import ir.saltech.sokhanyar.data.local.entity.Device
 import ir.saltech.sokhanyar.data.local.entity.Media
 import ir.saltech.sokhanyar.data.local.entity.User
@@ -14,36 +15,42 @@ import ir.saltech.sokhanyar.data.local.entity.UserFriend
 
 @Dao
 interface UserDao {
-	@Query("select * from user")
-	fun getAll(): List<User>
+    @Query("SELECT * FROM user")
+    fun getAll(): List<User>
 
-	@Query("select device.* from user join device on user.id == device.userId")
-	fun getAllDevice(): List<Device>
+    @Query("SELECT * FROM user WHERE role = :role") 
+    fun getByRole(role: UserRole): List<User>
 
-	@Query("select * from user where displayName like :displayName limit 1")
-	fun findByDisplayName(displayName: String): User
+    @Query("SELECT * FROM user WHERE phoneNumber = :phoneNumber")
+    fun findByPhoneNumber(phoneNumber: String): User?
+    
+    @Query("SELECT * FROM user WHERE clinicId = :clinicId")
+    fun getByClinicId(clinicId: String): List<User>
 
-	@Query("select * from user where phoneNumber=:phoneNumber")
-	fun findByPhoneNumber(phoneNumber: String): User
+    @Query("SELECT device.* FROM user JOIN device ON user.id == device.userId")
+    fun getAllDevice(): List<Device>
 
-	@Query("select media.* from user_avatars as avatar join media on media.id == avatar.mediaId group by avatar.userId having avatar.userId == :mediaId and media.id == :mediaId")
-	fun getAvatarMediaByMediaId(mediaId: String): Media
+    @Query("SELECT * FROM user WHERE displayName LIKE :displayName LIMIT 1")
+    fun findByDisplayName(displayName: String): User
 
-	@Query("select avatar.* from user join user_avatars as avatar on user.id == avatar.userId group by mediaId having avatar.userId == :userId and user.id == :userId")
-	fun getUserAvatarsByUserId(userId: String): List<UserAvatar>
+    @Query("SELECT media.* FROM user_avatars AS avatar JOIN media ON media.id == avatar.mediaId GROUP BY avatar.userId HAVING avatar.userId == :mediaId AND media.id == :mediaId")
+    fun getAvatarMediaByMediaId(mediaId: String): Media
 
-	@Query("SELECT * FROM user_friends WHERE userId = :userId AND status = :status")
-	fun getFriendsByStatus(userId: String, status: FriendshipStatus): List<UserFriend>
+    @Query("SELECT avatar.* FROM user JOIN user_avatars AS avatar ON user.id == avatar.userId GROUP BY mediaId HAVING avatar.userId == :userId AND user.id == :userId")
+    fun getUserAvatarsByUserId(userId: String): List<UserAvatar>
 
-	@Query("SELECT * FROM user WHERE id IN (SELECT friendId FROM user_friends WHERE userId = :userId AND status = 'Accepted')")
-	fun getAcceptedFriends(userId: String): List<User>
+    @Query("SELECT * FROM user_friends WHERE userId = :userId AND status = :status")
+    fun getFriendsByStatus(userId: String, status: FriendshipStatus): List<UserFriend>
 
-	@Insert
-	fun add(user: User)
+    @Query("SELECT * FROM user WHERE id IN (SELECT friendId FROM user_friends WHERE userId = :userId AND status = 'Accepted')")
+    fun getAcceptedFriends(userId: String): List<User>
 
-	@Update
-	fun update(user: User)
+    @Insert
+    fun add(user: User)
 
-	@Delete
-	fun remove(user: User)
+    @Delete 
+    fun remove(user: User)
+
+    @Update
+    fun update(user: User)
 }

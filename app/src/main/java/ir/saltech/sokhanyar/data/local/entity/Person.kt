@@ -153,7 +153,6 @@ data class UserBlock(
 	@SerialName("blocked_at") val blockedAt: Long,
 )
 
-
 @Entity(
 	tableName = "user_reports", foreignKeys = [ForeignKey(
 		entity = User::class,
@@ -177,7 +176,6 @@ data class UserReport(
 	@SerialName("reported_at") val reportedAt: Long,
 )
 
-// Avatar relationship improved
 @Entity(
 	tableName = "user_avatars", foreignKeys = [ForeignKey(
 		entity = Media::class,

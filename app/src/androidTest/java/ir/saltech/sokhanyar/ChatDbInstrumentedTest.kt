@@ -36,8 +36,8 @@ class ChatDbInstrumentedTest {
 		val userId = "aslkdfjasdfjklasef;klj"
 		val mediaId = "kjlkxjidies"
 		val user = User(id=userId, signedUpAt = 1L)
-//		val media = Media(id=mediaId, uploaderId = userId)
-		// Test another sections of chat later.
+//		val media = Media(id=mediaId, uploaderId = userId, )
+//		TODO: Test another sections of chat later. (Can Use Mocks?)
 	}
 
 	private object TestUtil {

@@ -4,9 +4,18 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import ir.saltech.sokhanyar.data.local.dao.AdviceDao
+import ir.saltech.sokhanyar.data.local.dao.AssociationsDao
+import ir.saltech.sokhanyar.data.local.dao.CallDao
+import ir.saltech.sokhanyar.data.local.dao.ChatDao
 import ir.saltech.sokhanyar.data.local.dao.ClinicDao
 import ir.saltech.sokhanyar.data.local.dao.DeviceDao
+import ir.saltech.sokhanyar.data.local.dao.MediaDao
+import ir.saltech.sokhanyar.data.local.dao.MessageDao
+import ir.saltech.sokhanyar.data.local.dao.PerformanceReportDao
+import ir.saltech.sokhanyar.data.local.dao.PracticalVoiceDao
 import ir.saltech.sokhanyar.data.local.dao.UserDao
+import ir.saltech.sokhanyar.data.local.dao.VisitDao
 import ir.saltech.sokhanyar.data.local.entity.ChannelAdmin
 import ir.saltech.sokhanyar.data.local.entity.ChannelBan
 import ir.saltech.sokhanyar.data.local.entity.ChannelSubscriber
@@ -60,6 +69,15 @@ abstract class AppDatabase : RoomDatabase() {
 	abstract fun userDao(): UserDao
 	abstract fun deviceDao(): DeviceDao
 	abstract fun clinicDao(): ClinicDao
+	abstract fun mediaDao(): MediaDao
+	abstract fun messageDao(): MessageDao
+	abstract fun chatDao(): ChatDao
+	abstract fun adviceDao(): AdviceDao
+	abstract fun callDao(): CallDao
+	abstract fun practicalVoiceDao(): PracticalVoiceDao
+	abstract fun performanceReportDao(): PerformanceReportDao
+	abstract fun visitDao(): VisitDao
+	abstract fun associationsDao(): AssociationsDao
 }
 
 object Converters {
