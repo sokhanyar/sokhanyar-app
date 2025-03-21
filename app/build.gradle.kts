@@ -20,7 +20,6 @@ android {
         versionName = "1.5.41"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig = signingConfigs.getByName("debug")
     }
 
     buildTypes {
