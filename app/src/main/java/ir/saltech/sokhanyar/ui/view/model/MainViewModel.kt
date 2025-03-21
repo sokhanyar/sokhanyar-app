@@ -12,40 +12,47 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ir.saltech.ai.client.generativeai.GenerativeModel
-import ir.saltech.ai.client.generativeai.type.content
-import ir.saltech.ai.client.generativeai.type.generationConfig
 import ir.saltech.sokhanyar.BaseApplication
 import ir.saltech.sokhanyar.BaseApplication.Constants.OTP_EXPIRATION_DURATION_SECONDS
+import ir.saltech.sokhanyar.BaseApplication.Key.Chats
 import ir.saltech.sokhanyar.R
-import ir.saltech.sokhanyar.api.ApiCallback
-import ir.saltech.sokhanyar.api.ApiClient
-import ir.saltech.sokhanyar.api.call
-import ir.saltech.sokhanyar.model.api.ChatHistory
-import ir.saltech.sokhanyar.model.api.ChatMessage
+import ir.saltech.sokhanyar.api.config.ApiCallback
+import ir.saltech.sokhanyar.api.config.ApiClient
+import ir.saltech.sokhanyar.api.config.call
+import ir.saltech.sokhanyar.api.request.AccessTokenRequest
+import ir.saltech.sokhanyar.api.request.AnalyzeReportRequest
+import ir.saltech.sokhanyar.api.request.GenerateMotivationTextRequest
+import ir.saltech.sokhanyar.api.request.OtpCodeRequest
+import ir.saltech.sokhanyar.api.request.RegisterDeviceRequest
+import ir.saltech.sokhanyar.api.response.AccessTokenResponse
+import ir.saltech.sokhanyar.api.response.AnalyzeReportResponse
+import ir.saltech.sokhanyar.api.response.ClinicsInfoResponse
+import ir.saltech.sokhanyar.api.response.ErrorResponse
+import ir.saltech.sokhanyar.api.response.GenerateMotivationTextResponse
+import ir.saltech.sokhanyar.api.response.MessageResponse
+import ir.saltech.sokhanyar.api.response.RegisterDeviceResponse
 import ir.saltech.sokhanyar.model.api.DonationPayment
-import ir.saltech.sokhanyar.model.api.ErrorResponse
 import ir.saltech.sokhanyar.model.api.PaymentResult
-import ir.saltech.sokhanyar.model.api.ResponseObject
-import ir.saltech.sokhanyar.model.data.general.AuthInfo
+import ir.saltech.sokhanyar.model.data.general.Clinic
+import ir.saltech.sokhanyar.model.data.general.Device
 import ir.saltech.sokhanyar.model.data.general.OtpRequestStatus
 import ir.saltech.sokhanyar.model.data.general.User
-import ir.saltech.sokhanyar.model.data.reports.CallsCount
-import ir.saltech.sokhanyar.model.data.reports.VoicesProperties
-import ir.saltech.sokhanyar.model.data.reports.WeeklyReport
-import ir.saltech.sokhanyar.model.data.reports.WeeklyReports
+import ir.saltech.sokhanyar.model.data.general.UserRole
+import ir.saltech.sokhanyar.model.data.messenger.Chats
+import ir.saltech.sokhanyar.model.data.treatment.report.CallsCount
+import ir.saltech.sokhanyar.model.data.treatment.report.DailyReport
+import ir.saltech.sokhanyar.model.data.treatment.report.DailyReports
+import ir.saltech.sokhanyar.model.data.treatment.report.Report
+import ir.saltech.sokhanyar.model.data.treatment.report.VoicesProperties
+import ir.saltech.sokhanyar.model.data.treatment.report.WeeklyReport
+import ir.saltech.sokhanyar.model.data.treatment.report.WeeklyReports
 import ir.saltech.sokhanyar.ui.state.MainUiState
 import ir.saltech.sokhanyar.util.analyzeError
-import ir.saltech.sokhanyar.util.asAiContent
-import ir.saltech.sokhanyar.util.asAiContents
-import ir.saltech.sokhanyar.util.asChatMessage
 import ir.saltech.sokhanyar.util.dataStore
-import ir.saltech.sokhanyar.util.epochToFullDateTime
 import ir.saltech.sokhanyar.util.fromJson
 import ir.saltech.sokhanyar.util.get
 import ir.saltech.sokhanyar.util.getGreetingBasedOnTime
 import ir.saltech.sokhanyar.util.getLastDailyReports
-import ir.saltech.sokhanyar.util.getUserSummary
 import ir.saltech.sokhanyar.util.set
 import ir.saltech.sokhanyar.util.toJalali
 import ir.saltech.sokhanyar.util.toJson
@@ -67,10 +74,6 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class MainViewModel : ViewModel() {
-	//    private val openai = OpenAI(
-//        token = BaseApplication.Constants.API_KEY,
-//        host = OpenAIHost("${BaseApplication.Constants.BASE_URL}/v1/")
-//    )
 	private val _uiState = MutableStateFlow(MainUiState())
 	private val _errorMessage = MutableStateFlow("")
 	private val _remainingTime = MutableStateFlow(0L)
@@ -84,9 +87,25 @@ class MainViewModel : ViewModel() {
 		set(value) {
 			_uiState.update { it.copy(sentence = value) }
 		}
-	private var advice: MutableState<String?> = mutableStateOf(null)
+	private var realAdvice: MutableState<String?> = mutableStateOf(null)
 		set(value) {
-			_uiState.update { it.copy(advice = value) }
+			_uiState.update { it.copy(realAdvice = value) }
+		}
+	private var chats: StateFlow<Chats> = MutableStateFlow(Chats())
+		set(value) {
+			_uiState.update { it.copy(chats = value) }
+		}
+	private var dailyReports: DailyReports? = null
+		set(value) {
+			_uiState.update { it.copy(dailyReports = value) }
+		}
+	private var weeklyReports: WeeklyReports? = null
+		set(value) {
+			_uiState.update { it.copy(weeklyReports = value) }
+		}
+	private var clinics: List<Clinic> = listOf()
+		set(value) {
+			_uiState.update { it.copy(clinics = value) }
 		}
 
 	var activePages: MutableList<BaseApplication.Page> =
@@ -94,43 +113,33 @@ class MainViewModel : ViewModel() {
 		set(value) {
 			_uiState.update { it.copy(activePages = value) }
 		}
-	var user: User = User()
+
+	var currentUser: User? = null
 		set(value) {
-			_uiState.update { it.copy(user = value) }
+			_uiState.update { it.copy(currentUser = value) }
 		}
-	var dailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport =
-		ir.saltech.sokhanyar.model.data.reports.DailyReport()
+	var currentDailyReport: DailyReport? = null
 		set(value) {
-			_uiState.update { it.copy(dailyReport = value) }
+			_uiState.update { it.copy(currentDailyReport = value) }
 		}
-	var weeklyReport: WeeklyReport = WeeklyReport()
+	var currentWeeklyReport: WeeklyReport? = null
 		set(value) {
-			_uiState.update { it.copy(weeklyReport = value) }
+			_uiState.update { it.copy(currentWeeklyReport = value) }
 		}
-	private var chatHistory: StateFlow<ChatHistory> = MutableStateFlow(ChatHistory(0)).asStateFlow()
-		set(value) {
-			_uiState.update { it.copy(chatHistory = value) }
-		}
-	private var dailyReports: ir.saltech.sokhanyar.model.data.reports.DailyReports =
-		ir.saltech.sokhanyar.model.data.reports.DailyReports()
-		set(value) {
-			_uiState.update { it.copy(dailyReports = value) }
-		}
-	private var weeklyReports: WeeklyReports = WeeklyReports()
-		set(value) {
-			_uiState.update { it.copy(weeklyReports = value) }
-		}
+
 
 	// --- AI Section ---
 
 	fun startOverChat() {
 		viewModelScope.launch {
 			// TODO: You can call another api keys and change model here
-			chatHistory = MutableStateFlow(ChatHistory(0))
-			saveChatHistory()
+			chats = MutableStateFlow(Chats())
+			saveChats()
 		}
 	}
 
+	// TODO: ذخیره سازی و استفتده از چت با هوش مصنوعی رو براساس این اندپوینت های جدید بنویس
+	/*
 	fun generateNewMessage(message: String) {
 		viewModelScope.launch {
 			try {
@@ -188,10 +197,10 @@ class MainViewModel : ViewModel() {
 				saveChatHistory()
 			} catch (e: Exception) {
 				e.printStackTrace()
-				if (_uiState.value.chatHistory.value.contents.lastOrNull()?.content == "...") {
+				if (_uiState.value.chats.value.contents.lastOrNull()?.content == "...") {
 					viewModelScope.launch(Dispatchers.IO) {
-						chatHistory =
-							MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let {
+						chats =
+							MutableStateFlow(_uiState.value.chats.value.copy(contents = _uiState.value.chats.value.contents.let {
 								it[it.size - 1] = ChatMessage(
 									0,
 									"assistant",
@@ -199,14 +208,14 @@ class MainViewModel : ViewModel() {
 								); it
 							}))
 						delay(3000)
-						chatHistory =
-							MutableStateFlow(_uiState.value.chatHistory.value.copy(contents = _uiState.value.chatHistory.value.contents.let { contents ->
+						chats =
+							MutableStateFlow(_uiState.value.chats.value.copy(contents = _uiState.value.chats.value.contents.let { contents ->
 								repeat(2) { contents.removeAt(contents.size - 1) }; contents
 							}))
 						delay(10)
 						saveChatHistory()
 						delay(10)
-						if (_uiState.value.chatHistory.value.contents.size in 0..1) {
+						if (_uiState.value.chats.value.contents.size in 0..1) {
 							startOverChat()
 						}
 					}
@@ -214,76 +223,64 @@ class MainViewModel : ViewModel() {
 			}
 		}
 	}
+	*/
 
-	private fun generateAdvice(
-		reports: List<ir.saltech.sokhanyar.model.data.reports.Report>?,
-		reportType: BaseApplication.ReportType
+	private fun generateAdviceForReport(
+		reports: List<Report>?,
+		reportType: BaseApplication.ReportType,
 	) {
 		if (reports != null && reports.size >= 2) {
 			viewModelScope.launch {
-				try {
-					val model = GenerativeModel(
-						modelName = BaseApplication.Ai.Gemini.Models.Flash,
-						BaseApplication.Ai.Gemini.apiKeys.random(),
-						systemInstruction = content {
-							text(BaseApplication.Ai.Gemini.BASE_SYSTEM_INSTRUCTIONS_V1_1 + _uiState.value.user.getUserSummary())
-						},
-						generationConfig = generationConfig {
-							temperature = 0.8f
-							topK = 40
-							topP = 0.95f
-							maxOutputTokens = 1024
-							responseMimeType = "text/plain"
-						})
-					val chat = model.startChat()
-					val generatedResponse = chat.sendMessage(content {
-						text(
-							"""سلام گزارش ${reportType.name} امروز رو با توجه به گزارش های قبلی و با دقت تحلیل کن. به طور خلاصه بازخورد بده.\n
-                    گزارش این هفته / امروز:
-                    ${
-								reports.last().result
-							}
-                    گزارش های قبلی:
-                    ${
-								reports.subList(0, reports.lastIndex)
-							}
-                    """
-						)
-					})
-					Log.i("TAG", "Advice generated: ${generatedResponse.text}")
-					advice.value = generatedResponse.text?.trim()
-					_uiState.value.advice.value = generatedResponse.text?.trim()
-				} catch (e: Exception) {
-					e.printStackTrace()
-					// TODO: بعداً یادت باشه این رو حذف کنی! چون باید advice رو ذخیره کنی و نباید خطا ها ذخیره بشن .. اینو طور دیگه هندل کن
-					advice.value = "ناتوانی در دریافت توصیه از هوش مصنوعی!"
-					_uiState.value.advice.value = "ناتوانی در دریافت توصیه از هوش مصنوعی!"
-				}
+				val analyzeReportsRequest = AnalyzeReportRequest(
+					currentReport = reports.last(),
+					lastReports = reports.subList(0, reports.lastIndex)
+				)
+				ApiClient.sokhanyar.analyzeTreatmentReport(
+					accessToken = currentUser!!.device?.accessToken ?: return@launch,
+					reportType = reportType.name,
+					request = analyzeReportsRequest
+				).call(object : ApiCallback<AnalyzeReportResponse> {
+					override fun onSuccessful(responseObject: AnalyzeReportResponse?) {
+						if (responseObject != null) {
+							realAdvice.value = responseObject.advice.trim()
+							_uiState.value.realAdvice.value = responseObject.advice.trim()
+						}
+					}
+
+					override fun onFailure(
+						response: ErrorResponse?,
+						t: Throwable?,
+					) {
+						_errorMessage.value =
+							response?.detail?.message ?: t?.message ?: "خطای نامشخص"
+						t?.printStackTrace()
+					}
+				})
 			}
 		}
 	}
 
 	fun generateNewMotivationText() {
 		viewModelScope.launch {
-			try {
-				val model = GenerativeModel(
-					modelName = BaseApplication.Ai.Gemini.Models.Flash,
-					BaseApplication.Ai.Gemini.apiKeys.random(),
-					generationConfig = generationConfig {
-						temperature = 1.7f
-						topK = 40
-						topP = 0.90f
-						maxOutputTokens = 100
-						responseMimeType = "text/plain"
-						frequencyPenalty = 0.6f
-					})
-				val generatedContent = model.generateContent(
-					" ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی جذاب و متفاوت به من بگو.\n" + "فقط جمله انگیزشی ات رو نشون بده. جمله انگیزشی باید حداکثر 1 خط، به همراه ایموجی جذاب و بعضی مواقع در موضوع درمان لکنت باشه.\n"
-				)
-				sentence = generatedContent.text?.trim() ?: sentence
-			} catch (e: Exception) {
-				e.printStackTrace()
-			}
+			ApiClient.sokhanyar.generateMotivationText(
+				accessToken = currentUser!!.device?.accessToken ?: return@launch,
+				request = GenerateMotivationTextRequest(prompt = " ${getGreetingBasedOnTime(true)}  یک جمله انگیزشی جذاب و متفاوت به من بگو.\n" + "فقط جمله انگیزشی ات رو نشون بده. جمله انگیزشی باید حداکثر 1 خط، به همراه ایموجی جذاب و بعضی مواقع در موضوع درمان لکنت باشه.\n")
+			).call(
+				object : ApiCallback<GenerateMotivationTextResponse> {
+					override fun onSuccessful(responseObject: GenerateMotivationTextResponse?) {
+						sentence = responseObject?.motivationText?.trim() ?: sentence
+					}
+
+					override fun onFailure(
+						response: ErrorResponse?,
+						t: Throwable?,
+					) {
+						_errorMessage.value =
+							response?.detail?.message ?: t?.message ?: "خطای نامشخص"
+						t?.printStackTrace()
+					}
+				}
+			)
 		}
 	}
 
@@ -325,9 +322,13 @@ class MainViewModel : ViewModel() {
 
 	fun loadVoicesProperties() {
 		viewModelScope.launch {
-			if (_uiState.value.dailyReport.voicesProperties == VoicesProperties()) {
-				dailyReport =
-					_uiState.value.dailyReport.copy(voicesProperties = getVoicesProperties(context))
+			if (_uiState.value.currentDailyReport!!.voicesProperties == VoicesProperties()) {
+				currentDailyReport =
+					_uiState.value.currentDailyReport!!.copy(
+						voicesProperties = getVoicesProperties(
+							context
+						)
+					)
 			}
 		}
 	}
@@ -335,22 +336,22 @@ class MainViewModel : ViewModel() {
 	fun getDefaultWeeklyReport(): WeeklyReport? {
 		val res =
 			if (_uiState.value.dailyReports != null && _uiState.value.dailyReports?.list?.isNotEmpty() == true) {
-				val lastDailyReports: List<ir.saltech.sokhanyar.model.data.reports.DailyReport> =
+				val lastDailyReports: List<DailyReport> =
 					_uiState.value.dailyReports?.getLastDailyReports() ?: return null
-				_uiState.value.weeklyReport.copy(
-					user = _uiState.value.dailyReport.user,
+				_uiState.value.currentWeeklyReport!!.copy(
+					patient = _uiState.value.currentUser!!,
 					voicesProperties = lastDailyReports.let { lastReports ->
 						VoicesProperties(
-							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
+							lastReports.sumOf { lastDailyReport: DailyReport ->
 								lastDailyReport.voicesProperties.challengesCount ?: 0
 							}.takeIf { it > 0 },
-							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
+							lastReports.sumOf { lastDailyReport: DailyReport ->
 								lastDailyReport.voicesProperties.sumOfChallengesDuration ?: 0
 							}.takeIf { it > 0 },
-							lastReports.count { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
+							lastReports.count { lastDailyReport: DailyReport ->
 								lastDailyReport.voicesProperties.sumOfConferencesDuration != 0
 							}.takeIf { it > 0 },
-							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
+							lastReports.sumOf { lastDailyReport: DailyReport ->
 								lastDailyReport.voicesProperties.sumOfConferencesDuration ?: 0
 							}.takeIf { it > 0 })
 					},
@@ -358,11 +359,11 @@ class MainViewModel : ViewModel() {
 						.takeIf { it > 0 },
 					callsCount = lastDailyReports.let { lastReports ->
 						CallsCount(
-							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
+							lastReports.sumOf { lastDailyReport: DailyReport ->
 								lastDailyReport.callsCount.groupCallsCount ?: 0
 							}.takeIf { it > 0 },
-							lastReports.sumOf { lastDailyReport: ir.saltech.sokhanyar.model.data.reports.DailyReport ->
-								lastDailyReport.callsCount.supportingP2PCallsCount ?: 0
+							lastReports.sumOf { lastDailyReport: DailyReport ->
+								lastDailyReport.callsCount.peerCallsCount ?: 0
 							}.takeIf { it > 0 })
 					},
 					desensitizationCount = lastDailyReports.sumOf { lastReports ->
@@ -377,49 +378,48 @@ class MainViewModel : ViewModel() {
 	// --- Load and Save Section ---
 
 	private fun loadDailyReports() {
-		dailyReports = fromJson<ir.saltech.sokhanyar.model.data.reports.DailyReports>(
+		dailyReports = fromJson<DailyReports>(
 			context.dataStore[BaseApplication.Key.DailyReports] ?: ""
-		) ?: ir.saltech.sokhanyar.model.data.reports.DailyReports()
-		dailyReport = _uiState.value.dailyReport.copy(
-//            name = _uiState.value.dailyReports?.list?.lastOrNull()?.name,
-			user = _uiState.value.user, date = Clock.System.now().toEpochMilliseconds()
+		) ?: DailyReports()
+		currentDailyReport = _uiState.value.currentDailyReport?.copy(
+			patient = _uiState.value.currentUser!!, date = Clock.System.now().toEpochMilliseconds()
 		)
 		Log.i("TAG", "Latest daily reports fetched: ${_uiState.value.dailyReports}")
 	}
 
 	fun saveDailyReport(): Boolean {
-		user = _uiState.value.dailyReport.user
-		dailyReport = _uiState.value.dailyReport.copy(
+		currentUser = _uiState.value.currentDailyReport!!.patient
+		currentDailyReport = _uiState.value.currentDailyReport!!.copy(
 			result = """
             📝"فرم گزارش روزانه"
-            ◾️تاریخ: ${Date(_uiState.value.dailyReport.date!!).toJalali().toReportDate()} 
-            ◾️نام: ${(_uiState.value.dailyReport.user.name ?: "").ifEmpty { "ناشناس" }}
-            ☑️مدت زمان تمرین: ${_uiState.value.dailyReport.practiceTime?.toRegularTime() ?: "-"}
+            ◾️تاریخ: ${Date(_uiState.value.currentDailyReport!!.date!!).toJalali().toReportDate()} 
+            ◾️نام: ${(_uiState.value.currentDailyReport!!.patient.displayName ?: "").ifEmpty { "ناشناس" }}
+            ☑️مدت زمان تمرین: ${_uiState.value.currentDailyReport!!.practiceTime?.toRegularTime() ?: "-"}
             ☑️مدت زمان اجرای شیوه در انواع محیط ها👇
             بین 5 تا 15 دقیقه 👈 1 
             بین 15 تا 30 دقیقه 👈 2 
             بین 30 تا 60 دقیقه 👈 3 
             بیشتر از یک ساعت 👈 4 
-             خانه: ${_uiState.value.dailyReport.methodUsage.atHome ?: "-"}
-             مدرسه (دانشگاه): ${_uiState.value.dailyReport.methodUsage.atSchool ?: "-"}
-             غریبه ها: ${_uiState.value.dailyReport.methodUsage.withOthers ?: "-"}
-             فامیل و آشنا: ${_uiState.value.dailyReport.methodUsage.withFamily ?: "-"}
-            ☑️تعداد حساسیت زدایی: ${_uiState.value.dailyReport.desensitizationCount ?: "-"}
-            ☑️تعداد لکنت عمدی: ${_uiState.value.dailyReport.intentionalStutteringCount ?: "-"}
-            ☑️تعداد تشخیص اجتناب: ${_uiState.value.dailyReport.avoidanceDetectionCount ?: "-"}
-            ☑️تعداد تماس همیاری: ${_uiState.value.dailyReport.callsCount.supportingP2PCallsCount ?: "-"}
-            ☑️تعداد تماس گروهی: ${_uiState.value.dailyReport.callsCount.groupCallsCount ?: "-"}
-            ☑️تعداد چالش: ${_uiState.value.dailyReport.voicesProperties.challengesCount ?: "-"}
-            ☑️چالش بر حسب دقیقه: ${_uiState.value.dailyReport.voicesProperties.sumOfChallengesDuration ?: "-"}
-            ☑️کنفرانس بر حسب دقیقه: ${_uiState.value.dailyReport.voicesProperties.sumOfConferencesDuration ?: "-"}
-            ☑️رضایت از خودم (1 تا 10): ${_uiState.value.dailyReport.selfSatisfaction ?: "-"}
-            توضیحات: ${_uiState.value.dailyReport.description ?: "-"}
+             خانه: ${_uiState.value.currentDailyReport!!.treatMethodUsage.atHome ?: "-"}
+             مدرسه (دانشگاه): ${_uiState.value.currentDailyReport!!.treatMethodUsage.atSchool ?: "-"}
+             غریبه ها: ${_uiState.value.currentDailyReport!!.treatMethodUsage.withOthers ?: "-"}
+             فامیل و آشنا: ${_uiState.value.currentDailyReport!!.treatMethodUsage.withFamily ?: "-"}
+            ☑️تعداد حساسیت زدایی: ${_uiState.value.currentDailyReport!!.desensitizationCount ?: "-"}
+            ☑️تعداد لکنت عمدی: ${_uiState.value.currentDailyReport!!.intentionalStutteringCount ?: "-"}
+            ☑️تعداد تشخیص اجتناب: ${_uiState.value.currentDailyReport!!.avoidanceDetectionCount ?: "-"}
+            ☑️تعداد تماس همیاری: ${_uiState.value.currentDailyReport!!.callsCount.peerCallsCount ?: "-"}
+            ☑️تعداد تماس گروهی: ${_uiState.value.currentDailyReport!!.callsCount.groupCallsCount ?: "-"}
+            ☑️تعداد چالش: ${_uiState.value.currentDailyReport!!.voicesProperties.challengesCount ?: "-"}
+            ☑️چالش بر حسب دقیقه: ${_uiState.value.currentDailyReport!!.voicesProperties.sumOfChallengesDuration ?: "-"}
+            ☑️کنفرانس بر حسب دقیقه: ${_uiState.value.currentDailyReport!!.voicesProperties.sumOfConferencesDuration ?: "-"}
+            ☑️رضایت از خودم (1 تا 10): ${_uiState.value.currentDailyReport!!.selfSatisfaction ?: "-"}
+            توضیحات: ${_uiState.value.currentDailyReport!!.description ?: "-"}
         """.trimIndent()
 		)
-		val res = _uiState.value.dailyReports?.list?.add(_uiState.value.dailyReport)
+		val res = _uiState.value.dailyReports?.list?.add(_uiState.value.currentDailyReport!!)
 		saveDailyReports()
 		if ((_uiState.value.dailyReports?.list?.size ?: 0) > 1) {
-			generateAdvice(
+			generateAdviceForReport(
 				_uiState.value.dailyReports?.list?.toList(), BaseApplication.ReportType.Daily
 			)
 		}
@@ -436,39 +436,38 @@ class MainViewModel : ViewModel() {
 		weeklyReports =
 			fromJson<WeeklyReports>(context.dataStore[BaseApplication.Key.WeeklyReports] ?: "")
 				?: WeeklyReports()
-		weeklyReport = _uiState.value.weeklyReport.copy(
-//            user = _uiState.value.weeklyReports?.list?.lastOrNull()?.user,
-			user = _uiState.value.user, date = Clock.System.now().toEpochMilliseconds()
+		currentWeeklyReport = _uiState.value.currentWeeklyReport?.copy(
+			patient = _uiState.value.currentUser!!, date = Clock.System.now().toEpochMilliseconds()
 		)
 		Log.i("TAG", "Latest weekly reports fetched: ${_uiState.value.weeklyReports}")
 	}
 
 	fun saveWeeklyReport(): Boolean {
-		user = _uiState.value.weeklyReport.user
-		weeklyReport = _uiState.value.weeklyReport.copy(
+		currentUser = _uiState.value.currentWeeklyReport!!.patient
+		currentWeeklyReport = _uiState.value.currentWeeklyReport!!.copy(
 			result = """
             ..#گزارش_هفتگی
-            👤 ${_uiState.value.weeklyReport.user.name ?: "ناشناس"}
+            👤 ${_uiState.value.currentWeeklyReport!!.patient.displayName ?: "ناشناس"}
             
-            👈تعداد روز هایی که تمرینات انجام شده: ${_uiState.value.weeklyReport.practiceDays ?: "-"}
-            👈تعداد روزهای کنفرانس دادن: ${_uiState.value.weeklyReport.voicesProperties.conferenceDaysCount ?: "-"}
-            👈 مجموع کنفرانس هفته بر حسب دقیقه: ${_uiState.value.weeklyReport.voicesProperties.sumOfConferencesDuration ?: "-"}
-            👈 مجموع چالش هفته بر حسب دقیقه: ${_uiState.value.weeklyReport.voicesProperties.sumOfChallengesDuration ?: "-"}
-            👈تعداد شرکت در چالش (مثلا ۳ از n): ${_uiState.value.weeklyReport.voicesProperties.challengesCount ?: "-"}
-            👈تعداد  تماس همیاری: ${_uiState.value.weeklyReport.callsCount.supportingP2PCallsCount ?: "-"}
-            👈تعداد تماس گروهی: ${_uiState.value.weeklyReport.callsCount.groupCallsCount ?: "-"}
-            👈تعداد گزارش حساسیت زدایی هفته: ${_uiState.value.weeklyReport.desensitizationCount ?: "-"}
-            👈خلق استثنای هفته: ${_uiState.value.weeklyReport.creationOfExceptionCount ?: "-"}
-            👈تعداد ارسال گزارش روزانه درهفته: ${_uiState.value.weeklyReport.dailyReportsCount ?: "-"}
-            👈مجموع فعالیت ها: ${_uiState.value.weeklyReport.sumOfActivities ?: 0}
+            👈تعداد روز هایی که تمرینات انجام شده: ${_uiState.value.currentWeeklyReport!!.practiceDays ?: "-"}
+            👈تعداد روزهای کنفرانس دادن: ${_uiState.value.currentWeeklyReport!!.voicesProperties.conferenceDaysCount ?: "-"}
+            👈 مجموع کنفرانس هفته بر حسب دقیقه: ${_uiState.value.currentWeeklyReport!!.voicesProperties.sumOfConferencesDuration ?: "-"}
+            👈 مجموع چالش هفته بر حسب دقیقه: ${_uiState.value.currentWeeklyReport!!.voicesProperties.sumOfChallengesDuration ?: "-"}
+            👈تعداد شرکت در چالش (مثلا ۳ از n): ${_uiState.value.currentWeeklyReport!!.voicesProperties.challengesCount ?: "-"}
+            👈تعداد  تماس همیاری: ${_uiState.value.currentWeeklyReport!!.callsCount.peerCallsCount ?: "-"}
+            👈تعداد تماس گروهی: ${_uiState.value.currentWeeklyReport!!.callsCount.groupCallsCount ?: "-"}
+            👈تعداد گزارش حساسیت زدایی هفته: ${_uiState.value.currentWeeklyReport!!.desensitizationCount ?: "-"}
+            👈خلق استثنای هفته: ${_uiState.value.currentWeeklyReport!!.creationOfExceptionCount ?: "-"}
+            👈تعداد ارسال گزارش روزانه درهفته: ${_uiState.value.currentWeeklyReport!!.dailyReportsCount ?: "-"}
+            👈مجموع فعالیت ها: ${_uiState.value.currentWeeklyReport!!.sumOfActivities ?: 0}
             
-            ◾توضیحات اضافه: ${_uiState.value.weeklyReport.description ?: "-"}
+            ◾توضیحات اضافه: ${_uiState.value.currentWeeklyReport!!.description ?: "-"}
         """.trimIndent()
 		)
-		val res = _uiState.value.weeklyReports?.list?.add(_uiState.value.weeklyReport)
+		val res = _uiState.value.weeklyReports?.list?.add(_uiState.value.currentWeeklyReport!!)
 		saveWeeklyReports()
 		if ((_uiState.value.weeklyReports?.list?.size ?: 0) > 1) {
-			generateAdvice(
+			generateAdviceForReport(
 				_uiState.value.weeklyReports?.list?.toList(), BaseApplication.ReportType.Weekly
 			)
 		}
@@ -481,45 +480,41 @@ class MainViewModel : ViewModel() {
 			toJson(_uiState.value.weeklyReports) ?: ""
 	}
 
-	private fun saveChatHistory() {
-		Log.i("TAG", "saving chat history json: ${toJson(_uiState.value.chatHistory.value)}")
-		context.dataStore[BaseApplication.Key.ChatHistory] =
-			toJson(_uiState.value.chatHistory.value) ?: ""
+	private fun saveChats() {
+		Log.i("TAG", "saving chats json: ${toJson(_uiState.value.chats.value)}")
+		context.dataStore[Chats] =
+			toJson(_uiState.value.chats.value) ?: ""
 	}
 
-	private fun loadChatHistory() {
-		chatHistory = MutableStateFlow(
-			fromJson<ChatHistory>(context.dataStore[BaseApplication.Key.ChatHistory] ?: "")
-				?: ChatHistory(0)
+	private fun loadChats() {
+		chats = MutableStateFlow(
+			fromJson<Chats>(context.dataStore[Chats] ?: "")
+				?: Chats()
 		)
-		_uiState.value.chatHistory = MutableStateFlow(
-			fromJson<ChatHistory>(context.dataStore[BaseApplication.Key.ChatHistory] ?: "")
-				?: ChatHistory(0)
+		_uiState.value.chats = MutableStateFlow(
+			fromJson<Chats>(context.dataStore[Chats] ?: "")
+				?: Chats()
 		)
 		Log.i(
 			"TAG",
-			"Latest chat history fetched: ${_uiState.value.chatHistory.value} || chat history 1 "
+			"Latest chats list fetched: ${_uiState.value.chats.value}"
 		)
 	}
 
 	fun saveUser() {
-		Log.i("TAG", "saving user json: ${toJson(_uiState.value.user)}")
-		context.dataStore[BaseApplication.Key.User] = toJson(_uiState.value.user) ?: ""
+		Log.i("TAG", "saving user json: ${toJson(_uiState.value.currentUser)}")
+		context.dataStore[BaseApplication.Key.User] = toJson(_uiState.value.currentUser) ?: ""
 	}
 
 	private fun loadUser() {
-		user = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "") ?: User()
-//		if (_uiState.value.user.authInfo == null) {
-//			Log.i("TAG", "User not registered in account!")
-//            activePages = mutableStateListOf(BaseApplication.Page.Login)
-//		} else
-		if (_uiState.value.user.name == null || _uiState.value.user.age == null) {
-			Log.i("TAG", "User not registered in form!")
-			activePages = mutableStateListOf(BaseApplication.Page.Welcome)
+		currentUser = fromJson<User>(context.dataStore[BaseApplication.Key.User] ?: "") ?: User()
+		if (_uiState.value.currentUser?.device == null) {
+			Log.i("TAG", "User not registered in account!")
+			activePages = mutableStateListOf(BaseApplication.Page.Login)
 		} else {
 			activePages = mutableStateListOf(BaseApplication.Page.Home)
 		}
-		Log.i("TAG", "User loaded -> ${_uiState.value.user}")
+		Log.i("TAG", "User loaded -> ${_uiState.value.currentUser}")
 	}
 
 	fun loadPresets() {
@@ -528,36 +523,78 @@ class MainViewModel : ViewModel() {
 			generateNewMotivationText()
 			loadDailyReports()
 			loadWeeklyReports()
-			loadChatHistory()
+			loadChats()
 		}
 	}
 
-	fun doLogin(phoneNumber: Long) {
-		ApiClient.sokhanyar.doSignIn(AuthInfo(phoneNumber = phoneNumber))
-			.call(callback = object : ApiCallback<ResponseObject> {
-				override fun onSuccessful(responseObject: ResponseObject?) {
-					Log.i("TAG", "Login result: $responseObject")
+	fun getClinicsList() {
+		viewModelScope.launch {
+			ApiClient.sokhanyar.getClinicsInfo().call(object : ApiCallback<ClinicsInfoResponse> {
+				override fun onSuccessful(responseObject: ClinicsInfoResponse?) {
 					if (responseObject != null) {
-						_errorMessage.value = ""
-						user = _uiState.value.user.copy(
-							authInfo = AuthInfo(
-								phoneNumber = phoneNumber,
-								otpRequestStatus = OtpRequestStatus.REQUESTED
-							)
+						clinics = responseObject.clinics
+					}
+				}
+
+				override fun onFailure(
+					response: ErrorResponse?,
+					t: Throwable?,
+				) {
+					Log.e("GET_CLINICS", "Failed to get clinics items... ${response?.detail}")
+					t?.printStackTrace()
+				}
+			})
+		}
+	}
+
+	fun registerUserDevice(selectedClinic: Clinic, userRole: UserRole = UserRole.Patient) {
+		viewModelScope.launch {
+			ApiClient.sokhanyar.registerDevice(
+				RegisterDeviceRequest(
+					clinicId = selectedClinic.id,
+					phoneNumber = _uiState.value.currentUser!!.phoneNumber ?: return@launch,
+					userRole = userRole.name
+				)
+			).call(object : ApiCallback<RegisterDeviceResponse> {
+				override fun onSuccessful(responseObject: RegisterDeviceResponse?) {
+					if (responseObject != null) {
+						currentUser = _uiState.value.currentUser?.copy(
+							id = responseObject.userId,
+							device = Device(id = responseObject.deviceId)
 						)
+					}
+				}
+
+				override fun onFailure(
+					response: ErrorResponse?,
+					t: Throwable?,
+				) {
+					TODO("Not yet implemented")
+				}
+			})
+		}
+	}
+
+	fun requestOtpCode() {
+		// TODO: باید فیلدی برای مشخص کردن اسم کلینیک توسط کاربر مثل یک dropdown فراهم بشه.
+		ApiClient.sokhanyar.requestOtpCodeAuth(OtpCodeRequest(deviceId = _uiState.value.currentUser!!.device!!.id))
+			.call(callback = object : ApiCallback<MessageResponse> {
+				override fun onSuccessful(messageResponse: MessageResponse?) {
+					Log.i("TAG", "Login result: $messageResponse")
+					if (messageResponse != null) {
+						_errorMessage.value = ""
+						setOtpCodeStatus(OtpRequestStatus.REQUESTED)
 					} else {
+						setOtpCodeStatus(OtpRequestStatus.ERROR)
 						_errorMessage.value = context.getString(R.string.unknown_error_occurred)
-						user =
-							_uiState.value.user.copy(authInfo = AuthInfo(otpRequestStatus = OtpRequestStatus.ERROR))
 						Log.e("TAG", "failed to login ... get otp code")
 					}
 				}
 
 				override fun onFailure(
-					response: ErrorResponse?, t: Throwable?
+					response: ErrorResponse?, t: Throwable?,
 				) {
-					user =
-						_uiState.value.user.copy(authInfo = AuthInfo(otpRequestStatus = OtpRequestStatus.ERROR))
+					setOtpCodeStatus(OtpRequestStatus.ERROR)
 					_errorMessage.value =
 						(response?.detail?.message ?: t?.message ?: "").analyzeError()
 					t?.printStackTrace()
@@ -566,26 +603,34 @@ class MainViewModel : ViewModel() {
 			})
 	}
 
-	fun doVerifyOtp(phoneNumber: Long, otpCode: Int, onCompleted: () -> Unit) {
-		ApiClient.sokhanyar.verifyOtp(AuthInfo(phoneNumber = phoneNumber, otpCode = otpCode))
-			.call(callback = object : ApiCallback<AuthInfo> {
-				override fun onSuccessful(responseObject: AuthInfo?) {
+	fun requestAccessToken(otpCode: Int, onCompleted: () -> Unit) {
+		ApiClient.sokhanyar.requestAccessTokenAuth(
+			AccessTokenRequest(
+				deviceId = _uiState.value.currentUser!!.device!!.id,
+				otpCode = otpCode
+			)
+		)
+			.call(callback = object : ApiCallback<AccessTokenResponse> {
+				override fun onSuccessful(responseObject: AccessTokenResponse?) {
 					Log.i("TAG", "Verification result: $responseObject")
 					if (responseObject != null) {
 						_errorMessage.value = ""
-						user =
-							_uiState.value.user.copy(authInfo = responseObject.copy(phoneNumber = phoneNumber))
+						setAuthTokensToDevice(
+							responseObject.refreshToken,
+							responseObject.accessToken,
+							responseObject.tokenType
+						)
 						saveUser()
-						Log.i("TAG", "Verification result: $responseObject")
+						Log.i("TAG", "Login result: $responseObject")
 						onCompleted()
 					} else {
 						_errorMessage.value = context.getString(R.string.unknown_error_occurred)
-						Log.i("TAG", "Verification result error with NULL")
+						Log.i("TAG", "Login result error with NULL")
 					}
 				}
 
 				override fun onFailure(
-					response: ErrorResponse?, t: Throwable?
+					response: ErrorResponse?, t: Throwable?,
 				) {
 					_errorMessage.value =
 						(response?.detail?.message ?: t?.message ?: "").analyzeError()
@@ -594,11 +639,9 @@ class MainViewModel : ViewModel() {
 			})
 	}
 
-	fun doStartPayment(phoneNumber: Long, price: Long, onCompleted: (Long?) -> Unit) {
+	fun doStartPayment(price: Long, onCompleted: (Long?) -> Unit) {
 		viewModelScope.launch(Dispatchers.IO) {
-			user = _uiState.value.user.let {
-				it.copy(authInfo = (it.authInfo ?: AuthInfo()).copy(phoneNumber = phoneNumber))
-			}
+			val phoneNumber = _uiState.value.currentUser!!.phoneNumber
 			ApiClient.saltechPay.startDonationPayment(
 				DonationPayment(
 					price,
@@ -623,7 +666,7 @@ class MainViewModel : ViewModel() {
 					}
 
 					override fun onFailure(
-						response: ErrorResponse?, t: Throwable?
+						response: ErrorResponse?, t: Throwable?,
 					) {
 						onCompleted(null)
 						Toast.makeText(
@@ -638,9 +681,28 @@ class MainViewModel : ViewModel() {
 		}
 	}
 
-	fun resetOtpRequestStatus() {
-		user =
-			_uiState.value.user.copy(authInfo = AuthInfo(otpRequestStatus = OtpRequestStatus.NOT_REQUESTED))
+	fun setOtpCodeStatus(status: OtpRequestStatus) {
+		currentUser =
+			_uiState.value.currentUser!!.let {
+				it.copy(device = it.device!!.copy(otpRequestStatus = status))
+			}
+	}
+
+	private fun setAuthTokensToDevice(
+		refreshToken: String,
+		accessToken: String,
+		tokenType: String = "bearer",
+	) {
+		currentUser =
+			_uiState.value.currentUser!!.let {
+				it.copy(
+					device = it.device!!.copy(
+						refreshToken = refreshToken,
+						accessToken = accessToken,
+						tokenType = tokenType
+					)
+				)
+			}
 	}
 
 	fun startCountdown(durationSeconds: Long = OTP_EXPIRATION_DURATION_SECONDS) {

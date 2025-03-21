@@ -2,4 +2,12 @@
     <string name="app_name">سخن یار</string>
     <string name="unknown_error_occurred">خطایی حین انجام عملیات رخ داد</string>
     <string name="voice_analyzer">تحلیلگر صوت</string>
+    <string name="enter_your_phone_number">برای ورود یا عضویت، شماره موبایل خود را وارد کنید.</string>
+    <string name="mobile_example">شماره موبایل بدون صفر باشد. مثلاً 9101122334</string>
+    <string name="phone_number_label">شماره موبایل</string>
+    <string name="login_or_sign_up_button_label">ورود / عضویت</string>
+    <string name="verify_otp_code_login_subtitle">کد تایید ارسال شده به شماره موبایل خود را وارد کنید.</string>
+    <string name="resend_button_label">ارسال مجدد</string>
+    <string name="enter_to_app">ورود به برنامه</string>
+    <string name="otp_code_text_field_label">کد فعالسازی</string>
 </resources>

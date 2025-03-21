@@ -1,17 +1,16 @@
 package ir.saltech.sokhanyar
 
 import android.app.Application
-import android.os.Environment
-import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
 class BaseApplication : Application() {
-	object Constants {
-		@Deprecated("Use `SOKHANYAR_BASE_URL` instead.")
-		const val SALTECH_AI_BASE_URL = "https://ai.saltech.ir/api/"
 
-		const val SOKHANYAR_BASE_URL = "https://api.sokhanyaar.ir/"
-		const val SALTECH_PAY_URL = "https://pay.saltech.ir/api/d85fe720caa225dcaa1ee2b6d53366bcc05d4439/"
+	////////// Objects ///////////
+
+	object Constants {
+		const val SALTECH_PAY_REFERER_LINK = "https://s.saltech.ir/sokhanyar"
 		const val MAX_OF_NAME_CHARS = 25
 		const val MAX_OF_DAILY_REPORT_PAGES = 4
 		const val MAX_OF_WEEKLY_REPORT_PAGES = 3
@@ -51,45 +50,16 @@ class BaseApplication : Application() {
 		val JalaliDays = arrayOf(
 			"یکشنبه", "دوشنبه", "سه شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"
 		)
-		val VoiceDirectories = arrayOf(
-			DirectoryType.Downloads,
-			DirectoryType.Music,
-			DirectoryType.Recordings
-		)
 		val exitPages = listOf(Page.Home, Page.Welcome, Page.Login)
 	}
 
-	object DirectoryType {
-		val Eitaa = "Eitaa Audio"
-		val Downloads = Environment.DIRECTORY_DOWNLOADS
-		val Music = Environment.DIRECTORY_MUSIC
-		val Recordings = "Recordings"
+	object BaseUrl {
+		const val SokhanYar = "http://localhost:8000/v1"
+		const val SalTechPay = "https://pay.saltech.ir/api/d85fe720caa225dcaa1ee2b6d53366bcc05d4439"
 	}
 
 	object Ai {
 		object Gemini {
-			object Models {
-				const val Flash = "gemini-1.5-flash-002"
-				const val Pro = "gemini-1.5-pro-002"
-			}
-
-			val apiKeys = listOf(
-				BuildConfig.GEMINI_API_KEY,
-				BuildConfig.GEMINI_API_KEY_I,
-				BuildConfig.GEMINI_API_KEY_II,
-				BuildConfig.GEMINI_API_KEY_III,
-				BuildConfig.GEMINI_API_KEY_IV,
-				BuildConfig.GEMINI_API_KEY_V,
-				BuildConfig.GEMINI_API_KEY_VI,
-				BuildConfig.GEMINI_API_KEY_VII,
-				BuildConfig.GEMINI_API_KEY_VIII,
-				BuildConfig.GEMINI_API_KEY_IX,
-				BuildConfig.GEMINI_API_KEY_X,
-				BuildConfig.GEMINI_API_KEY_XI,
-				BuildConfig.GEMINI_API_KEY_XII,
-				BuildConfig.GEMINI_API_KEY_XIII,
-				BuildConfig.GEMINI_API_KEY_XIV
-			)
 			const val BASE_SYSTEM_INSTRUCTIONS_V1_1 = """
                 Stuttering Dataset:
 لکنت یک اختلال در سیستم عصبی مغز می باشد که به واسطه این اختلال، مغز قادر به ساختن یک الگوریتم واحدی برای تنظیم شدت نیرو ماهیچه های فک، دهان و زبان نمی باشد و ممکن است برای ادای یک حرف، ماهیچه ها را زیاد از حد فشار دهد یا کم و یا به طور ناخودآگاه آن حرف یا کلمه را چند بار تکرار کند.
@@ -395,25 +365,19 @@ o   You must ask the name of user at the start of chat, if not said.
 		}
 	}
 
-	object Key {
-		val DailyReports = stringPreferencesKey("daily_reports")
-		val WeeklyReports = stringPreferencesKey("weekly_reports")
-		val ChatHistory = stringPreferencesKey("chat_history")
-		val User = stringPreferencesKey("user")
-	}
-
 	object Greeting {
 		val greetingIcon = if (Random.nextBoolean()) "chat_greeting.json" else "greeting.lottie"
 		const val greetingText =
-			"سلام!! خوش اومدی!\nاگه از درمان و لکنت خسته شدی، بیا اینجا تا باهم کلی خوش بگذرونیم! :)"
+			"سلام!! خوش اومدی!\nبیا اینجا، از حس و حالت برام بگو!\nاگه مشکلی اذیتت میکنه، بهم بگو، کمکت کنم! :)"
 	}
+
+	////////// Enumerators /////////////
 
 	enum class Page {
 		Home, Welcome, Login, Menu, Search, GroupChatRoom, AiChatRoom, Practice, AnalyzePractice, SendDailyReport, SendWeeklyReport
 	}
 
-
-	enum class ReportType {
+	enum class PerformanceReportType {
 		Daily, Weekly
 	}
 
@@ -421,10 +385,138 @@ o   You must ask the name of user at the start of chat, if not said.
 		Forward, Backward, Unknown
 	}
 
-	enum class FeedbackOfFeedback {
+	enum class AiUserFeedback {
 		IncorrectOrIncomplete, TooLargeResponse, Good
 	}
 
 	enum class LoginScreens { Login, Otp }
+
+	enum class OtpRequestStatus {
+		NOT_REQUESTED, REQUESTED, ERROR
+	}
+
+	@Serializable
+	enum class Gender {
+		@SerialName("male")
+		Male,
+
+		@SerialName("female")
+		Female,
+
+		@SerialName("other")
+		Other
+	}
+
+	@Serializable
+	enum class UserRole {
+		@SerialName("doctor")
+		Doctor,
+
+		@SerialName("consultant")
+		Consultant,
+
+		@SerialName("companion")
+		Companion,
+
+		@SerialName("patient")
+		Patient,
+
+		@SerialName("viewer")
+		Viewer
+	}
+
+	@Serializable
+	enum class MessageStatus {
+		@SerialName("sent")
+		Sent,
+
+		@SerialName("edited")
+		Edited,
+
+		@SerialName("read")
+		Read
+	}
+
+	@Serializable
+	enum class ChatType {
+		@SerialName("group")
+		Group,
+
+		@SerialName("channel")
+		Channel,
+
+		@SerialName("private")
+		Private
+	}
+
+	@Serializable
+	enum class MessageType {
+		@SerialName("post")
+		Post,
+
+		@SerialName("message")
+		Message,
+
+		@SerialName("comment")
+		Comment
+	}
+
+	@Serializable
+	enum class MediaStatus {
+		@SerialName("active")
+		Active,
+
+		@SerialName("inactive")
+		Inactive,
+
+		@SerialName("edited")
+		Edited,
+
+		@SerialName("deleted")
+		Deleted,
+	}
+
+	@Serializable
+	enum class ChatStatus {
+		@SerialName("active")
+		Active,
+
+		@SerialName("inactive")
+		Inactive,
+
+		@SerialName("deleted")
+		Deleted,
+	}
+
+	@Serializable
+	enum class UserStatus {
+		@SerialName("active")
+		Active,
+
+		@SerialName("online")
+		Online,
+
+		@SerialName("inactive")
+		Inactive,
+
+		@SerialName("deleted")
+		Deleted,
+	}
+
+	enum class FriendshipStatus {
+		Pending, Accepted, Declined, Blocked
+	}
+
+	enum class TreatmentStatus {
+		Started, Stabilized, Completed
+	}
+
+	enum class VisitType {
+		Personal, Group
+	}
+
+	enum class CallType {
+		Group, Peer
+	}
 
 }
